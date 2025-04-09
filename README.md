@@ -11,12 +11,12 @@ The creation of the web application should be done in a private GitHub repositor
 
 ## Group: 2
 ### Member Information:
-| UWA ID  | Name             | Github Username |
+| UWA ID  | Name             | GitHub Username |
 |---------|------------------|-----------------|
-|24670672 |Senaya Wimalasena |senayamary       |
 |23805432 |Callum Breen      |                 |
 |23832656 |Peter Fang        |PFhuahua         |
 |24371485 |Caroline Ann      |CrimsonW23       |
+|24670672 |Senaya Wimalasena |senayamary       |
 <br>
 
 ## Launching Instructions
