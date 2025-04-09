@@ -22,7 +22,7 @@
 ## Phase 4: Social Aspect
 - Having a forum allows and encourages people to discuss their views/thoughts on games and predict their outcomes
 - Can also make it possible to share games that are interesting to you as a link to others that may be interested
-<br><br><br>
+<br><br>
 
 ### User Inputs
 - Register/Login Details – Username, password, email, profile picture.
