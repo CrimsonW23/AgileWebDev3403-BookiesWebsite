@@ -20,6 +20,7 @@ The creation of the web application should be done in a private GitHub repositor
 <br>
 
 ## Launching Instructions
+After you have cloned/pulled the repo, run `pip install flask` to install flask, then run `python app.py` to launch the website locally. For future development please add the new html pages in the template folder and the css in the static folder.
 <br>
 
 ## Testing Instructions
