@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to GAMBLEPRO</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/global_home.css') }}">
+    <script src="{{ url_for('static', filename='js/global_home.js') }}" defer></script>
+</head>
+<body>
+    <header>
+        <div class="logo">GAMBLEPRO</div>
+        <div class="auth">
+            <a href="{{ url_for('login') }}" class="login">Login</a>
+            <a href="{{ url_for('signup') }}" class="join">Join</a>
+        </div>
+    </header>
+    
+    <main class="global-home">
+        <!-- Welcome Section -->
+        <div class="welcome-section">
+            <div class="welcome-text">
+                <h1>Your Game, Your Bet.</h1>
+                <p>Step into the action with GamblePro – where every play brings you closer to victory. Bet on your favorite sports with precision, and turn every moment into a winning opportunity.</p>
+                <a href="{{ url_for('signup') }}" class="btn">Join Now</a>
+            </div>
+        </div>
+
+        <!-- Global Stats --> 
+        <div class="stats-flow">
+            <div class="stat-item">
+                <h3>Total Users</h3>
+                <p id="total-users">Loading...</p>
+            </div>
+            <div class="stat-item">
+                <h3>Total Bets Placed</h3>
+                <p id="total-bets">Loading...</p>
+            </div>
+            <div class="stat-item">
+                <h3>Total Wins</h3>
+                <p id="total-wins">Loading...</p>
+            </div>
+            <div class="stat-item">
+                <h3>Biggest Win</h3>
+                <p id="biggest-win">Loading...</p>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+          <p>&copy; 2025 GAMBLEPRO. All rights reserved.</p>
+          <nav>
+            <a href="#">Terms & Conditions</a>
+            <a href="#">Privacy Policy</a>
+            <a href="#">Responsible Gambling</a>
+          </nav>
+        </div>
+    </footer>
+</body>
+</html>
