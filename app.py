@@ -59,6 +59,22 @@ def stats():
     }
     return jsonify(stats_data)
 
+@app.route("/profile")
+def profile():
+    #Example user account for development purposes
+    user = {
+        "username": "testuser",
+        "email": "testuser@example.com",
+        "stats": {
+            "totalBets": 42,
+            "wins": 30,
+            "losses": 12,
+            "biggestWin": 5000
+        },
+        "date_joined" : "2023-01-01",
+    }
+    return render_template("profile.html", user=user)
+
 if __name__ == "__main__":
     app.run(debug=True)
 
