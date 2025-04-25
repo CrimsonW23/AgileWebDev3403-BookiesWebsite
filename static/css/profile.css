@@ -1,0 +1,342 @@
+/* Base styles */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #111;
+    color: #fff;
+    margin: 0;
+    padding: 0;
+}
+
+/* Header reuse */
+header {
+    width: 100%;
+    background-color: #1a1a1a;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    font-size: 1.5rem;
+    color: #00ff88;
+    font-weight: bold;
+}
+
+.auth a {
+    margin-left: 1rem;
+    padding: 0.5rem 1rem;
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: bold;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.auth .login {
+    background-color: #333;
+    color: #00ff88;
+}
+
+.auth .login:hover {
+    background-color: #444;
+    color: #00cc6e;
+}
+
+.auth .join {
+    background-color: #00ff88;
+    color: #111;
+}
+
+.auth .join:hover {
+    background-color: #00cc6e;
+    color: #fff;
+}
+
+/* Profile container */
+.user-profile {
+    max-width: 1000px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background-color: #1e1e1e;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+}
+
+/* Section styling */
+.profile-section {
+    margin-bottom: 2.5rem;
+}
+
+.profile-section h2 {
+    color: #00ff88;
+    margin-bottom: 1rem;
+    font-size: 1.8rem;
+    border-bottom: 1px solid #333;
+    padding-bottom: 0.5rem;
+}
+
+.profile-information {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 2rem; /* Optional spacing between form and image */
+}
+
+.user-details,
+.profile-image {
+    width: 48%;
+}
+
+/* Optional: center the image vertically */
+.profile-image {
+    display: flex;
+    justify-content: right;
+    align-items: right;
+}
+
+.profile-image img {
+    width: 100%;
+    height: auto;
+    max-width: 200px; /* Optional: limit image size */
+    border-radius: 10px; /* Optional: round corners */
+    object-fit: cover;
+}
+
+.profile-section p,
+.profile-section label {
+    color: #ccc;
+}
+
+.profile-section input,
+.profile-section select,
+.profile-section textarea {
+    width: 98%;
+    padding: 0.8rem 0.7rem;
+    margin-top: 0.5rem;
+    border: 1px solid #333;
+    border-radius: 5px;
+    background-color: #2a2a2a;
+    color: #fff;
+    font-size: 1rem;
+}
+
+.profile-section input:focus,
+.profile-section select:focus,
+.profile-section textarea:focus {
+    outline: none;
+    border-color: #00ff88;
+    box-shadow: 0 0 5px #00ff88;
+}
+
+/* Stats cards */
+.stats-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    justify-content: center;
+}
+
+.stat-card {
+    flex: 1 1 200px;
+    background-color: #151815;
+    padding: 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+
+.stat-card h3 {
+    color: #00ff88;
+    font-size: 1.4rem;
+    margin-bottom: 0.5rem;
+}
+
+.stat-card p {
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+/* Toggle switches for visibility */
+.toggle-group {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 0.8rem 0;
+}
+
+.toggle-group label {
+    flex: 1;
+}
+
+.toggle-switch {
+    position: relative;
+    width: 50px;
+    height: 24px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    background-color: #ccc;
+    border-radius: 24px;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    transition: 0.4s;
+}
+
+.toggle-slider:before {
+    content: "";
+    position: absolute;
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: #111;
+    transition: 0.4s;
+    border-radius: 50%;
+}
+
+.toggle-switch input:checked + .toggle-slider {
+    background-color: #00ff88;
+}
+
+.toggle-switch input:checked + .toggle-slider:before {
+    transform: translateX(26px);
+}
+
+/* Button styling */
+.button-container {
+    text-align: center;
+    margin-top: 2rem;
+}
+
+.profile-button {
+    padding: 0.8rem 2rem;
+    font-size: 1rem;
+    font-weight: bold;
+    background-color: #00ff88;
+    color: #111;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.profile-button:hover {
+    background-color: #00cc6e;
+    transform: scale(1.05);
+}
+
+/* Footer reuse */
+footer {
+    width: 100%;
+    background-color: #1e1e1e;
+    color: #fff;
+    padding: 1.5rem 2rem;
+    text-align: center;
+    border-top: 1px solid #333;
+    margin-top: 2rem;
+}
+
+footer .footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+footer p {
+    color: #ccc;
+    margin: 0.5rem 0;
+}
+
+footer nav a {
+    color: #00ff88;
+    margin: 0 1rem;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+footer nav a:hover {
+    color: #00cc6e;
+}
+
+.checkbox-container{
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+}
+
+.checkbox-container label{
+    white-space: nowrap;
+}
+
+.bet-history {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    justify-content: start;
+    margin-top: 1rem;
+}
+
+.bet-card {
+    background-color: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 10px;
+    padding: 1rem;
+    width: 200px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s ease;
+}
+
+.bet-card:hover {
+    transform: translateY(-5px);
+}
+
+.bet-card p {
+    margin: 0.5rem 0;
+    font-size: 0.95rem;
+    color: #ccc;
+}
+
+.game-name {
+    font-weight: bold;
+    color: #00ff88;
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
+.bet-amount {
+    font-size: 1rem;
+    color: #fff;
+}
+
+.bet-outcome {
+    font-weight: bold;
+    font-size: 1rem;
+}
+
+.bet-outcome.win {
+    color: #00ff88;
+}
+
+.bet-outcome.loss {
+    color: #ff4c4c;
+}
+
+.bet-date {
+    font-style: italic;
+    font-size: 0.9rem;
+    color: #aaa;
+}

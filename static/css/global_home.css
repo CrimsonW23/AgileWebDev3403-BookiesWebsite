@@ -321,3 +321,14 @@ form button:hover {
     margin-top: -0.5rem; /* Adjust spacing for error message */
     text-align: left; /* Align error message with inputs */
 }
+
+.welcome-text .profile-btn {
+    background-color: #333;
+    color: #00ff88;
+    margin-left: 1rem;
+}
+
+.welcome-text .profile-btn:hover {
+    background-color: #444;
+    color: #00cc6e;
+}

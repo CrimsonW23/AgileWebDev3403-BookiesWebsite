@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Profile | GAMBLEPRO</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+    <script src="{{ url_for('static', filename='js/profile.js') }}" defer></script>
+</head>
+
+<script>
+    const userEmail = "{{ user.email }}";  // Get the user's email from the server-side template
+    const userStats = {
+        totalBets: '{{ user.stats["totalBets"] }}',
+        wins: '{{ user.stats["wins"] }}',
+        losses: '{{ user.stats["losses"] }}',
+        biggestWin: '{{ user.stats["biggestWin"] }}'
+    };
+    const userBets = [
+        {% for bet in user.bets %}
+        {
+            game: "{{ bet.game|escape }}",
+            amount: "{{ bet.amount|escape }}",
+            outcome: "{{ bet.outcome|escape }}",
+            date: "{{ bet.date|escape }}"
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ];
+</script>
+
+<body>
+    <header>
+        <div class="logo">GAMBLEPRO</div>
+    </header>
+
+    <main class="user-profile">
+        <section class="profile-header">
+            <h1>Welcome, <span style="color:#00ff88">{{ user.username }}</span></h1>
+            <p>Manage your information and customize what others can see.</p>
+        </section>
+
+        <section class="profile-section personal-details">
+            <h2>Personal Details</h2>
+            <div class = "profile-information">
+                <div class = "user-details">
+                    <p><strong>Username:</strong> {{ user.username }}</p>
+                    <p>
+                        <strong>Email:</strong>
+                        <input type="text" id="email-input" value="*****" readonly>
+                    </p>
+                    <p><strong>Date Joined:</strong> {{ user.date_joined }}</p>
+                    <br>
+                
+                    <div class = "checkbox-container">
+                        <label for="show-email">
+                            Show Email on Profile
+                        </label>
+                        <input type="checkbox" id="show-email" onclick="toggleVisibility('email')">
+                    </div>
+                </div>
+                
+                <div class="profile-image">
+                    <img src="{{ url_for('static', filename='images/profile-placeholder.png') }}">
+                </div>
+        </div>
+
+        </section>
+
+        <section class="profile-section individual-stats">
+            <h2>Your Stats</h2>
+            <div>
+                <p>
+                    <strong>Total Bets Placed:</strong>
+                    <input type="text" id="stats-totalBets" value="*****" readonly>
+                </p>
+                <p>
+                    <strong>Total Wins:</strong>
+                    <input type="text" id="stats-wins" value="*****" readonly>
+                </p>
+                <p>
+                    <strong>Biggest Win:</strong>
+                    <input type="text" id="stats-biggestWin" value="*****" readonly>
+                </p>
+                <p>
+                    <strong>Win Rate:</strong>
+                    <input type="text" id="stats-winRate" value="*****" readonly>
+                </p>
+            </div>
+
+            <div class = "checkbox-container">
+                <label for="show-stats">
+                    Show Stats on Profile
+                </label>
+                <input type="checkbox" id="show-stats" onclick="toggleVisibility('stats')">
+            </div>
+        </section>
+
+        <section class="profile-section past-bets">
+            <h2>Past Bets</h2>
+            {% if user.bets %}
+                <ul class="bet-history">
+                    <div class="bet-history">
+                        {% for bet in user.bets %}
+                            <div class="bet-card" id="bet-card-{{ loop.index0 }}">
+                                <p class="game-name" id="bet-game-{{ loop.index0 }}">*****</p>
+                                <p class="bet-amount" id="bet-amount-{{ loop.index0 }}">*****</p>
+                                <p class="bet-outcome" id="bet-outcome-{{ loop.index0 }}">*****</p>
+                                <p class="bet-date" id="bet-date-{{ loop.index0 }}">*****</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </ul>
+            {% else %}
+                <p>You haven't placed any bets yet.</p>
+            {% endif %}
+            <div class="checkbox-container">
+                <label for="show-bets">Show Past Bets on Profile</label>
+                <input type="checkbox" id="show-bets">
+            </div>
+        </section>
+    </main>
+    <footer>
+        <div class="footer-content">
+            <p>&copy; 2025 GAMBLEPRO. All rights reserved.</p>
+            <nav>
+                <a href="#">Terms & Conditions</a>
+                <a href="#">Privacy Policy</a>
+                <a href="#">Responsible Gambling</a>
+            </nav>
+        </div>
+    </footer>
+</body>
+</html>
