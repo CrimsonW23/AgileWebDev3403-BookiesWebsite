@@ -16,6 +16,16 @@
         losses: '{{ user.stats["losses"] }}',
         biggestWin: '{{ user.stats["biggestWin"] }}'
     };
+    const userBets = [
+        {% for bet in user.bets %}
+        {
+            game: "{{ bet.game|escape }}",
+            amount: "{{ bet.amount|escape }}",
+            outcome: "{{ bet.outcome|escape }}",
+            date: "{{ bet.date|escape }}"
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ];
 </script>
 
 <body>
@@ -31,19 +41,28 @@
 
         <section class="profile-section personal-details">
             <h2>Personal Details</h2>
-            <p><strong>Username:</strong> {{ user.username }}</p>
-            <p>
-                <strong>Email:</strong>
-                <input type="text" id="email-input" value="*****" readonly>
-            </p>
-            <p><strong>Date Joined:</strong> {{ user.date_joined }}</p>
-            
-            <div class = "checkbox-container">
-                <label for="show-email">
-                    Show Email on Profile
-                </label>
-                <input type="checkbox" id="show-email" onclick="toggleVisibility('email')">
-            </div>
+            <div class = "profile-information">
+                <div class = "user-details">
+                    <p><strong>Username:</strong> {{ user.username }}</p>
+                    <p>
+                        <strong>Email:</strong>
+                        <input type="text" id="email-input" value="*****" readonly>
+                    </p>
+                    <p><strong>Date Joined:</strong> {{ user.date_joined }}</p>
+                    <br>
+                
+                    <div class = "checkbox-container">
+                        <label for="show-email">
+                            Show Email on Profile
+                        </label>
+                        <input type="checkbox" id="show-email" onclick="toggleVisibility('email')">
+                    </div>
+                </div>
+                
+                <div class="profile-image">
+                    <img src="{{ url_for('static', filename='images/profile-placeholder.png') }}">
+                </div>
+        </div>
 
         </section>
 
@@ -80,22 +99,24 @@
             <h2>Past Bets</h2>
             {% if user.bets %}
                 <ul class="bet-history">
-                    {% for bet in user.bets %}
-                        <li>
-                            <p><strong>Game:</strong> {{ bet.game }}</p>
-                            <p><strong>Amount:</strong> ${{ bet.amount }}</p>
-                            <p><strong>Outcome:</strong> {{ bet.outcome }}</p>
-                            <p><strong>Date:</strong> {{ bet.date }}</p>
-                        </li>
-                    {% endfor %}
+                    <div class="bet-history">
+                        {% for bet in user.bets %}
+                            <div class="bet-card" id="bet-card-{{ loop.index0 }}">
+                                <p class="game-name" id="bet-game-{{ loop.index0 }}">*****</p>
+                                <p class="bet-amount" id="bet-amount-{{ loop.index0 }}">*****</p>
+                                <p class="bet-outcome" id="bet-outcome-{{ loop.index0 }}">*****</p>
+                                <p class="bet-date" id="bet-date-{{ loop.index0 }}">*****</p>
+                            </div>
+                        {% endfor %}
+                    </div>
                 </ul>
             {% else %}
                 <p>You haven't placed any bets yet.</p>
             {% endif %}
-            <label>
-                <input type="checkbox" name="show_bets" {% if user.show_bets %}checked{% endif %}>
-                Show Past Bets on Profile
-            </label>
+            <div class="checkbox-container">
+                <label for="show-bets">Show Past Bets on Profile</label>
+                <input type="checkbox" id="show-bets">
+            </div>
         </section>
     </main>
     <footer>

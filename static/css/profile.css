@@ -75,6 +75,33 @@ header {
     padding-bottom: 0.5rem;
 }
 
+.profile-information {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 2rem; /* Optional spacing between form and image */
+}
+
+.user-details,
+.profile-image {
+    width: 48%;
+}
+
+/* Optional: center the image vertically */
+.profile-image {
+    display: flex;
+    justify-content: right;
+    align-items: right;
+}
+
+.profile-image img {
+    width: 100%;
+    height: auto;
+    max-width: 200px; /* Optional: limit image size */
+    border-radius: 10px; /* Optional: round corners */
+    object-fit: cover;
+}
+
 .profile-section p,
 .profile-section label {
     color: #ccc;
@@ -253,4 +280,63 @@ footer nav a:hover {
 
 .checkbox-container label{
     white-space: nowrap;
+}
+
+.bet-history {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    justify-content: start;
+    margin-top: 1rem;
+}
+
+.bet-card {
+    background-color: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 10px;
+    padding: 1rem;
+    width: 200px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s ease;
+}
+
+.bet-card:hover {
+    transform: translateY(-5px);
+}
+
+.bet-card p {
+    margin: 0.5rem 0;
+    font-size: 0.95rem;
+    color: #ccc;
+}
+
+.game-name {
+    font-weight: bold;
+    color: #00ff88;
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
+.bet-amount {
+    font-size: 1rem;
+    color: #fff;
+}
+
+.bet-outcome {
+    font-weight: bold;
+    font-size: 1rem;
+}
+
+.bet-outcome.win {
+    color: #00ff88;
+}
+
+.bet-outcome.loss {
+    color: #ff4c4c;
+}
+
+.bet-date {
+    font-style: italic;
+    font-size: 0.9rem;
+    color: #aaa;
 }

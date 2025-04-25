@@ -72,6 +72,10 @@ def profile():
             "biggestWin": 5000
         },
         "date_joined" : "2023-01-01",
+        "bets": [
+            {"bet_id": 1, "game": "Poker", "amount": 100, "outcome": "Loss", "date": "2023-01-15"},
+            {"bet_id": 2, "game": "Horses", "amount": 300, "outcome": "Won", "date": "2023-01-17"},
+        ]
     }
     return render_template("profile.html", user=user)
 

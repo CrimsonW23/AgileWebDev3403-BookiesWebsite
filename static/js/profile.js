@@ -37,6 +37,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const checkbox = document.getElementById("show-email");
     const emailDisplay = document.getElementById("email-input");
     const statsCheckbox = document.getElementById("show-stats");
+    const pastBetsCheckbox = document.getElementById("show-bets");
 
     function toggleVisibility(inputType) {
         if (inputType == 'email'){
@@ -48,16 +49,30 @@ document.addEventListener("DOMContentLoaded", () => {
             document.getElementById("stats-biggestWin").value = statsCheckbox.checked ? userStats.biggestWin : "*****";
             document.getElementById("stats-winRate").value = statsCheckbox.checked ? `${((userStats.wins / userStats.totalBets) * 100).toFixed(2)}%` : "*****";
         }
-        else if ( inputType == 'past-bets'){
-            pastBetsInput.value = pastBetsCheckbox.checked ? userPastBets : "*****";
+        else if (inputType === 'past-bets') {
+            for (let i = 0; i < userBets.length; i++) {
+                document.getElementById(`bet-game-${i}`).textContent = pastBetsCheckbox.checked ? userBets[i].game : "*****";
+                document.getElementById(`bet-amount-${i}`).textContent = pastBetsCheckbox.checked ? `$${userBets[i].amount}` : "*****";
+                document.getElementById(`bet-outcome-${i}`).textContent = pastBetsCheckbox.checked ? userBets[i].outcome : "*****";
+                document.getElementById(`bet-date-${i}`).textContent = pastBetsCheckbox.checked ? userBets[i].date : "*****";
+        
+                // Changes outcome color based on win/loss
+                const outcomeEl = document.getElementById(`bet-outcome-${i}`);
+                outcomeEl.classList.remove("win", "loss");
+                if (pastBetsCheckbox.checked) {
+                    outcomeEl.classList.add(userBets[i].outcome === "Won" ? "win" : "loss");
+                }
+            }
         }
     }
 
     checkbox.addEventListener("change", () => toggleVisibility('email'));
     statsCheckbox.addEventListener("change", () => toggleVisibility('stats'));
+    pastBetsCheckbox.addEventListener("change", () => toggleVisibility('past-bets'));
 
     toggleVisibility('email');
     toggleVisibility('stats');
+    toggleVisibility('past-bets');
 
 });
 
