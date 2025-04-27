@@ -1,13 +1,6 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your Profile | GAMBLEPRO</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
-    <script src="{{ url_for('static', filename='js/profile.js') }}" defer></script>
-</head>
+{% extends "base.html" %}
 
+{% block content %}
 <script>
     const userEmail = "{{ user.email }}";  // Get the user's email from the server-side template
     const userStats = {
@@ -28,10 +21,9 @@
     ];
 </script>
 
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+
 <body>
-    <header>
-        <div class="logo">GAMBLEPRO</div>
-    </header>
 
     <main class="user-profile">
         <section class="profile-header">
@@ -119,15 +111,6 @@
             </div>
         </section>
     </main>
-    <footer>
-        <div class="footer-content">
-            <p>&copy; 2025 GAMBLEPRO. All rights reserved.</p>
-            <nav>
-                <a href="#">Terms & Conditions</a>
-                <a href="#">Privacy Policy</a>
-                <a href="#">Responsible Gambling</a>
-            </nav>
-        </div>
-    </footer>
 </body>
-</html>
+<script src="{{ url_for('static', filename='js/profile.js') }}"></script>
+{% endblock %}

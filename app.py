@@ -12,11 +12,6 @@ def global_home():
 def dashboard():
     return render_template("dashboard.html")  # Dashboard page
 
-# Route for the gameboard
-@app.route("/games")
-def gameboard():
-    return render_template("gameboard.html")  # Gameboard page
-
 # Route for the forum
 @app.route("/forum")
 def forum():
