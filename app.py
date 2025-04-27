@@ -12,6 +12,10 @@ def global_home():
 def dashboard():
     return render_template("index.html")  # Dashboard page
 
+@app.route("/games") 
+def game_board():
+    return render_template("game_board.html")
+
 # Route for the sign-up page (GET method)
 @app.route("/signup")
 def signup():
