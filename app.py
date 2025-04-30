@@ -88,6 +88,25 @@ def profile():
     }
     return render_template("profile.html", user=user)
 
+# Route for the "Create Bet" page (GET method)
+@app.route("/create_bet", methods=["GET"])
+def create_bet():
+    return render_template("create_bet.html")  # Render the Create Bet form
+
+# Route to handle "Create Bet" form submission (POST method)
+@app.route("/create_bet", methods=["POST"])
+def create_bet_post():
+    # Collect form data 
+    event_name = data.get("event_name")
+    bet_type = data.get("bet_type")
+    stake_amount = data.get("stake_amount")
+    odds = data.get("odds")
+    potential_winnings = data.get("potential_winnings")
+    scheduled_time = data.get("scheduled_time")
+
+    return jsonify({"success": True})
+
+
 if __name__ == "__main__":
     app.run(debug=True)
 
