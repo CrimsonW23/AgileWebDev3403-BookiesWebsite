@@ -1,1 +1,6 @@
-Flask
+Instructions:
+Install on windows using 'pip install <package_name>'
+
+flask
+flask-sqlalchemy
+flask-migrate
