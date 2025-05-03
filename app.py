@@ -1,6 +1,26 @@
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, render_template, jsonify, request, redirect, url_for, flash
+from config import Config
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
+from forms import PostForm, ReplyForm
+from datetime import datetime, timedelta
+from dashboard_handler import handle_dashboard, handle_dashboard_data
+from bet_handler import handle_create_bet, handle_place_bet, handle_place_bet_form
+
+import os
 
 app = Flask(__name__)
+app.config.from_object(Config)
+
+from extensions import db
+
+db.init_app(app)
+migrate = Migrate(app, db)
+
+SECRET_KEY = os.urandom(32)
+app.config['SECRET_KEY'] = SECRET_KEY
+
+from proj_models import User, Post, Reply, Bet, EventResult
 
 # Route for the global home page
 @app.route("/")
@@ -10,12 +30,17 @@ def global_home():
 # Route for the dashboard
 @app.route("/dashboard")
 def dashboard():
-    return render_template("dashboard.html")  # Dashboard page
+    return handle_dashboard()
+
+@app.route("/dashboard_data")
+def dashboard_data():
+    return handle_dashboard_data()
 
 # Route for the forum
 @app.route("/forum")
 def forum():
-    return render_template("forum.html")  # Forum page
+    posts = Post.query.order_by(Post.timestamp.desc()).all()
+    return render_template("forum.html", posts=posts)  # Forum page
 
 @app.route("/games") 
 def game_board():
@@ -88,24 +113,65 @@ def profile():
     }
     return render_template("profile.html", user=user)
 
-# Route for the "Create Bet" page (GET method)
-@app.route("/create_bet", methods=["GET"])
+@app.route("/createpost", methods=['GET', 'POST'])
+def create_post():
+    form = PostForm()
+    if form.validate_on_submit():
+        post = Post(
+            body=form.post.data, 
+            category=form.category.data, 
+            timestamp = datetime.now().replace(second=0, microsecond=0), 
+            author=form.author.data, 
+            title=form.title.data
+        )  # Example author ID
+        db.session.add(post)
+        db.session.commit()
+        return redirect(url_for('view_post', post_id=post.id))
+    posts = Post.query.order_by(Post.timestamp.desc()).all()
+    return render_template("forum_create_post.html", title='Create Post', form=form, posts=posts)
+
+@app.route('/posts/<int:post_id>', methods=['GET', 'POST'])
+def view_post(post_id):
+    post = Post.query.get(post_id)
+    form = ReplyForm()
+    if form.validate_on_submit():
+        reply = Reply(
+            body = form.reply.data, 
+            timestamp = datetime.now().replace(second=0, microsecond=0), 
+            author = form.author.data, 
+            post_id=post_id
+        )  # Example author ID
+        db.session.add(reply)
+        db.session.commit()
+        return redirect(url_for('view_post', post_id=post.id))
+    return render_template('forum_post.html', post=post, replies=post.replies, form=form)
+
+@app.route("/available_bets")
+def available_bets():
+    user_id = 1  # Replace with the logged-in user's ID
+
+    # Fetch all events that the logged-in user has NOT placed a bet on
+    available_events = Bet.query.filter(
+        Bet.user_id != user_id,  # Exclude bets placed by the logged-in user
+        Bet.status != "Completed"  # Exclude completed bets
+    ).distinct(Bet.event_name).all()
+
+    return render_template("available_bets.html", events=available_events)
+
+# Route for the "Create Bet" page (GET and POST methods)
+@app.route('/create_bet', methods=['GET', 'POST'])
 def create_bet():
-    return render_template("create_bet.html")  # Render the Create Bet form
+    return handle_create_bet()
 
-# Route to handle "Create Bet" form submission (POST method)
-@app.route("/create_bet", methods=["POST"])
-def create_bet_post():
-    # Collect form data 
-    event_name = data.get("event_name")
-    bet_type = data.get("bet_type")
-    stake_amount = data.get("stake_amount")
-    odds = data.get("odds")
-    potential_winnings = data.get("potential_winnings")
-    scheduled_time = data.get("scheduled_time")
+# Route for placing a bet
+@app.route("/place_bet/<int:bet_id>", methods=["POST"])
+def place_bet(bet_id):
+    return handle_place_bet(bet_id)
 
-    return jsonify({"success": True})
-
+# Route for the "Place Bet Form" page
+@app.route("/place_bet_form/<event_name>", methods=["GET", "POST"])
+def place_bet_form(event_name):
+    return handle_place_bet_form(event_name)
 
 if __name__ == "__main__":
     app.run(debug=True)

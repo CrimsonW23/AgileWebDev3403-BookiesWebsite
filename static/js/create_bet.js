@@ -40,22 +40,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 bet_type: betType,
                 stake_amount: stakeAmount,
                 odds: odds,
-                potential_winnings: potentialWinnings,
                 scheduled_time: scheduledTime,
             }),
-        })
-        .then((response) => response.json())
-        .then((data) => {
-            if (data.success) {
-                alert('Bet placed successfully!');
-                window.location.href = '/dashboard'; // Redirect to the dashboard
-            } else {
-                alert('Failed to place bet: ' + data.message);
-            }
-        })
-        .catch((error) => {
-            console.error('Error:', error);
-            alert('An error occurred while placing the bet.');
         });
     });
 });

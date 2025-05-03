@@ -1,0 +1,83 @@
+body {
+    font-family: Arial, sans-serif;
+    background: #222;
+    color: #eee;
+    margin: 0;
+    padding: 0;
+}
+
+.top-bar {
+    background: #444;
+    padding: 0.5rem 1rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+}
+
+.top-bar a {
+    color: #00cc6e;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.header {
+    background: #444;
+    color: #00cc6e;
+    padding: 1.5rem 1rem 1rem;
+}
+
+.header h1 {
+    margin: 0;
+    font-size: 2rem;
+}
+
+.post-container {
+    background: #333;
+    margin: 1rem auto;
+    max-width: 1000px;
+    padding: 1rem;
+    padding-bottom: 1.6rem;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+}
+
+.create-form form{
+    font-family: Arial, sans-serif;
+    font-weight: bold;
+}
+
+form .row {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 0.5rem;
+}
+
+.input-field {
+    width: 100%;
+    padding: 0.8rem; /* Padding inside input fields */
+    border: 1px solid #333;
+    border-radius: 5px;
+    background-color: #2a2a2a;
+    color: #fff;
+    font-size: 0.9rem; /* Font size for inputs */
+    box-sizing: border-box; /* Include padding and border in element's total width and height */
+}
+
+.button-container {
+    text-align: right;
+}
+
+.button {
+    padding: 0.6rem 1rem; /* Padding for buttons */
+    font-size: 1rem; /* Font size for buttons */
+    font-weight: bold;
+    color: #111;
+    background-color: #00ff88;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    text-decoration: none;
+}
