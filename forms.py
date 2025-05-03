@@ -16,7 +16,7 @@ class PostForm(FlaskForm):
     author = StringField('Name', validators=[DataRequired(), Length(min=1, max=25)])
     title = StringField('Title', validators=[DataRequired(), Length(min=1, max=50)])
     category = SelectField('Category', choices=categories, validators=[DataRequired()])
-    post = TextAreaField('Say something (i\'m giving up on you)', validators=[DataRequired(), Length(min=1, max=150)])
+    post = TextAreaField('Say something:', validators=[DataRequired(), Length(min=1, max=150)])
     submit = SubmitField('Submit')
 
 class ReplyForm(FlaskForm):
