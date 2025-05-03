@@ -31,3 +31,31 @@ class Reply(db.Model):
 
     def __repr__(self):
         return 'Reply "{}"'.format(self.body)
+
+class Bet(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    event_name = db.Column(db.String(100), nullable=False)  # Name of the event
+    bet_type = db.Column(db.String(50), nullable=False)  # User's bet type (e.g., "win" or "loss")
+    stake_amount = db.Column(db.Float, nullable=False)  # Amount the user bet
+    odds = db.Column(db.Float, nullable=False)  # Odds for the bet
+    potential_winnings = db.Column(db.Float, nullable=False)  # Potential winnings
+    actual_winnings = db.Column(db.Float, nullable=True)  # Winnings after the event
+    scheduled_time = db.Column(db.DateTime, nullable=False)  # When the event is scheduled
+    duration = db.Column(db.Integer, nullable=False)  # Duration in hours
+    status = db.Column(db.String(50), nullable=False, default="Upcoming")  # Bet status: Upcoming, Ongoing, Completed
+    event_outcome = db.Column(db.String(50), nullable=True)  # Outcome of the event (e.g., "win" or "loss")
+    date_settled = db.Column(db.DateTime, nullable=True)  # When the bet was settled
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)  # When the bet was created
+
+    def __repr__(self):
+        return f"<Bet {self.event_name} - {self.status}>"
+
+class EventResult(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    event_name = db.Column(db.String(100), nullable=False, unique=True)   
+    outcome = db.Column(db.String(50), nullable=False)   
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)   
+
+    def __repr__(self):
+        return f"<EventResult {self.event_name} - {self.outcome}>"
