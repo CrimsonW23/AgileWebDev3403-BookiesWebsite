@@ -20,7 +20,16 @@ The creation of the web application should be done in a private GitHub repositor
 <br>
 
 ## Launching Instructions
-After you have cloned/pulled the repo, run `pip install flask` to install flask, then run `python app.py` to launch the website locally. For future development please add the new html pages in the template folder and the css in the static folder.
+1. In command prompt or the terminal, activate venv
+2. Clone the repository using `git clone https://github.com/CrimsonW23/AgileWebDev3403-BookiesWebsite.git`
+3. Install dependencies as listed in the `requirements.txt` file.
+4. Run `flask db init` to initialise the database that will store all of your local data.
+5. Run `flask db migrate` to generate the migration script.
+6. Next, run `flask db upgrade` to update the database.
+7. Back in the terminal, `cd` to the directory where you cloned the repository and run `python app.py`
+8. Head over to 127.0.0.1 (or the address your console says the website is hosted at).
+
+For future development please add the new html pages in the template folder and the css in the static folder.
 <br>
 
 ## Testing Instructions
