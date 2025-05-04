@@ -64,7 +64,6 @@ def handle_dashboard(userid):
 def handle_dashboard():
     """Render the dashboard with updated bet data."""
     user_id = 1  # Placeholder user ID
-    update_bet_statuses(user_id)
 
     # Fetch bets by status
     ongoing_bets = Bet.query.filter_by(user_id=user_id, status="Ongoing").all()
