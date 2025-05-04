@@ -1,0 +1,66 @@
+body {
+    background-color: #111;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #ccc;
+    margin: 0;
+    padding: 0;
+}
+
+.currency-container {
+    max-width: 1000px;
+    margin: 2rem auto;
+    padding: 1rem;
+    text-align: center;
+}
+
+.currency-container h2 {
+    color: #00ff88;
+    margin-bottom: 2rem;
+}
+
+.purchase-options {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 2rem;
+}
+
+.currency-card {
+    background-color: #1c1c1c;
+    border: 2px solid #00ff88;
+    border-radius: 12px;
+    padding: 1.5rem;
+    width: 180px;
+    box-shadow: 0 0 15px #00ff8855;
+    transition: transform 0.2s ease;
+}
+
+.currency-card:hover {
+    transform: scale(1.05);
+}
+
+.currency-card h3 {
+    color: #00ff88;
+    margin-bottom: 0.5rem;
+}
+
+.price {
+    color: #ccc;
+    margin-bottom: 1rem;
+}
+
+.buy-button {
+    background-color: #00ff88;
+    color: #111;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.buy-button:hover {
+    background-color: #00cc6e;
+    color: #fff;
+}

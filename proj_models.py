@@ -6,7 +6,7 @@ class User(db.Model):
     username = db.Column(db.String(25), index=True, unique=True)
     password = db.Column(db.String(150), index=True, unique=False)
     email = db.Column(db.String(50), index=True, unique=True)
-
+    currency = db.Column(db.Float, default=0.0, index=True)
 
     def __repr__(self):
         return 'User {}'.format(self.username)

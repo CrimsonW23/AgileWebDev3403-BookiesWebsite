@@ -68,7 +68,7 @@ def signup_post():
         flash("Username or email already taken", 'error')
         return render_template("signup.html")
     
-    new_user = User(username=username, password=password, email=email) #hash password for storing implement soontm
+    new_user = User(username=username, password=password, email=email, currency=100) #hash password for storing implement soontm
     try:
         db.session.add(new_user)
         db.session.commit()
@@ -102,6 +102,7 @@ def login_post():
         session['logged_in'] = True
         session['username'] = user.username
         session['userID'] = user.id
+        session['currency'] = user.currency
         return redirect(url_for('global_home'))
     else:
         flash("Login failed", 'error')
@@ -211,6 +212,27 @@ def place_bet(bet_id):
 @app.route("/place_bet_form/<event_name>", methods=["GET", "POST"])
 def place_bet_form(event_name):
     return handle_place_bet_form(event_name)
+
+# Route for the currency page
+@app.route("/currency")
+def currency():
+    return render_template("currency.html")  # Currency page
+
+# Route for getting currency
+@app.route("/get_currency", methods=['POST'])
+def get_currency():
+    content = request.get_json()
+    amount = int(content.get('amount', 0))
+    user = User.query.filter((User.username == session['username']) & (User.id == session['userID'])).first()
+    session['currency'] = user.currency + amount
+    user.currency += amount
+    db.session.commit()
+
+    return jsonify({"success": True, "amount": amount, "new_balance": user.currency})
+
+@app.template_filter('pretty_currency')
+def pretty_currency(cents):
+    return "{:,}".format(int(cents))
 
 if __name__ == "__main__":
     app.run(debug=True)

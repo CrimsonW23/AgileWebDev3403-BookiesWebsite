@@ -19,6 +19,11 @@
       <a href="{{ url_for('forum') }}">Forums</a> 
     </nav>
     <div class="authed">
+      {% if session.get('currency') %}
+      <a href="{{ url_for('currency') }}" class="currency">${{ session.currency | pretty_currency }}</a>
+      {% else %}
+      <a href="{{ url_for('currency') }}" class="currency">$0.00</a>
+      {% endif %}
       <a href="{{ url_for('profile') }}" class="profile">Profile</a>
       <a href="/logout" class="logout">Logout</a>
     </div>
