@@ -18,7 +18,7 @@ def fetch_event_outcome(event_name):
         "Basketball Match": "win",
         "Rugby Match": "win",
     }
-    return simulated_outcomes.get(event_name, None)
+    return simulated_outcomes.get(event_name)
 
 def serialize_bet(bet):
     """Serialize a bet object into a dictionary."""
@@ -31,21 +31,20 @@ def serialize_bet(bet):
         "scheduled_time": bet.scheduled_time.strftime("%Y-%m-%dT%H:%M:%S"),
         "duration": bet.duration,
         "status": bet.status,
-        "actual_winnings": bet.actual_winnings,
+        "actual_winnings": bet.actual_winnings, 
         "date_settled": bet.date_settled.strftime("%Y-%m-%d %H:%M:%S") if bet.date_settled else None
     }
 
-def handle_dashboard():
-    user_id = 1  # Replace with the logged-in user's ID
+def update_bet_statuses(user_id):
+    """Update the statuses of bets dynamically."""
     current_time = datetime.now()
-
-    # Update bet statuses dynamically
     bets = Bet.query.filter_by(user_id=user_id).all()
+
     for bet in bets:
         duration = timedelta(hours=bet.duration)
         if bet.status == "Upcoming" and bet.scheduled_time <= current_time:
             bet.status = "Ongoing"
-        if bet.status == "Ongoing" and current_time >= (bet.scheduled_time + duration):
+        elif bet.status == "Ongoing" and current_time >= (bet.scheduled_time + duration):
             event_result = EventResult.query.filter_by(event_name=bet.event_name).first()
             if not event_result:
                 outcome = fetch_event_outcome(bet.event_name)
@@ -59,7 +58,13 @@ def handle_dashboard():
                 bet.actual_winnings = bet.stake_amount * bet.odds if event_result.outcome == bet.bet_type else 0
                 bet.status = "Completed"
                 bet.date_settled = current_time
+
     db.session.commit()
+
+def handle_dashboard():
+    """Render the dashboard with updated bet data."""
+    user_id = 1  # Placeholder user ID
+    update_bet_statuses(user_id)
 
     # Fetch bets by status
     ongoing_bets = Bet.query.filter_by(user_id=user_id, status="Ongoing").all()
@@ -97,7 +102,11 @@ def handle_dashboard():
     )
 
 def handle_dashboard_data():
-    user_id = 1  # Replace with the logged-in user's ID
+    """Return dashboard data as JSON."""
+    user_id = 1  # Placeholder user ID
+    update_bet_statuses(user_id)  # Ensure bet statuses are updated dynamically
+
+    # Fetch bets by status
     ongoing_bets = Bet.query.filter_by(user_id=user_id, status="Ongoing").all()
     upcoming_bets = Bet.query.filter_by(user_id=user_id, status="Upcoming").all()
     past_bets = Bet.query.filter_by(user_id=user_id, status="Completed").order_by(Bet.date_settled.desc()).all()
@@ -107,4 +116,3 @@ def handle_dashboard_data():
         "upcoming_bets": [serialize_bet(bet) for bet in upcoming_bets],
         "past_bets": [serialize_bet(bet) for bet in past_bets]
     })
- 
