@@ -100,7 +100,7 @@
               <td>{{ bet.odds }}</td>
               <td>{{ "Win" if bet.actual_winnings > 0 else "Loss" }}</td>
               <td>${{ bet.actual_winnings }}</td>
-              <td>{{ bet.date_settled }}</td>
+              <td>{{ bet.date_settled.strftime('%Y-%m-%d %H:%M:%S') }}</td>
             </tr>
             {% endfor %}
           </tbody>
@@ -168,7 +168,7 @@
               <td>{{ bet.odds }}</td>
               <td>{{ "Win" if bet.actual_winnings > 0 else "Loss" }}</td>
               <td>${{ bet.actual_winnings }}</td>
-              <td>{{ bet.date_settled }}</td>
+              <td>{{ bet.date_settled.strftime('%Y-%m-%d %H:%M:%S') }}</td>
             </tr>
             {% endfor %}
           </tbody>
