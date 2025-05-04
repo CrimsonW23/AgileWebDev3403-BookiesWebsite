@@ -11,11 +11,7 @@
         </div>
         <div>
             <label for="bet-type">Bet Type:</label>
-            <select id="bet-type" name="bet-type" required>
-                <option value="" disabled selected>Select Bet Type</option>
-                <option value="win">Win</option>
-                <option value="loss">Loss</option>
-            </select>
+            <input type="text" id="bet-type" name="bet-type" placeholder="Enter win condition" required>
         </div>
         <div>
             <label for="stake-amount">Max Stake Amount:</label>
@@ -35,7 +31,7 @@
             <input type="number" id="duration" name="duration" min="1" step="1" placeholder="Enter duration in hours" required>
         </div>
         <div class="button-container">
-            <button type="submit" id="submit-btn" class="submit-btn">Place Bet</button>
+            <button type="submit" id="submit-btn" class="submit-btn">Create Bet</button>
         </div>
     </form>
 </div>

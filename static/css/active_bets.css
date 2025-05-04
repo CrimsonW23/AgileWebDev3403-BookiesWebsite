@@ -1,11 +1,13 @@
-.bets-page {
+.active-bets {
     padding: 2rem;
   }
+  
   .controls {
     display: flex;
     justify-content: flex-start;
     margin-bottom: 1.5rem;
   }
+  
   .controls input {
     padding: 0.6rem 0.8rem;
     border: 1px solid #333;
@@ -14,45 +16,75 @@
     color: #fff;
     width: 300px;
   }
-  .bet-grid {
+  
+  .bet-cards {
     display: flex;
     flex-wrap: wrap;
     gap: 1.5rem;
     justify-content: flex-start;
   }
+  
   .bet-card {
     background: #1a1a1a;
     border: 1px solid #333;
     border-radius: 10px;
     padding: 1rem;
-    margin: 0 1rem;
-    width: 250px;
+    width: calc(33.33% - 1.5rem); /* 3 items per row */
     transition: transform 0.2s ease;
+    box-sizing: border-box;
   }
+  
   .bet-card:hover {
     transform: scale(1.03);
   }
+  
   .bet-card h3 {
     margin-top: 0;
-    color: #00ff88;
+    color: #00ff88;  /* Darker green */
     font-size: 1.2rem;
   }
+  
   .bet-card p {
-    margin: 0.3rem ;
+    margin: 0.3rem;
     color: #ccc;
     font-size: 0.95rem;
   }
-
+  
   .bet-card input {
-    width: 89%;
+    width: 100%;
+    padding: 0.6rem;
+    margin-bottom: 1rem;
+    border-radius: 5px;
+    border: 1px solid #333;
+    background: #2a2a2a;
+    color: #fff;
   }
-
+  
+  .bet-card button {
+    width: 100%;
+    padding: 0.8rem;
+    border-radius: 5px;
+    background: #006644;  /* Darker green */
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background 0.3s ease;
+  }
+  
+  .bet-card button:hover {
+    background: #004d33;  /* Even darker green */
+  }
+  
   .status.upcoming {
     color: #ffa500;
   }
+  
   .status.ongoing {
-    color: #00ff88;
+    color: #006644;  /* Darker green for ongoing status */
   }
+  
   .status.completed {
     color: #ff4c4c;
   }
+  

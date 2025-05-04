@@ -200,8 +200,9 @@ def active_bets():
 @app.route("/place_bet/<int:bet_id>", methods=["POST"])
 def place_bet(bet_id):
     amount = float(request.form.get('amount'))
-    userid = session['userID']
-    return handle_place_bet(bet_id, amount, userid)
+    if amount <= session['currency']:
+        userid = session['userID']
+        return handle_place_bet(bet_id, amount, userid)
 
 # Route for the "Place Bet Form" page
 @app.route("/place_bet_form/<event_name>", methods=["GET", "POST"])

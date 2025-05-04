@@ -1,6 +1,6 @@
 from flask import render_template, request, redirect, url_for, flash
 from datetime import datetime
-from proj_models import Bet
+from proj_models import Bet, ActiveBets
 from extensions import db
 
 def handle_create_bet():
@@ -25,28 +25,20 @@ def handle_create_bet():
                 flash("Scheduled time must be in the future.", "error")
                 return redirect(url_for('create_bet'))
 
-            # Calculate potential winnings
-            stake_amount = float(stake_amount)
-            odds = float(odds)
-            potential_winnings = round(stake_amount * odds,2)
-
             # Save the bet to the database
-            new_bet = Bet(
-                user_id=1,  # Replace with the logged-in user's ID
+            new_bet = ActiveBets(
                 event_name=event_name,
                 bet_type=bet_type,
                 stake_amount=stake_amount,
                 odds=odds,
-                potential_winnings=potential_winnings,
                 scheduled_time=scheduled_datetime,
                 duration=int(duration),  # Save duration in hours
-                status="Upcoming"
             )
             db.session.add(new_bet)
             db.session.commit()
 
             flash("Bet placed successfully!", "success")
-            return redirect(url_for('dashboard'))
+            return redirect(url_for('active_bets'))
 
         except Exception as e:
             flash(f"An error occurred: {str(e)}", "error")
