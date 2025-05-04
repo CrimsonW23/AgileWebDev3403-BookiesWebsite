@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="place-bet-form-container">
+  <h2>Place Bet for {{ event_name }}</h2>
+  <form method="POST" action="{{ url_for('place_bet_form', event_name=event_name) }}" class="place-bet-form">
+    <div>
+      <label for="event_name">Event Name:</label>
+      <input type="text" id="event_name" name="event_name" value="{{ event_name }}" readonly>
+    </div>
+    <div>
+      <label for="bet_type">Bet Type:</label>
+      <select id="bet_type" name="bet_type" required>
+        <option value="" disabled selected>Select Bet Type</option>
+        <option value="win">Win</option>
+        <option value="loss">Loss</option>
+      </select>
+    </div>
+    <div>
+      <label for="stake_amount">Stake Amount:</label>
+      <input type="number" id="stake_amount" name="stake_amount" step="0.01" min="1" required>
+    </div>
+    <div>
+      <label for="odds">Odds:</label>
+      <input type="number" id="odds" name="odds" step="0.01" min="1" required>
+    </div>
+    <button type="submit">Place Bet</button>
+  </form>
+</div>
+{% endblock %}

@@ -31,7 +31,13 @@ body {
     font-size: 2rem;
 }
 
-.forum-container {
+h1{
+    text-align: left;
+    margin: 1rem auto;
+    max-width: 1020px;
+}
+
+.create-form {
     background: #333;
     margin: 1rem auto;
     max-width: 1000px;
@@ -42,29 +48,41 @@ body {
     gap: 1rem;
 }
 
-.breadcrumb {
+.create-form form{
+    font-family: Arial, sans-serif;
     font-weight: bold;
 }
 
-.breadcrumb a {
-    color: #00cc6e;
-    text-decoration: none;
+form .row {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 0.5rem;
 }
 
-.create-post{
+.input-field {
     width: 100%;
-    text-align: right;
-    margin-top: 1rem;
+    padding: 0.8rem; /* Padding inside input fields */
+    border: 1px solid #333;
+    border-radius: 5px;
+    background-color: #2a2a2a;
+    color: #fff;
+    font-size: 0.9rem; /* Font size for inputs */
+    box-sizing: border-box; /* Include padding and border in element's total width and height */
 }
 
 .button {
-    padding: 0.5rem 0.65rem; /* Button padding */
-    font-size: 1rem; /* Button font size */
-    color: #111;
-    background-color: #00ff88; /* Use #00ff88 for the button */
-    text-decoration: none;
-    border-radius: 7px;
+    text-align: right;
+}
+
+button {
+    padding: 0.8rem 1.5rem; /* Padding for buttons */
+    font-size: 1rem; /* Font size for buttons */
     font-weight: bold;
+    color: #111;
+    background-color: #00ff88;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
     transition: background-color 0.3s ease, transform 0.3s ease;
 }
 
@@ -91,15 +109,6 @@ body {
 
 .forum-table tr:hover td {
     background: #555;
-}
-
-.forum-table a,
-.forum-table a:hover,
-.forum-table a:visited{
-    color: #00cc6e;
-    text-decoration: none;
-    font-weight: bold;
-    transition: color 0.3s ease;
 }
 
 .pagination {

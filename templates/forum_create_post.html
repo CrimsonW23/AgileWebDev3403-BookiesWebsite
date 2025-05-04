@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/forum_create_post.css') }}">
+
+<h1>Create forum post</h1>
+<div class = "create-form">
+    <form action="" method="post">
+        {{ form.hidden_tag() }}
+        <p>
+            <div class = "row">
+                {{ form.author.label }}<br>
+                {{ form.author(class="input-field") }}<br>
+            </div>
+            <div class = "row">
+                {{ form.title.label }}<br>
+                {{ form.title(class="input-field") }}<br>
+            </div>
+            <div class = "row">    
+                {{ form.category.label }}<br>
+                {{ form.category(class="input-field") }}<br>
+            <div class = "row">
+                {{ form.post.label }}<br>
+                {{ form.post(class="input-field", cols=50, rows=4) }}<br>
+            </div>
+            {% for error in form.post.errors %}
+                <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <div class="button">
+            <button type="submit" id="form_submit">Submit</button>
+        </div>
+    </form>
+</div>
+
+{% endblock %}
