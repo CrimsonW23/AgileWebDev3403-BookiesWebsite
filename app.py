@@ -144,19 +144,7 @@ def view_post(post_id):
         db.session.add(reply)
         db.session.commit()
         return redirect(url_for('view_post', post_id=post.id))
-    return render_template('forum_post.html', post=post, replies=post.replies, form=form)
-
-@app.route("/available_bets")
-def available_bets():
-    user_id = 1  # Replace with the logged-in user's ID
-
-    # Fetch all events that the logged-in user has NOT placed a bet on
-    available_events = Bet.query.filter(
-        Bet.user_id != user_id,  # Exclude bets placed by the logged-in user
-        Bet.status != "Completed"  # Exclude completed bets
-    ).distinct(Bet.event_name).all()
-
-    return render_template("available_bets.html", events=available_events)
+    return render_template('forum_post.html', post=post, replies=post.replies, form=form) 
 
 # Route for the "Create Bet" page (GET and POST methods)
 @app.route('/create_bet', methods=['GET', 'POST'])
