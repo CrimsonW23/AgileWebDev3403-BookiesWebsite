@@ -1,6 +1,6 @@
 body {
     font-family: Arial, sans-serif;
-    background: #222;
+    background: #111;
     color: #eee;
     margin: 0;
     padding: 0;
@@ -32,7 +32,7 @@ body {
 }
 
 .forum-container {
-    background: #333;
+    background: #1e1e1e;
     margin: 1rem auto;
     max-width: 1000px;
     padding: 1rem;
@@ -68,6 +68,11 @@ body {
     transition: background-color 0.3s ease, transform 0.3s ease;
 }
 
+.button:hover {
+    background-color: #00cc6e; /* Darker shade on hover */
+    transform: scale(1.05); /* Slightly enlarge on hover */
+}
+
 .forum-table {
     width: 100%;
     border-collapse: collapse;
@@ -75,22 +80,22 @@ body {
 
 .forum-table th,
 .forum-table td {
-    border-bottom: 1px solid #555;
+    border-bottom: 1px solid #444;
     padding: 1rem;
     text-align: left;
 }
 
 .forum-table th {
-    background: #555;
+    background: #333;
     color: #00cc6e;
 }
 
 .forum-table td {
-    background: #444;
+    background: #222;
 }
 
 .forum-table tr:hover td {
-    background: #555;
+    background: #333;
 }
 
 .forum-table a,

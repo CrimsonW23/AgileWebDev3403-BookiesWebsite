@@ -5,37 +5,42 @@
 
 <div class="post-container">
     <h1>{{ post.title }}</h1>
-    <p><i><strong>Posted by:</strong> {{ post.author }}</i></p>
+    <p><i><strong>Posted by:</strong></i> <span class = "author">{{ post.author }}</span><i> on </i>{{ post.timestamp }}</p>
     <p><strong>Category:</strong> {{ post.category }}</p>
-    <p><strong>Posted on:</strong> {{ post.timestamp }}</p>
-    <hr>
+    <br>
     <p>{{ post.body }}</p>
-    <hr>
+    <br>
     <div class = "button-container">
         <a href="{{ url_for('forum') }}" class="button">Back to Forum</a>
     </div>
 </div>
 
 <div class="comment-section">
-    <h2>Replies</h2>
+    <h2>Comment</h2>
     <form action="" method="post">
         {{ form.hidden_tag() }}
         <div class="comment-form">
-            {{ form.author.label }}<br>
-            {{ form.author(class="input-field") }}<br>
-            {{ form.reply.label }}<br>
-            {{ form.reply(class="input-field", cols=50, rows=4) }}<br>
+            <div class="row">
+                {{ form.author.label }}<br>
+                {{ form.author(class="input-field") }}<br>
+            </div>
+            <div class="row">
+                {{ form.reply.label }}<br>
+                {{ form.reply(class="input-field", cols=50, rows=2) }}<br>
+            </div>
             {% for error in form.reply.errors %}
                 <span style="color: red;">[{{ error }}]</span>
             {% endfor %}
-            <button type="submit" id="form_submit">Submit Comment</button>
+            <div class = "button-container">
+                <button type="submit" id="form_submit" class="button">Submit Comment</button>
+            </div>
         </div>
     </form>
 
     <div class="comments-list">
         {% for reply in post.replies %}
             <div class="reply-item">
-                <p><strong>{{ reply.author }}</strong> ({{ reply.timestamp }})</p>
+                <p><span class = "author">{{ reply.author }}</span> <i>({{ reply.timestamp }}) said:</i></p>
                 <p>{{ reply.body }}</p>
             </div>
         {% endfor %}

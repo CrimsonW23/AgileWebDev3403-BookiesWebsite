@@ -161,6 +161,21 @@ def place_bet(bet_id):
 def place_bet_form(event_name):
     return handle_place_bet_form(event_name)
 
+# Route for the "Create Bet" page (GET and POST methods)
+@app.route('/create_bet', methods=['GET', 'POST'])
+def create_bet():
+    return handle_create_bet()
+
+# Route for placing a bet
+@app.route("/place_bet/<int:bet_id>", methods=["POST"])
+def place_bet(bet_id):
+    return handle_place_bet(bet_id)
+
+# Route for the "Place Bet Form" page
+@app.route("/place_bet_form/<event_name>", methods=["GET", "POST"])
+def place_bet_form(event_name):
+    return handle_place_bet_form(event_name)
+
+
 if __name__ == "__main__":
     app.run(debug=True)
-
