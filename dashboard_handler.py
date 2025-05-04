@@ -35,8 +35,8 @@ def serialize_bet(bet):
         "date_settled": bet.date_settled.strftime("%Y-%m-%d %H:%M:%S") if bet.date_settled else None
     }
 
-def update_bet_statuses(user_id):
-    """Update the statuses of bets dynamically."""
+def handle_dashboard(userid):
+    user_id = userid  # Replace with the logged-in user's ID
     current_time = datetime.now()
     bets = Bet.query.filter_by(user_id=user_id).all()
 
@@ -61,10 +61,9 @@ def update_bet_statuses(user_id):
 
     db.session.commit()
 
-def handle_dashboard():
+def handle_dashboard(userid):
     """Render the dashboard with updated bet data."""
-    user_id = 1  # Placeholder user ID
-    update_bet_statuses(user_id)
+    user_id = userid  # Placeholder user ID
 
     # Fetch bets by status
     ongoing_bets = Bet.query.filter_by(user_id=user_id, status="Ongoing").all()
@@ -102,11 +101,7 @@ def handle_dashboard():
     )
 
 def handle_dashboard_data():
-    """Return dashboard data as JSON."""
-    user_id = 1  # Placeholder user ID
-    update_bet_statuses(user_id)  # Ensure bet statuses are updated dynamically
-
-    # Fetch bets by status
+    user_id = 1  # Replace with the logged-in user's ID
     ongoing_bets = Bet.query.filter_by(user_id=user_id, status="Ongoing").all()
     upcoming_bets = Bet.query.filter_by(user_id=user_id, status="Upcoming").all()
     past_bets = Bet.query.filter_by(user_id=user_id, status="Completed").order_by(Bet.date_settled.desc()).all()

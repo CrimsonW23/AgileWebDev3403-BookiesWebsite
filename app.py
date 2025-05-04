@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify, request, redirect, url_for, flash
+from flask import Flask, render_template, jsonify, request, redirect, url_for, flash, session
 from config import Config
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -11,6 +11,7 @@ import os
 
 app = Flask(__name__)
 app.config.from_object(Config)
+app.secret_key = '9f8c1e6e49b4d9e6b2c442a1a8f3ecb1' #Session id used for testing
 
 from extensions import db
 
@@ -20,7 +21,7 @@ migrate = Migrate(app, db)
 SECRET_KEY = os.urandom(32)
 app.config['SECRET_KEY'] = SECRET_KEY
 
-from proj_models import User, Post, Reply, Bet, EventResult
+from proj_models import User, Post, Reply, Bet, EventResult, ActiveBets
 
 # Route for the global home page
 @app.route("/")
@@ -30,11 +31,13 @@ def global_home():
 # Route for the dashboard
 @app.route("/dashboard")
 def dashboard():
-    return handle_dashboard()
+    if session['logged_in']:
+        return handle_dashboard(userid=session['userID'])
 
 @app.route("/dashboard_data")
 def dashboard_data():
-    return handle_dashboard_data()
+    if session['logged_in']:
+        return handle_dashboard_data(userid=session['userID'])
 
 # Route for the forum
 @app.route("/forum")
@@ -42,9 +45,9 @@ def forum():
     posts = Post.query.order_by(Post.timestamp.desc()).all()
     return render_template("forum.html", posts=posts)  # Forum page
 
-@app.route("/games") 
+'''@app.route("/games") 
 def game_board():
-    return render_template("game_board.html")
+    return render_template("game_board.html")'''
 
 # Route for the sign-up page (GET method)
 @app.route("/signup")
@@ -56,13 +59,34 @@ def signup():
 def signup_post():
     username = request.form.get('username')
     password = request.form.get('password')
+    email = request.form.get('email')
 
-    # Example validation; replace with actual database logic
+    if not username or not password or not email:
+        flash('Please fill in all fields', 'error')
+        return render_template("signup.html")
+    
+    existing_user = User.query.filter((User.username == username) | (User.email == email)).first()
+    if existing_user:
+        flash("Username or email already taken", 'error')
+        return render_template("signup.html")
+    
+    new_user = User(username=username, password=password, email=email, currency=100) #hash password for storing implement soontm
+    try:
+        db.session.add(new_user)
+        db.session.commit()
+        flash("User created successfully", 'success')
+        return redirect(url_for('login'))
+    except Exception as e:
+        db.session.rollback()
+        flash(f"An error occurred: {str(e)}", 'error')
+        return render_template('signup.html')
+
+    '''# Example validation; replace with actual database logic
     if username and password:
         # Save user to database (example logic)
         return jsonify({"success": True})
     else:
-        return jsonify({"success": False, "message": "Please fill in all fields"})
+        return jsonify({"success": False, "message": "Please fill in all fields"})'''
 
 # Route for the login page (GET method)
 @app.route("/login")
@@ -75,11 +99,29 @@ def login_post():
     username = request.form.get('username')
     password = request.form.get('password')
 
-    # Example validation; replace with actual database logic
-    if username == "testuser" and password == "password123":
-        return jsonify({"success": True})
+    user = User.query.filter((User.username == username) & (User.password == password)).first()
+    if user:
+        session['logged_in'] = True
+        session['username'] = user.username
+        session['userID'] = user.id
+        session['currency'] = user.currency
+        return redirect(url_for('global_home'))
     else:
-        return jsonify({"success": False, "message": "Invalid username or password"})
+        flash("Login failed", 'error')
+        return render_template('login.html')
+
+    '''# Example validation; replace with actual database logic
+    if username == "testuser" and password == "password123":
+        session['logged_in'] = True
+        return redirect(url_for('global_home')) #jsonify({"success": True})
+    else:
+        return jsonify({"success": False, "message": "Invalid username or password"})'''
+
+# Route for logging out
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('global_home'))
 
 # Route for the stats API
 @app.route('/api/stats')
@@ -151,31 +193,46 @@ def view_post(post_id):
 def create_bet():
     return handle_create_bet()
 
+@app.route("/active_bets")
+def active_bets():
+    bets = ActiveBets.query.all()
+    return render_template("active_bets.html", bets=bets)
+
 # Route for placing a bet
 @app.route("/place_bet/<int:bet_id>", methods=["POST"])
 def place_bet(bet_id):
-    return handle_place_bet(bet_id)
+    amount = float(request.form.get('amount'))
+    if amount <= session['currency']:
+        userid = session['userID']
+        return handle_place_bet(bet_id, amount, userid)
 
 # Route for the "Place Bet Form" page
 @app.route("/place_bet_form/<event_name>", methods=["GET", "POST"])
 def place_bet_form(event_name):
     return handle_place_bet_form(event_name)
 
-# Route for the "Create Bet" page (GET and POST methods)
-@app.route('/create_bet', methods=['GET', 'POST'])
-def create_bet():
-    return handle_create_bet()
+# Route for the currency page
+@app.route("/currency")
+def currency():
+    if session['logged_in']:
+        return render_template("currency.html")  # Currency page
 
-# Route for placing a bet
-@app.route("/place_bet/<int:bet_id>", methods=["POST"])
-def place_bet(bet_id):
-    return handle_place_bet(bet_id)
+# Route for getting currency
+@app.route("/get_currency", methods=['POST'])
+def get_currency():
+    if session['logged_in']:
+        content = request.get_json()
+        amount = int(content.get('amount', 0))
+        user = User.query.filter((User.username == session['username']) & (User.id == session['userID'])).first()
+        session['currency'] = user.currency + amount
+        user.currency += amount
+        db.session.commit()
 
-# Route for the "Place Bet Form" page
-@app.route("/place_bet_form/<event_name>", methods=["GET", "POST"])
-def place_bet_form(event_name):
-    return handle_place_bet_form(event_name)
+        return jsonify({"success": True, "amount": amount, "new_balance": user.currency})
 
+@app.template_filter('pretty_currency')
+def pretty_currency(cents):
+    return "{:,}".format(int(cents))
 
 if __name__ == "__main__":
     app.run(debug=True)

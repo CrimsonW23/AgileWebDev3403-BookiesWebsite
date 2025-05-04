@@ -1,6 +1,6 @@
 from flask import render_template, request, redirect, url_for, flash
 from datetime import datetime
-from proj_models import Bet
+from proj_models import Bet, ActiveBets
 from extensions import db
 
 def handle_create_bet():
@@ -24,28 +24,20 @@ def handle_create_bet():
                 flash("Scheduled time must be in the future.", "error")
                 return redirect(url_for('create_bet'))
 
-            # Calculate potential winnings
-            stake_amount = float(stake_amount)
-            odds = float(odds)
-            potential_winnings = stake_amount * odds
-
             # Save the bet to the database
-            new_bet = Bet(
-                user_id=1,  # Placeholder user ID
+            new_bet = ActiveBets(
                 event_name=event_name,
                 bet_type=bet_type,
                 stake_amount=stake_amount,
                 odds=odds,
-                potential_winnings=potential_winnings,
                 scheduled_time=scheduled_datetime,
-                duration=int(duration),
-                status="Upcoming"
+                duration=int(duration),  # Save duration in hours
             )
             db.session.add(new_bet)
             db.session.commit()
 
             flash("Bet placed successfully!", "success")
-            return redirect(url_for('dashboard'))
+            return redirect(url_for('active_bets'))
 
         except Exception as e:
             flash(f"An error occurred: {str(e)}", "error")
@@ -54,9 +46,10 @@ def handle_create_bet():
     # Render the form for GET requests
     return render_template('create_bet.html', current_time=datetime.now().strftime("%Y-%m-%dT%H:%M"))
 
-def handle_place_bet(bet_id):
-    """Handle placing a bet based on an existing bet."""
-    user_id = 1  # Placeholder user ID
+def handle_place_bet(bet_id, amount, userid):
+    user_id = userid
+
+    # Fetch the original bet
     original_bet = Bet.query.get_or_404(bet_id)
 
     # Create a new bet for the user
@@ -64,9 +57,9 @@ def handle_place_bet(bet_id):
         user_id=user_id,
         event_name=original_bet.event_name,
         bet_type=original_bet.bet_type,
-        stake_amount=original_bet.stake_amount,
+        stake_amount=amount,
         odds=original_bet.odds,
-        potential_winnings=original_bet.stake_amount * original_bet.odds,
+        potential_winnings=round(amount * original_bet.odds,2),
         scheduled_time=original_bet.scheduled_time,
         duration=original_bet.duration,
         status="Upcoming"

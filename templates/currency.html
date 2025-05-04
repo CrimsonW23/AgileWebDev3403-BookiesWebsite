@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/currency.css') }}">
+<body>
+    <main class="currency-container">
+        <h2>Buy Currency</h2>
+        <div class="purchase-options">
+            {% for amount in [1000, 5000, 10000, 25000, 50000, 100000, 1000000] %}
+            <div class="currency-card">
+                <h3>${{ "{:,}".format(amount) }}</h3>
+                <p class="price">${{ "%.2f" % (amount / 500) }}</p>
+                <button class="buy-button" data-amount="{{ amount }}">Buy</button>
+            </div>
+            {% endfor %}
+        </div>
+    </main>
+</body>
+<script src="{{ url_for('static', filename='js/currency.js') }}"></script>
+{% endblock %}
