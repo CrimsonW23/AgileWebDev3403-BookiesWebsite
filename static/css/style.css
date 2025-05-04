@@ -31,7 +31,7 @@ nav a:hover {
 }
 
 /* Auth Buttons */
-.auth a {
+.auth a, .authed a {
   display: inline-block; 
   margin-left: 1rem;
   padding: 0.5rem 1rem;
@@ -60,6 +60,26 @@ nav a:hover {
 }
 
 .auth .join:hover {
+  background-color: #00cc6e;
+  color: #fff;
+}
+
+.authed .profile {
+  background-color: #333;
+  color: #00ff88;
+}
+
+.authed .profile:hover {
+  background-color: #444;
+  color: #00cc6e;
+}
+
+.authed .logout {
+  background-color: #00ff88;
+  color: #111;
+}
+
+.authed .logout:hover {
   background-color: #00cc6e;
   color: #fff;
 }

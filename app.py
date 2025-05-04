@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify, request, redirect, url_for, flash
+from flask import Flask, render_template, jsonify, request, redirect, url_for, flash, session
 from config import Config
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -11,6 +11,7 @@ import os
 
 app = Flask(__name__)
 app.config.from_object(Config)
+app.secret_key = '9f8c1e6e49b4d9e6b2c442a1a8f3ecb1' #Session id used for testing
 
 from extensions import db
 
@@ -77,9 +78,16 @@ def login_post():
 
     # Example validation; replace with actual database logic
     if username == "testuser" and password == "password123":
-        return jsonify({"success": True})
+        session['logged_in'] = True
+        return redirect(url_for('global_home')) #jsonify({"success": True})
     else:
         return jsonify({"success": False, "message": "Invalid username or password"})
+
+# Route for logging out
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('global_home'))
 
 # Route for the stats API
 @app.route('/api/stats')
