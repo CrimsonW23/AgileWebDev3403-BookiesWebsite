@@ -1,6 +1,6 @@
 body {
     font-family: Arial, sans-serif;
-    background: #222;
+    background: #111;
     color: #eee;
     margin: 0;
     padding: 0;
@@ -35,10 +35,11 @@ h1{
     text-align: left;
     margin: 1rem auto;
     max-width: 1020px;
+    color:#00ff88
 }
 
 .create-form {
-    background: #333;
+    background: #1e1e1e;
     margin: 1rem auto;
     max-width: 1000px;
     padding: 1rem;
@@ -84,6 +85,11 @@ button {
     border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+button:hover {
+    background-color: #00cc6e;
+    transform: scale(1.05);
 }
 
 .forum-table {

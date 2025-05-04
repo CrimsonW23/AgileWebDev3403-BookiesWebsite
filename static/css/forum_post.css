@@ -1,6 +1,6 @@
 body {
     font-family: Arial, sans-serif;
-    background: #222;
+    background: #111;
     color: #eee;
     margin: 0;
     padding: 0;
@@ -32,18 +32,60 @@ body {
 }
 
 .post-container {
-    background: #333;
+    background: #1e1e1e;
     margin: 1rem auto;
     max-width: 1000px;
-    padding: 1rem;
-    padding-bottom: 1.6rem;
+    padding: 2rem;
+    padding-bottom: 2.6rem;
     border-radius: 8px;
     display: flex;
     flex-direction: column;
     text-align: left;
 }
 
-.create-form form{
+h1,
+.author {
+    color: #00ff88;
+    font-weight: bold;
+}
+
+.button-container {
+    text-align: right;
+}
+
+.button {
+    padding: 0.6rem 1rem; /* Padding for buttons */
+    font-size: 1rem; /* Font size for buttons */
+    font-weight: bold;
+    color: #111;
+    background-color: #00ff88;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    text-decoration: none;
+}
+
+.button:hover {
+    background-color: #00cc6e;
+    transform: scale(1.05); /* Slightly enlarge the button on hover */
+}
+
+.comment-section{
+    margin: 1rem auto;
+    padding: 1rem;
+    max-width: 1200px;
+}
+
+.comment-form {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: #1e1e1e;
+    border-radius: 8px;
+    gap: 1rem;
+}
+
+.comment-form label{
     font-family: Arial, sans-serif;
     font-weight: bold;
 }
@@ -65,19 +107,30 @@ form .row {
     box-sizing: border-box; /* Include padding and border in element's total width and height */
 }
 
-.button-container {
-    text-align: right;
+.reply-item {
+    max-width: 1200px;
+    margin: 1.5rem auto;
+    padding: 2rem;
+    background-color: #1e1e1e;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    text-align: left;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    box-sizing: border-box;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: break-word; /* <-- this is key for unbreakable long strings */
+    white-space: normal;
 }
 
-.button {
-    padding: 0.6rem 1rem; /* Padding for buttons */
-    font-size: 1rem; /* Font size for buttons */
-    font-weight: bold;
-    color: #111;
-    background-color: #00ff88;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.3s ease;
-    text-decoration: none;
+.reply-item p,
+.reply-item span {
+    max-width: 100%;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: break-word;
+    white-space: normal;
 }
