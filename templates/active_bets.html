@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/active_bets.css') }}">
+<section class="active-bets">
+  <!-- Search bar -->
+  <div class="controls">
+    <input type="text" id="searchInput" placeholder="Search event...">
+  </div>
+
+  <!-- Floating boxes -->
+  <div class="bet-cards" id="betCards">
+    {% for bet in bets %}
+    <div class="bet-card" data-search="{{ bet.event_name | lower }} {{ bet.bet_type | lower }}">
+      <h3>{{ bet.event_name }}</h3>
+      <p><strong>Type:</strong> {{ bet.bet_type }}</p>
+      <p><strong>Max Stake:</strong> ${{ bet.stake_amount | int }}</p>
+      <p><strong>Odds:</strong> {{ bet.odds }}</p>
+      <p><strong>Scheduled:</strong> {{ bet.scheduled_time.strftime('%d %b %Y %H:%M') }}</p>
+      <p><strong>Duration:</strong> {{ bet.duration }} hrs</p>
+      <p><strong>Created:</strong> {{ bet.created_at.strftime('%d %b %Y') }}</p>
+      <br>
+      {% if session.get('logged_in') %}
+      <form action="{{ url_for('place_bet', bet_id=bet.id) }}" method="POST">
+        <input type="number" name="amount" placeholder="Enter amount" min="1" required>
+        <button type="submit">Place Bet</button>
+      </form>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+<script src="{{ url_for('static', filename='js/active_bets.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,58 @@
+.bets-page {
+    padding: 2rem;
+  }
+  .controls {
+    display: flex;
+    justify-content: flex-start;
+    margin-bottom: 1.5rem;
+  }
+  .controls input {
+    padding: 0.6rem 0.8rem;
+    border: 1px solid #333;
+    border-radius: 5px;
+    background: #2a2a2a;
+    color: #fff;
+    width: 300px;
+  }
+  .bet-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    justify-content: flex-start;
+  }
+  .bet-card {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 10px;
+    padding: 1rem;
+    margin: 0 1rem;
+    width: 250px;
+    transition: transform 0.2s ease;
+  }
+  .bet-card:hover {
+    transform: scale(1.03);
+  }
+  .bet-card h3 {
+    margin-top: 0;
+    color: #00ff88;
+    font-size: 1.2rem;
+  }
+  .bet-card p {
+    margin: 0.3rem ;
+    color: #ccc;
+    font-size: 0.95rem;
+  }
+
+  .bet-card input {
+    width: 89%;
+  }
+
+  .status.upcoming {
+    color: #ffa500;
+  }
+  .status.ongoing {
+    color: #00ff88;
+  }
+  .status.completed {
+    color: #ff4c4c;
+  }

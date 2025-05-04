@@ -52,6 +52,19 @@ class Bet(db.Model):
     def __repr__(self):
         return f"<Bet {self.event_name} - {self.status}>"
 
+class ActiveBets(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    event_name = db.Column(db.String(100), nullable=False)  # Name of the event
+    bet_type = db.Column(db.String(50), nullable=False)  # User's bet type (e.g., "win" or "loss")
+    stake_amount = db.Column(db.Float, nullable=False)  # Highest amount the user can bet
+    odds = db.Column(db.Float, nullable=False)  # Odds for the bet
+    scheduled_time = db.Column(db.DateTime, nullable=False)  # When the event is scheduled
+    duration = db.Column(db.Integer, nullable=False)  # Duration in hours
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)  # When the bet was created
+
+    def __repr__(self):
+        return f"<Bet {self.event_name} - {self.bet_type}>"
+
 class EventResult(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     event_name = db.Column(db.String(100), nullable=False, unique=True)   

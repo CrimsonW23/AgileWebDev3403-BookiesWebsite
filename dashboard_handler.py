@@ -35,8 +35,8 @@ def serialize_bet(bet):
         "date_settled": bet.date_settled.strftime("%Y-%m-%d %H:%M:%S") if bet.date_settled else None
     }
 
-def handle_dashboard():
-    user_id = 1  # Replace with the logged-in user's ID
+def handle_dashboard(userid):
+    user_id = userid  # Replace with the logged-in user's ID
     current_time = datetime.now()
 
     # Update bet statuses dynamically
@@ -96,8 +96,8 @@ def handle_dashboard():
         win_loss_ratio=win_loss_ratio
     )
 
-def handle_dashboard_data():
-    user_id = 1  # Replace with the logged-in user's ID
+def handle_dashboard_data(userid):
+    user_id = userid  # Replace with the logged-in user's ID
     ongoing_bets = Bet.query.filter_by(user_id=user_id, status="Ongoing").all()
     upcoming_bets = Bet.query.filter_by(user_id=user_id, status="Upcoming").all()
     past_bets = Bet.query.filter_by(user_id=user_id, status="Completed").order_by(Bet.date_settled.desc()).all()

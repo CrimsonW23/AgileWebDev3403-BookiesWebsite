@@ -21,7 +21,7 @@ migrate = Migrate(app, db)
 SECRET_KEY = os.urandom(32)
 app.config['SECRET_KEY'] = SECRET_KEY
 
-from proj_models import User, Post, Reply, Bet, EventResult
+from proj_models import User, Post, Reply, Bet, EventResult, ActiveBets
 
 # Route for the global home page
 @app.route("/")
@@ -31,11 +31,11 @@ def global_home():
 # Route for the dashboard
 @app.route("/dashboard")
 def dashboard():
-    return handle_dashboard()
+    return handle_dashboard(userid=session['userID'])
 
 @app.route("/dashboard_data")
 def dashboard_data():
-    return handle_dashboard_data()
+    return handle_dashboard_data(userid=session['userID'])
 
 # Route for the forum
 @app.route("/forum")
@@ -43,9 +43,9 @@ def forum():
     posts = Post.query.order_by(Post.timestamp.desc()).all()
     return render_template("forum.html", posts=posts)  # Forum page
 
-@app.route("/games") 
+'''@app.route("/games") 
 def game_board():
-    return render_template("game_board.html")
+    return render_template("game_board.html")'''
 
 # Route for the sign-up page (GET method)
 @app.route("/signup")
@@ -186,27 +186,22 @@ def view_post(post_id):
         return redirect(url_for('view_post', post_id=post.id))
     return render_template('forum_post.html', post=post, replies=post.replies, form=form)
 
-@app.route("/available_bets")
-def available_bets():
-    user_id = 1  # Replace with the logged-in user's ID
-
-    # Fetch all events that the logged-in user has NOT placed a bet on
-    available_events = Bet.query.filter(
-        Bet.user_id != user_id,  # Exclude bets placed by the logged-in user
-        Bet.status != "Completed"  # Exclude completed bets
-    ).distinct(Bet.event_name).all()
-
-    return render_template("available_bets.html", events=available_events)
-
 # Route for the "Create Bet" page (GET and POST methods)
 @app.route('/create_bet', methods=['GET', 'POST'])
 def create_bet():
     return handle_create_bet()
 
+@app.route("/active_bets")
+def active_bets():
+    bets = ActiveBets.query.all()
+    return render_template("active_bets.html", bets=bets)
+
 # Route for placing a bet
 @app.route("/place_bet/<int:bet_id>", methods=["POST"])
 def place_bet(bet_id):
-    return handle_place_bet(bet_id)
+    amount = float(request.form.get('amount'))
+    userid = session['userID']
+    return handle_place_bet(bet_id, amount, userid)
 
 # Route for the "Place Bet Form" page
 @app.route("/place_bet_form/<event_name>", methods=["GET", "POST"])
@@ -216,19 +211,21 @@ def place_bet_form(event_name):
 # Route for the currency page
 @app.route("/currency")
 def currency():
-    return render_template("currency.html")  # Currency page
+    if session['logged_in']:
+        return render_template("currency.html")  # Currency page
 
 # Route for getting currency
 @app.route("/get_currency", methods=['POST'])
 def get_currency():
-    content = request.get_json()
-    amount = int(content.get('amount', 0))
-    user = User.query.filter((User.username == session['username']) & (User.id == session['userID'])).first()
-    session['currency'] = user.currency + amount
-    user.currency += amount
-    db.session.commit()
+    if session['logged_in']:
+        content = request.get_json()
+        amount = int(content.get('amount', 0))
+        user = User.query.filter((User.username == session['username']) & (User.id == session['userID'])).first()
+        session['currency'] = user.currency + amount
+        user.currency += amount
+        db.session.commit()
 
-    return jsonify({"success": True, "amount": amount, "new_balance": user.currency})
+        return jsonify({"success": True, "amount": amount, "new_balance": user.currency})
 
 @app.template_filter('pretty_currency')
 def pretty_currency(cents):
