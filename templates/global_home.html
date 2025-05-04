@@ -8,7 +8,7 @@
         {% if session.get('logged_in') %}
         <div class="welcome-section">
             <div class="welcome-text">
-                <h1>Welcome testuser!</h1>
+                <h1>Welcome {{ session.get('username') }}!</h1>
                 <br></br>
                 <!-- Temporary button for routing purposes-->
                 <a href="{{ url_for('dashboard') }}" class="btn">Dashboard</a>

@@ -57,13 +57,34 @@ def signup():
 def signup_post():
     username = request.form.get('username')
     password = request.form.get('password')
+    email = request.form.get('email')
 
-    # Example validation; replace with actual database logic
+    if not username or not password or not email:
+        flash('Please fill in all fields', 'error')
+        return render_template("signup.html")
+    
+    existing_user = User.query.filter((User.username == username) | (User.email == email)).first()
+    if existing_user:
+        flash("Username or email already taken", 'error')
+        return render_template("signup.html")
+    
+    new_user = User(username=username, password=password, email=email) #hash password for storing implement soontm
+    try:
+        db.session.add(new_user)
+        db.session.commit()
+        flash("User created successfully", 'success')
+        return redirect(url_for('login'))
+    except Exception as e:
+        db.session.rollback()
+        flash(f"An error occurred: {str(e)}", 'error')
+        return render_template('signup.html')
+
+    '''# Example validation; replace with actual database logic
     if username and password:
         # Save user to database (example logic)
         return jsonify({"success": True})
     else:
-        return jsonify({"success": False, "message": "Please fill in all fields"})
+        return jsonify({"success": False, "message": "Please fill in all fields"})'''
 
 # Route for the login page (GET method)
 @app.route("/login")
@@ -76,12 +97,22 @@ def login_post():
     username = request.form.get('username')
     password = request.form.get('password')
 
-    # Example validation; replace with actual database logic
+    user = User.query.filter((User.username == username) & (User.password == password)).first()
+    if user:
+        session['logged_in'] = True
+        session['username'] = user.username
+        session['userID'] = user.id
+        return redirect(url_for('global_home'))
+    else:
+        flash("Login failed", 'error')
+        return render_template('login.html')
+
+    '''# Example validation; replace with actual database logic
     if username == "testuser" and password == "password123":
         session['logged_in'] = True
         return redirect(url_for('global_home')) #jsonify({"success": True})
     else:
-        return jsonify({"success": False, "message": "Invalid username or password"})
+        return jsonify({"success": False, "message": "Invalid username or password"})'''
 
 # Route for logging out
 @app.route('/logout')
