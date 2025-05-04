@@ -31,11 +31,13 @@ def global_home():
 # Route for the dashboard
 @app.route("/dashboard")
 def dashboard():
-    return handle_dashboard(userid=session['userID'])
+    if session['logged_in']:
+        return handle_dashboard(userid=session['userID'])
 
 @app.route("/dashboard_data")
 def dashboard_data():
-    return handle_dashboard_data(userid=session['userID'])
+    if session['logged_in']:
+        return handle_dashboard_data(userid=session['userID'])
 
 # Route for the forum
 @app.route("/forum")
