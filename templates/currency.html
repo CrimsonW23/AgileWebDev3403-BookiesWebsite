@@ -6,7 +6,7 @@
     <main class="currency-container">
         <h2>Buy Currency</h2>
         <div class="purchase-options">
-            {% for amount in [1000, 5000, 10000, 25000, 50000, 100000] %}
+            {% for amount in [1000, 5000, 10000, 25000, 50000, 100000, 1000000] %}
             <div class="currency-card">
                 <h3>${{ "{:,}".format(amount) }}</h3>
                 <p class="price">${{ "%.2f" % (amount / 500) }}</p>

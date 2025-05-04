@@ -61,9 +61,9 @@ def handle_dashboard(userid):
 
     db.session.commit()
 
-def handle_dashboard():
+def handle_dashboard(userid):
     """Render the dashboard with updated bet data."""
-    user_id = 1  # Placeholder user ID
+    user_id = userid  # Placeholder user ID
 
     # Fetch bets by status
     ongoing_bets = Bet.query.filter_by(user_id=user_id, status="Ongoing").all()
