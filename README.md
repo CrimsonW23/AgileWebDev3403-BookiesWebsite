@@ -20,7 +20,12 @@ The creation of the web application should be done in a private GitHub repositor
 <br>
 
 ## Launching Instructions
-After you have cloned/pulled the repo, run `pip install flask` to install flask, then run `python app.py` to launch the website locally. For future development please add the new html pages in the template folder and the css in the static folder.
+1. In command prompt or the terminal, clone the repo using `git clone https://github.com/CrimsonW23/AgileWebDev3403-BookiesWebsite.git`
+2. Install dependencies as listed in the `requirements.txt` file.
+3. Back in the terminal, `cd` to the directory where you cloned the repository and run `python app.py`
+4. Head over to 127.0.0.1 (or the address your console says the website is hosted at)
+
+For future development please add the new html pages in the template folder and the css in the static folder.
 <br>
 
 ## Testing Instructions
