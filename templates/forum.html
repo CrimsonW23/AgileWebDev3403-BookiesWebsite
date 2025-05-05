@@ -6,17 +6,16 @@
 <div class="page-wrapper">
     <main class="forum-container">
         <div class="breadcrumb">
-            <div class="pagination">
-                <button class="active">&#9917;</button>
-                <button>&#9918;</button>
-                <button>&#9971;</button>
-                <button>&#127934;</button>
-                <button>&#127936;</button>
-                <button>&#127953;</button>
-                <button>&#127943;</button>
-                <button>&#127944;</button>
-                <button>&#127946;</button>
-                <button>&#127951;</button>
+            <div class="filter">
+                <label for="category">Filter by Category:</label>
+                <form method="get" action="{{ url_for('forum') }}">
+                    <select name="category" onchange="this.form.submit()">
+                        <option value="all" {% if category == 'all' %}selected{% endif %}>All</option>
+                        {% for cat in filter_categories %}
+                            <option value="{{ cat }}" {% if category == cat %}selected{% endif %}>{{ cat }}</option>
+                        {% endfor %}
+                    </select>
+                </form>                
             </div>
         </div>
         {% if session.get('logged_in') %}
@@ -39,15 +38,16 @@
 
             <tbody>
                 {% for post in posts %}
-                <tr>
-                    <td> {{ post.category }} </td>
-                    <td><a href="{{ url_for('view_post', post_id=post.id) }}"> {{ post.title }} </a></td>
-                    <td> {{ post.replies.count() }} </td>
-                    <td> {{ post.author }} </td>
-                    <td> "Placeholder" </td>
-                    <td> {{ post.timestamp }} </td>
- 
-                </tr>
+                    {% if post.category == category or category == 'all' %}
+                    <tr>
+                        <td> {{ post.category }} </td>
+                        <td><a href="{{ url_for('view_post', post_id=post.id) }}"> {{ post.title }} </a></td>
+                        <td> {{ post.replies.count() }} </td>
+                        <td> {{ post.author }} </td>
+                        <td> "Placeholder" </td>
+                        <td> {{ post.timestamp }} </td>
+                    </tr>
+                    {% endif %}
                 {% endfor %}
             </tbody>
         </table>

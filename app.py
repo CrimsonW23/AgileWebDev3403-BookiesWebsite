@@ -54,11 +54,23 @@ def dashboard_data():
     if session['logged_in']:
         return handle_dashboard_data()
 
-# Route for the forum
 @app.route("/forum")
 def forum():
-    posts = Post.query.order_by(Post.timestamp.desc()).all()
-    return render_template("forum.html", posts=posts)  # Forum page
+    # Get distinct categories from the database for the filter
+    filter_categories = db.session.query(Post.category).distinct().all()
+    filter_categories = [category[0] for category in filter_categories]  # Unwrap tuple
+
+    # Get the selected category from the request args (default to 'all')
+    selected_category = request.args.get('category', 'all')
+
+    # Query posts based on the selected category
+    if selected_category == 'all':
+        filtered_posts = Post.query.order_by(Post.timestamp.desc()).all()
+    else:
+        filtered_posts = Post.query.filter_by(category=selected_category).order_by(Post.timestamp.desc()).all()
+
+    # Render the forum page with posts and categories
+    return render_template("forum.html", posts=filtered_posts, filter_categories=filter_categories, category=selected_category)
 
 '''@app.route("/games") 
 def game_board():
