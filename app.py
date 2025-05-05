@@ -32,12 +32,12 @@ def global_home():
 @app.route("/dashboard")
 def dashboard():
     if session['logged_in']:
-        return handle_dashboard(userid=session['userID'])
+        return handle_dashboard()
 
 @app.route("/dashboard_data")
 def dashboard_data():
     if session['logged_in']:
-        return handle_dashboard_data(userid=session['userID'])
+        return handle_dashboard_data()
 
 # Route for the forum
 @app.route("/forum")
@@ -96,10 +96,13 @@ def login():
 # Route for the login page (POST method)
 @app.route('/login', methods=['POST'])
 def login_post():
-    username = request.form.get('username')
+    identifier = request.form.get('username')  # Can be username or email
     password = request.form.get('password')
 
-    user = User.query.filter((User.username == username) & (User.password == password)).first()
+    user = User.query.filter(
+        ((User.username == identifier) | (User.email == identifier)) & (User.password == password)
+    ).first()
+
     if user:
         session['logged_in'] = True
         session['username'] = user.username
