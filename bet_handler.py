@@ -19,6 +19,15 @@ def handle_create_bet():
                 flash("All fields are required.", "error")
                 return redirect(url_for('create_bet'))
 
+            # Validate numeric inputs
+            if not stake_amount.isdigit() or float(stake_amount) <= 0:
+                flash("Stake amount must be a positive number.", "error")
+                return redirect(url_for('create_bet'))
+
+            if not odds.isdigit() or float(odds) <= 0:
+                flash("Odds must be a positive number.", "error")
+                return redirect(url_for('create_bet'))
+
             scheduled_datetime = datetime.strptime(scheduled_time, "%Y-%m-%dT%H:%M")
             if scheduled_datetime <= datetime.now():
                 flash("Scheduled time must be in the future.", "error")
@@ -55,6 +64,9 @@ def handle_create_bet():
             flash("Bet placed successfully!", "success")
             return redirect(url_for('active_bets'))
 
+        except ValueError:
+            flash("Invalid input. Please enter valid numbers for stake amount and odds.", "error")
+            return redirect(url_for('create_bet'))
         except Exception as e:
             flash(f"An error occurred: {str(e)}", "error")
             return redirect(url_for('create_bet'))
@@ -63,29 +75,33 @@ def handle_create_bet():
     return render_template('create_bet.html', current_time=datetime.now().strftime("%Y-%m-%dT%H:%M"))
 
 def handle_place_bet(bet_id, amount): 
+    """Handle placing a bet for the logged-in user."""
+    try:
+        user_id = session['userID']  # Get the logged-in user's ID
 
-    user_id = session['userID']  # Get the logged-in user's ID
+        # Fetch the original bet from the Bet table
+        original_bet = Bet.query.get_or_404(bet_id)
 
-    # Fetch the original bet from the Bet table
-    original_bet = Bet.query.get_or_404(bet_id)
+        # Create a new bet for the user
+        new_bet = Bet(
+            user_id=user_id,  # Use the session's `userID`
+            event_name=original_bet.event_name,
+            bet_type=original_bet.bet_type,
+            stake_amount=amount,
+            odds=original_bet.odds,
+            potential_winnings=round(amount * original_bet.odds, 2),
+            scheduled_time=original_bet.scheduled_time,
+            duration=original_bet.duration,
+            status="Upcoming"  # Default status for the user's bet
+        )
+        db.session.add(new_bet)
+        db.session.commit()
 
-    # Create a new bet for the user
-    new_bet = Bet(
-        user_id=user_id,  # Use the session's `userID`
-        event_name=original_bet.event_name,
-        bet_type=original_bet.bet_type,
-        stake_amount=amount,
-        odds=original_bet.odds,
-        potential_winnings=round(amount * original_bet.odds, 2),
-        scheduled_time=original_bet.scheduled_time,
-        duration=original_bet.duration,
-        status="Upcoming"  # Default status for the user's bet
-    )
-    db.session.add(new_bet)
-    db.session.commit()
-
-    flash("Bet placed successfully!", "success")
-    return redirect(url_for("dashboard"))
+        flash("Bet placed successfully!", "success")
+        return redirect(url_for("dashboard"))
+    except Exception as e:
+        flash(f"An error occurred: {str(e)}", "error")
+        return redirect(url_for("dashboard"))
 
 def handle_place_bet_form(event_name):
     """Handle the form for placing a bet on an event."""
@@ -96,23 +112,24 @@ def handle_place_bet_form(event_name):
 
     if request.method == "POST":
         try:
-            user_id = user_id
+            user_id = session['userID']
             bet_type = request.form.get("bet_type")
-            stake_amount = float(request.form.get("stake_amount"))
-            odds = float(request.form.get("odds"))
+            stake_amount = request.form.get("stake_amount")
+            odds = request.form.get("odds")
 
-            if not bet_type or stake_amount < 1 or odds < 1:
-                flash("Invalid input. Stake Amount and Odds must be greater than 1.", "error")
+            # Validate numeric inputs
+            if not stake_amount or not odds or float(stake_amount) <= 0 or float(odds) <= 0:
+                flash("Invalid input. Stake Amount and Odds must be positive numbers.", "error")
                 return redirect(url_for("place_bet_form", event_name=event_name))
 
             # Create a new bet for the user
             new_bet = Bet(
-                user_id = session['userID'],
+                user_id=user_id,
                 event_name=event_name,
                 bet_type=bet_type,
-                stake_amount=stake_amount,
-                odds=odds,
-                potential_winnings=stake_amount * odds,
+                stake_amount=float(stake_amount),
+                odds=float(odds),
+                potential_winnings=float(stake_amount) * float(odds),
                 scheduled_time=original_event.scheduled_time,
                 duration=original_event.duration,
                 status="Upcoming"
@@ -123,6 +140,9 @@ def handle_place_bet_form(event_name):
             flash("Bet placed successfully!", "success")
             return redirect(url_for("dashboard", _anchor="available"))
 
+        except ValueError:
+            flash("Invalid input. Please enter valid numbers for stake amount and odds.", "error")
+            return redirect(url_for("place_bet_form", event_name=event_name))
         except Exception as e:
             flash(f"An error occurred: {str(e)}", "error")
             return redirect(url_for("place_bet_form", event_name=event_name))
