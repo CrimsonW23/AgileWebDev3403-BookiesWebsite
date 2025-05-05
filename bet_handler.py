@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, url_for, flash
+from flask import render_template, request, redirect, url_for, flash, session
 from datetime import datetime
 from proj_models import Bet, ActiveBets
 from extensions import db
@@ -24,16 +24,32 @@ def handle_create_bet():
                 flash("Scheduled time must be in the future.", "error")
                 return redirect(url_for('create_bet'))
 
-            # Save the bet to the database
-            new_bet = ActiveBets(
+            # Save the bet to the ActiveBets table
+            new_active_bet = ActiveBets(
                 event_name=event_name,
                 bet_type=bet_type,
                 stake_amount=stake_amount,
                 odds=odds,
                 scheduled_time=scheduled_datetime,
+                duration=int(duration),  # Save duration in hours 
+            )
+            db.session.add(new_active_bet)
+
+            # Save the same bet to the Bet table
+            new_bet = Bet(
+                user_id=session['userID'],  # Use the logged-in user's ID
+                event_name=event_name,
+                bet_type=bet_type,
+                stake_amount=float(stake_amount),
+                odds=float(odds),
+                potential_winnings=round(float(stake_amount) * float(odds), 2),
+                scheduled_time=scheduled_datetime,
                 duration=int(duration),  # Save duration in hours
+                status="Upcoming"  # Default status
             )
             db.session.add(new_bet)
+
+            # Commit both changes to the database
             db.session.commit()
 
             flash("Bet placed successfully!", "success")
@@ -47,22 +63,23 @@ def handle_create_bet():
     return render_template('create_bet.html', current_time=datetime.now().strftime("%Y-%m-%dT%H:%M"))
 
 def handle_place_bet(bet_id, amount, userid):
-    user_id = userid
+    """Handle placing a bet for the logged-in user."""
+    user_id = session['userID']  # Use the logged-in user's ID
 
-    # Fetch the original bet
+    # Fetch the original bet from the Bet table
     original_bet = Bet.query.get_or_404(bet_id)
 
     # Create a new bet for the user
     new_bet = Bet(
-        user_id=user_id,
+        user_id = session['userID'],
         event_name=original_bet.event_name,
         bet_type=original_bet.bet_type,
         stake_amount=amount,
         odds=original_bet.odds,
-        potential_winnings=round(amount * original_bet.odds,2),
+        potential_winnings=round(amount * original_bet.odds, 2),
         scheduled_time=original_bet.scheduled_time,
         duration=original_bet.duration,
-        status="Upcoming"
+        status="Upcoming"  # Default status for the user's bet
     )
     db.session.add(new_bet)
     db.session.commit()
@@ -79,7 +96,7 @@ def handle_place_bet_form(event_name):
 
     if request.method == "POST":
         try:
-            user_id = 1  # Placeholder user ID
+            user_id = session['userID']
             bet_type = request.form.get("bet_type")
             stake_amount = float(request.form.get("stake_amount"))
             odds = float(request.form.get("odds"))
@@ -90,7 +107,7 @@ def handle_place_bet_form(event_name):
 
             # Create a new bet for the user
             new_bet = Bet(
-                user_id=user_id,
+                user_id = session['userID'],
                 event_name=event_name,
                 bet_type=bet_type,
                 stake_amount=stake_amount,
