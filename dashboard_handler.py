@@ -1,4 +1,4 @@
-from flask import render_template, jsonify
+from flask import render_template, jsonify, session, flash, redirect, url_for
 from datetime import datetime, timedelta
 from proj_models import Bet, EventResult
 from extensions import db
@@ -35,8 +35,12 @@ def serialize_bet(bet):
         "date_settled": bet.date_settled.strftime("%Y-%m-%d %H:%M:%S") if bet.date_settled else None
     }
 
-def handle_dashboard(userid):
-    user_id = userid  # Replace with the logged-in user's ID
+def handle_dashboard():
+    if 'userID' not in session or 'logged_in' not in session or not session['logged_in']:
+        flash("You must be logged in to access the dashboard.", "error")
+        return redirect(url_for('login'))
+
+    user_id = session['userID']
     current_time = datetime.now()
     bets = Bet.query.filter_by(user_id=user_id).all()
 
@@ -60,10 +64,6 @@ def handle_dashboard(userid):
                 bet.date_settled = current_time
 
     db.session.commit()
-
-def handle_dashboard(userid):
-    """Render the dashboard with updated bet data."""
-    user_id = userid  # Placeholder user ID
 
     # Fetch bets by status
     ongoing_bets = Bet.query.filter_by(user_id=user_id, status="Ongoing").all()
@@ -101,7 +101,10 @@ def handle_dashboard(userid):
     )
 
 def handle_dashboard_data():
-    user_id = 1  # Replace with the logged-in user's ID
+    if 'userID' not in session or 'logged_in' not in session or not session['logged_in']:
+        return jsonify({"error": "You must be logged in to access this data."}), 401
+
+    user_id = session['userID']
     ongoing_bets = Bet.query.filter_by(user_id=user_id, status="Ongoing").all()
     upcoming_bets = Bet.query.filter_by(user_id=user_id, status="Upcoming").all()
     past_bets = Bet.query.filter_by(user_id=user_id, status="Completed").order_by(Bet.date_settled.desc()).all()
