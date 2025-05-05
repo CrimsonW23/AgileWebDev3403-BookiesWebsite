@@ -26,7 +26,22 @@ from proj_models import User, Post, Reply, Bet, EventResult, ActiveBets
 # Route for the global home page
 @app.route("/")
 def global_home():
-    return render_template("global_home.html")  # Global home page
+    user_count = User.query.count()
+    total_bets = Bet.query.count()
+    total_wins = sum(Bet.query.filter(Bet.actual_winnings > 0))
+    biggest_win = Bet.query.order_by(Bet.actual_winnings.desc()).first()
+
+    if isinstance(biggest_win, int):
+        biggest_win = biggest_win  # Already an int, no change needed
+    else:
+        biggest_win = "N/A"
+
+    return render_template("global_home.html", 
+                           users = user_count,
+                           total_bets = total_bets,
+                           total_wins = total_wins,
+                           biggest_win = biggest_win,
+                           )  # Global home page
 
 # Route for the dashboard
 @app.route("/dashboard")
@@ -39,11 +54,23 @@ def dashboard_data():
     if session['logged_in']:
         return handle_dashboard_data()
 
-# Route for the forum
 @app.route("/forum")
 def forum():
-    posts = Post.query.order_by(Post.timestamp.desc()).all()
-    return render_template("forum.html", posts=posts)  # Forum page
+    # Get distinct categories from the database for the filter
+    filter_categories = db.session.query(Post.category).distinct().all()
+    filter_categories = [category[0] for category in filter_categories]  # Unwrap tuple
+
+    # Get the selected category from the request args (default to 'all')
+    selected_category = request.args.get('category', 'all')
+
+    # Query posts based on the selected category
+    if selected_category == 'all':
+        filtered_posts = Post.query.order_by(Post.timestamp.desc()).all()
+    else:
+        filtered_posts = Post.query.filter_by(category=selected_category).order_by(Post.timestamp.desc()).all()
+
+    # Render the forum page with posts and categories
+    return render_template("forum.html", posts=filtered_posts, filter_categories=filter_categories, category=selected_category)
 
 '''@app.route("/games") 
 def game_board():
@@ -166,7 +193,7 @@ def create_post():
             body=form.post.data, 
             category=form.category.data, 
             timestamp = datetime.now().replace(second=0, microsecond=0), 
-            author=form.author.data, 
+            author=session['username'], 
             title=form.title.data
         )  # Example author ID
         db.session.add(post)
