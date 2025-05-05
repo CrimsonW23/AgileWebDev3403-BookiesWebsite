@@ -62,16 +62,16 @@ def handle_create_bet():
     # Render the form for GET requests
     return render_template('create_bet.html', current_time=datetime.now().strftime("%Y-%m-%dT%H:%M"))
 
-def handle_place_bet(bet_id, amount, userid):
-    """Handle placing a bet for the logged-in user."""
-    user_id = session['userID']  # Use the logged-in user's ID
+def handle_place_bet(bet_id, amount): 
+
+    user_id = session['userID']  # Get the logged-in user's ID
 
     # Fetch the original bet from the Bet table
     original_bet = Bet.query.get_or_404(bet_id)
 
     # Create a new bet for the user
     new_bet = Bet(
-        user_id = session['userID'],
+        user_id=user_id,  # Use the session's `userID`
         event_name=original_bet.event_name,
         bet_type=original_bet.bet_type,
         stake_amount=amount,
@@ -96,7 +96,7 @@ def handle_place_bet_form(event_name):
 
     if request.method == "POST":
         try:
-            user_id = session['userID']
+            user_id = user_id
             bet_type = request.form.get("bet_type")
             stake_amount = float(request.form.get("stake_amount"))
             odds = float(request.form.get("odds"))
