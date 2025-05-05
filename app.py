@@ -26,7 +26,22 @@ from proj_models import User, Post, Reply, Bet, EventResult, ActiveBets
 # Route for the global home page
 @app.route("/")
 def global_home():
-    return render_template("global_home.html")  # Global home page
+    user_count = User.query.count()
+    total_bets = Bet.query.count()
+    total_wins = sum(Bet.query.filter(Bet.actual_winnings > 0))
+    biggest_win = Bet.query.order_by(Bet.actual_winnings.desc()).first()
+
+    if isinstance(biggest_win, int):
+        biggest_win = biggest_win  # Already an int, no change needed
+    else:
+        biggest_win = "N/A"
+
+    return render_template("global_home.html", 
+                           users = user_count,
+                           total_bets = total_bets,
+                           total_wins = total_wins,
+                           biggest_win = biggest_win,
+                           )  # Global home page
 
 # Route for the dashboard
 @app.route("/dashboard")
