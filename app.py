@@ -181,7 +181,7 @@ def create_post():
             body=form.post.data, 
             category=form.category.data, 
             timestamp = datetime.now().replace(second=0, microsecond=0), 
-            author=form.author.data, 
+            author=session['username'], 
             title=form.title.data
         )  # Example author ID
         db.session.add(post)
