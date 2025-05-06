@@ -2,12 +2,12 @@ from flask import Flask, render_template, jsonify, request, redirect, url_for, f
 from config import Config
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-from forms import PostForm, ReplyForm
+from forms import PostForm, ReplyForm, CreateBetForm, PlaceBetForm
 from datetime import datetime, timedelta
-from dashboard_handler import handle_dashboard, handle_dashboard_data
-from bet_handler import handle_create_bet, handle_place_bet, handle_place_bet_form
-
-import os
+from extensions import db
+from proj_models import User, Post, Reply, EventResult, PlacedBets, CreatedBets, ActiveBets
+import os 
+from sqlalchemy import func
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -19,15 +19,68 @@ migrate = Migrate(app, db)
 SECRET_KEY = os.urandom(32)
 app.config['SECRET_KEY'] = SECRET_KEY
 
-from proj_models import User, Post, Reply, Bet, EventResult, ActiveBets
+def fetch_event_outcome(event_name):
+    """Simulate fetching the event outcome."""
+    simulated_outcomes = {
+        "Real Madrid vs Barcelona": "win",
+        "FIFA World Cup Final": "loss",
+        "AFL: Fremantle vs. West Coast Eagles": "win",
+        "Basketball Match": "loss",
+        "Rugby Match": "win",
+    }
+    return simulated_outcomes.get(event_name, None)
+
+# Serialize a bet object into a dictionary
+def serialize_bet(bet):
+    return {
+        "event_name": bet.event_name,
+        "bet_type": bet.bet_type,
+        "stake_amount": bet.stake_amount,
+        "odds": bet.odds,
+        "potential_winnings": bet.potential_winnings,
+        "scheduled_time": bet.scheduled_time.strftime("%Y-%m-%dT%H:%M:%S"),
+        "duration": bet.duration,
+        "status": bet.status,
+        "actual_winnings": bet.actual_winnings,
+        "date_settled": bet.date_settled.strftime("%Y-%m-%d %H:%M:%S") if bet.date_settled else None
+    }
+
+# Background task to update bet statuses and check outcomes
+@app.before_request
+def update_bet_statuses():
+    if session.get('logged_in'):
+        current_time = datetime.now()
+        bets = PlacedBets.query.filter(PlacedBets.status.in_(["upcoming", "ongoing"])).all()
+
+        for bet in bets:
+            if bet.status == "upcoming" and bet.scheduled_time <= current_time:
+                bet.status = "ongoing"
+            elif bet.status == "ongoing" and bet.scheduled_time + bet.duration <= current_time:
+                # Check event outcome
+                event_result = EventResult.query.filter_by(event_name=bet.event_name).first()
+                if not event_result:
+                    outcome = fetch_event_outcome(bet.event_name)
+                    if outcome:
+                        event_result = EventResult(event_name=bet.event_name, outcome=outcome)
+                        db.session.add(event_result)
+                        db.session.commit()
+
+                # Update bet based on outcome
+                if event_result:
+                    bet.event_outcome = event_result.outcome
+                    bet.actual_winnings = bet.stake_amount * bet.odds if event_result.outcome == bet.bet_type else 0
+                    bet.status = "past"
+                    bet.date_settled = current_time
+
+        db.session.commit() 
 
 # Route for the global home page
 @app.route("/")
 def global_home():
     user_count = User.query.count()
-    total_bets = Bet.query.count()
-    total_wins = sum(Bet.query.filter(Bet.actual_winnings > 0))
-    biggest_win = Bet.query.order_by(Bet.actual_winnings.desc()).first()
+    total_bets = PlacedBets.query.count()
+    total_wins = sum(PlacedBets.query.filter(PlacedBets.actual_winnings > 0))
+    biggest_win = PlacedBets.query.order_by(PlacedBets.actual_winnings.desc()).first()
 
     if isinstance(biggest_win, int):
         biggest_win = biggest_win  # Already an int, no change needed
@@ -35,22 +88,206 @@ def global_home():
         biggest_win = "N/A"
 
     return render_template("global_home.html", 
-                           users = user_count,
-                           total_bets = total_bets,
-                           total_wins = total_wins,
-                           biggest_win = biggest_win,
+                           users=user_count,
+                           total_bets=total_bets,
+                           total_wins=total_wins,
+                           biggest_win=biggest_win,
                            )  # Global home page
 
 # Route for the dashboard
 @app.route("/dashboard")
 def dashboard():
-    if session['logged_in']:
-        return handle_dashboard()
+    if not session.get('logged_in'):
+        flash("You must be logged in to view the dashboard.", "error")
+        return redirect(url_for('login'))
 
-@app.route("/dashboard_data")
+    # Fetch bets for the logged-in user
+    user_id = session['userID']
+    
+    # Print debug info to check user_id
+    print(f"Dashboard: Fetching bets for user_id: {user_id}")
+    
+    # Query all statuses separately with debugging
+    ongoing_bets = PlacedBets.query.filter_by(user_id=user_id, status="ongoing").all()
+    print(f"Ongoing bets found: {len(ongoing_bets)}")
+    
+    upcoming_bets = PlacedBets.query.filter_by(user_id=user_id, status="upcoming").all()
+    print(f"Upcoming bets found: {len(upcoming_bets)}")
+    for bet in upcoming_bets:
+        print(f"  - Upcoming bet: {bet.event_name}, {bet.bet_type}, {bet.stake_amount}")
+    
+    past_bets = PlacedBets.query.filter_by(user_id=user_id, status="past").order_by(PlacedBets.date_settled.desc()).all()
+    print(f"Past bets found: {len(past_bets)}")
+    
+    last_5_past_bets = past_bets[:5]
+    created_bets = CreatedBets.query.filter_by(created_by=user_id).all()
+    print(f"Created bets found: {len(created_bets)}")
+
+    # Force the session to refresh data from the database
+    db.session.expire_all()
+    
+    return render_template(
+        "dashboard.html",
+        ongoing_bets=ongoing_bets,
+        upcoming_bets=upcoming_bets,
+        past_bets=past_bets,
+        last_5_past_bets=last_5_past_bets,
+        created_bets=created_bets
+    )
+
+@app.route('/dashboard/data')
 def dashboard_data():
-    if session['logged_in']:
-        return handle_dashboard_data()
+    if not session.get('logged_in'):
+        return jsonify({"error": "User not logged in"}), 401
+
+    user_id = session.get('userID')
+    if not user_id:
+        return jsonify({"error": "User ID not found in session"}), 401
+
+    # Fetch bets for the logged-in user
+    ongoing_bets = [serialize_bet(bet) for bet in PlacedBets.query.filter_by(user_id=user_id, status="ongoing").all()]
+    upcoming_bets = [serialize_bet(bet) for bet in PlacedBets.query.filter_by(user_id=user_id, status="upcoming").all()]
+    past_bets = [serialize_bet(bet) for bet in PlacedBets.query.filter_by(user_id=user_id, status="past").all()]
+    created_bets = [serialize_bet(bet) for bet in CreatedBets.query.filter_by(created_by=user_id).all()]
+
+    return jsonify({
+        "ongoing_bets": ongoing_bets,
+        "upcoming_bets": upcoming_bets,
+        "past_bets": past_bets,
+        "created_bets": created_bets
+    })
+
+# Route for the "Create Bet" page (GET and POST methods)
+@app.route('/create_bet', methods=['GET', 'POST'])
+def create_bet():
+    if not session.get('logged_in'):
+        flash("You must be logged in to create a bet.", "error")
+        return redirect(url_for('login'))
+
+    form = CreateBetForm()
+    if form.validate_on_submit():
+        # Convert duration in hours to timedelta
+        duration = timedelta(hours=form.duration.data)
+
+        # Ensure scheduled_time is in the future
+        if form.scheduled_time.data <= datetime.now():
+            flash("Scheduled time must be in the future.", "error")
+            return render_template("create_bet.html", form=form)
+
+        # Create a new bet
+        new_created_bet = CreatedBets(
+            event_name=form.event_name.data,
+            bet_type=form.bet_type.data,
+            max_stake=form.max_stake.data,
+            odds=form.odds.data,
+            scheduled_time=form.scheduled_time.data,
+            duration=duration, 
+            created_by=session['userID']
+        )
+        new_active_bet = ActiveBets(
+            event_name=form.event_name.data,
+            bet_type=form.bet_type.data,
+            max_stake=form.max_stake.data,
+            odds=form.odds.data,
+            scheduled_time=form.scheduled_time.data,
+            duration=duration, 
+            created_by=session['userID']
+        )
+        try:
+            print(f"Creating new_active_bet: {new_active_bet}")  # Debugging
+            db.session.add(new_created_bet)
+            db.session.add(new_active_bet)
+            db.session.commit()
+            flash("Bet created successfully!", "success")
+            return redirect(url_for('active_bets'))
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error while creating bet: {str(e)}")  # Debugging
+            flash(f"An error occurred: {str(e)}", "error")
+    
+    return render_template("create_bet.html", form=form)
+
+
+# Route for active bets (all upcoming or ongoing bets)
+@app.route("/active_bets")
+def active_bets():
+    current_time = datetime.now()
+    bets = ActiveBets.query.filter(
+        ActiveBets.scheduled_time > current_time
+    ).all()
+    print(f"Active bets fetched: {bets}")  # Debugging
+    return render_template("active_bets.html", bets=bets)
+
+
+# Route for placing a bet
+@app.route("/place_bet/<int:bet_id>", methods=["POST"])
+def place_bet(bet_id):
+    if not session.get('logged_in'):
+        flash("You must be logged in to place a bet.", "error")
+        return redirect(url_for('login'))
+
+    form = PlaceBetForm()
+    if form.validate_on_submit():
+        amount = form.stake_amount.data
+        user_currency = session['currency'] 
+
+        if amount > user_currency:
+            flash("Insufficient funds to place this bet.", "error")
+            return redirect(url_for('active_bets'))
+
+        # Retrieve the bet from the ActiveBets table
+        bet = ActiveBets.query.get(bet_id)
+        if not bet: 
+            flash("Bet not found.", "error")
+            return redirect(url_for('dashboard')) 
+
+        # Ensure the user is not betting on their own event
+        if bet.created_by == session['userID']:
+            flash("You cannot place a bet on your own event.", "error")
+            return redirect(url_for('active_bets'))
+
+        # Add the bet to the PlacedBets table
+        new_placed_bet = PlacedBets(
+            user_id=session['userID'],
+            event_name=bet.event_name,
+            bet_type=bet.bet_type,
+            stake_amount=amount,
+            odds=bet.odds,
+            potential_winnings=amount * bet.odds,
+            scheduled_time=bet.scheduled_time,
+            duration=bet.duration,
+            status="upcoming"  # Default status
+        )
+        
+        print(f"New placed bet created: {new_placed_bet}")  # Debug
+        
+        try:
+            # Deduct the amount from the user's currency
+            user = User.query.get(session['userID'])
+            user.currency -= amount
+            session['currency'] = user.currency
+
+            db.session.add(new_placed_bet)
+            db.session.commit()
+            
+            
+            # Verify the bet was added by querying it back
+            added_bet = PlacedBets.query.filter_by(
+                user_id=session['userID'], 
+                event_name=bet.event_name,
+                bet_type=bet.bet_type
+            ).order_by(PlacedBets.id.desc()).first()
+             
+            
+            flash("Bet placed successfully!", "success")
+            return redirect(url_for('dashboard'))
+        except Exception as e:
+            db.session.rollback() 
+            flash(f"An error occurred: {str(e)}", "error") 
+
+    return redirect(url_for('active_bets'))
+
+
 
 @app.route("/forum")
 def forum():
