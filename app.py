@@ -159,7 +159,7 @@ def dashboard_data():
 
 # Route for the "Create Bet" page (GET and POST methods)
 @app.route('/create_bet', methods=['GET', 'POST'])
-def create_bet():
+def create_bet():   
     if not session.get('logged_in'):
         flash("You must be logged in to create a bet.", "error")
         return redirect(url_for('login'))
@@ -212,11 +212,12 @@ def create_bet():
 @app.route("/active_bets")
 def active_bets():
     current_time = datetime.now()
+    print("Current time:", current_time)
     bets = ActiveBets.query.filter(
         ActiveBets.scheduled_time > current_time
     ).all()
-    print(f"Active bets fetched: {bets}")  # Debugging
-    return render_template("active_bets.html", bets=bets)
+    form = PlaceBetForm()
+    return render_template("active_bets.html", bets=bets, form=form)
 
 
 # Route for placing a bet
@@ -229,7 +230,7 @@ def place_bet(bet_id):
     form = PlaceBetForm()
     if form.validate_on_submit():
         amount = form.stake_amount.data
-        user_currency = session['currency'] 
+        user_currency = session['currency']
 
         if amount > user_currency:
             flash("Insufficient funds to place this bet.", "error")
@@ -253,24 +254,21 @@ def place_bet(bet_id):
             bet_type=bet.bet_type,
             stake_amount=amount,
             odds=bet.odds,
-            potential_winnings=amount * bet.odds,
+            potential_winnings=float(amount) * float(bet.odds),
             scheduled_time=bet.scheduled_time,
             duration=bet.duration,
             status="upcoming"  # Default status
         )
         
-        print(f"New placed bet created: {new_placed_bet}")  # Debug
-        
         try:
-            # Deduct the amount from the user's currency
-            user = User.query.get(session['userID'])
-            user.currency -= amount
-            session['currency'] = user.currency
+            user_id = session['userID']
+            user = User.query.get(user_id)
+            new_currency = float(user.currency) - float(amount)
+            session['currency'] = new_currency
 
             db.session.add(new_placed_bet)
             db.session.commit()
-            
-            
+    
             # Verify the bet was added by querying it back
             added_bet = PlacedBets.query.filter_by(
                 user_id=session['userID'], 

@@ -26,8 +26,17 @@
             <p><em>You cannot place a bet on your own event.</em></p>
           {% else %}
             <form action="{{ url_for('place_bet', bet_id=bet.id) }}" method="POST">
-              <input type="number" name="amount" placeholder="Enter amount" min="1" required>
+              {{ form.hidden_tag() }}
+
+              {{ form.stake_amount.label }}<br>
+              {{ form.stake_amount(class="input-field") }}<br>
+
+              {% for error in form.stake_amount.errors %}
+              <span style="color: red;">[{{ error }}]</span>
+              {% endfor %}
+              
               <button type="submit">Place Bet</button>
+
             </form>
           {% endif %}
         {% endif %}
