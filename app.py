@@ -13,8 +13,6 @@ app = Flask(__name__)
 app.config.from_object(Config)
 app.secret_key = '9f8c1e6e49b4d9e6b2c442a1a8f3ecb1' #Session id used for testing
 
-from extensions import db
-
 db.init_app(app)
 migrate = Migrate(app, db)
 
@@ -218,28 +216,7 @@ def view_post(post_id):
         return redirect(url_for('view_post', post_id=post.id))
     return render_template('forum_post.html', post=post, replies=post.replies, form=form) 
 
-# Route for the "Create Bet" page (GET and POST methods)
-@app.route('/create_bet', methods=['GET', 'POST'])
-def create_bet():
-    return handle_create_bet()
 
-@app.route("/active_bets")
-def active_bets():
-    bets = ActiveBets.query.all()
-    return render_template("active_bets.html", bets=bets)
-
-# Route for placing a bet
-@app.route("/place_bet/<int:bet_id>", methods=["POST"])
-def place_bet(bet_id):
-    amount = float(request.form.get('amount'))
-    if amount <= session['currency']:
-        userid = session['userID']
-        return handle_place_bet(bet_id, amount, userid)
-
-# Route for the "Place Bet Form" page
-@app.route("/place_bet_form/<event_name>", methods=["GET", "POST"])
-def place_bet_form(event_name):
-    return handle_place_bet_form(event_name)
 
 # Route for the currency page
 @app.route("/currency")
