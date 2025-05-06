@@ -4,20 +4,21 @@
 
 <div class="dashboard-wrapper">
   <div class="topbar">
-    <div class="menu-item active" onclick="showTab('overview')">My Bets</div>
-    <div class="menu-item" onclick="showTab('ubets')">Upcoming Bets</div>
-    <div class="menu-item" onclick="showTab('pbets')">Past Bets</div>
-    <div class="menu-item" onclick="showTab('available')">Place Bets</div>
-    <div class="menu-item" onclick="showTab('stats')">Past Statistics</div>
+    <div class="menu-item active" onclick="showTab('mybets')">My Bets</div>
+    <div class="menu-item" onclick="showTab('upcoming')">Upcoming Bets</div>
+    <div class="menu-item" onclick="showTab('past')">Past Bets</div>
+    <div class="menu-item" onclick="showTab('created')">Created Bets</div>
+    <div class="menu-item" onclick="showTab('statistics')">Past Statistics</div>
   </div>
 
-  <!-- Overview Tab -->
-  <div id="overview" class="tab-content" style="display:block;">
+  <!-- My Bets Tab -->
+  <div id="mybets" class="tab-content" style="display:block;">
     <div class="content-container">
       <div class="overview-header">
-        <h2>Overview</h2>
+        <h2>My Bets</h2>
         <button class="create-bet-btn" onclick="window.location.href='/create_bet'">Create Bet</button>
       </div>
+
       <!-- Ongoing Bets Table -->
       <div class="widget">
         <h3>Ongoing Bets</h3>
@@ -58,7 +59,7 @@
               <th>Stake</th>
               <th>Odds</th>
               <th>Scheduled Date/Time</th>
-              <th>Potential Winnings</th> 
+              <th>Potential Winnings</th>
             </tr>
           </thead>
           <tbody>
@@ -110,7 +111,7 @@
   </div>
 
   <!-- Upcoming Bets Tab -->
-  <div id="ubets" class="tab-content" style="display:none;">
+  <div id="upcoming" class="tab-content" style="display:none;">
     <div class="content-container">
       <h2>Upcoming Bets</h2>
       <div class="widget">
@@ -143,7 +144,7 @@
   </div>
 
   <!-- Past Bets Tab -->
-  <div id="pbets" class="tab-content" style="display:none;">
+  <div id="past" class="tab-content" style="display:none;">
     <div class="content-container">
       <h2>Past Bets</h2>
       <div class="widget">
@@ -177,33 +178,31 @@
     </div>
   </div>
 
-  <!-- Available Bets Tab -->
-  <div id="available" class="tab-content" style="display:none;">
+  <!-- Created Bets Tab -->
+  <div id="created" class="tab-content" style="display:none;">
     <div class="content-container">
-      <h2>Available Bets</h2>
+      <h2>Created Bets</h2>
       <div class="widget">
         <table class="widget-table">
           <thead>
             <tr>
               <th>Event Name</th>
+              <th>Bet Type</th>
+              <th>Max Stake</th>
+              <th>Odds</th>
               <th>Scheduled Date/Time</th>
-              <th>Action</th>
+              <th>Duration</th>
             </tr>
           </thead>
           <tbody>
-            {% for bet in available_bets %}
+            {% for bet in created_bets %}
             <tr>
               <td>{{ bet.event_name }}</td>
+              <td>{{ bet.bet_type }}</td>
+              <td>${{ bet.max_stake }}</td>
+              <td>{{ bet.odds }}</td>
               <td>{{ bet.scheduled_time }}</td>
-              <td>
-                <a href="{{ url_for('place_bet_form', event_name=bet.event_name) }}">
-                  <button class="place-bet-btn">Place Bet</button>
-                </a>
-              </td>
-            </tr>
-            {% else %}
-            <tr>
-              <td colspan="3">No available bets at the moment.</td>
+              <td>{{ bet.duration }}</td>
             </tr>
             {% endfor %}
           </tbody>
@@ -211,7 +210,7 @@
       </div>
     </div>
   </div>
-
+  
   <!-- Past Statistics Tab -->
   <div id="stats" class="tab-content" style="display:none;">
     <div class="content-container">
@@ -227,6 +226,6 @@
     </div>
   </div>
 </div> 
- 
+
 <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 {% endblock %}
