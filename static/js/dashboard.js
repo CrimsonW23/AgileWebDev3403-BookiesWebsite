@@ -1,85 +1,119 @@
+// Global variables 
 let statsChartInitialized = false;
-let countdownInterval; // Global interval variable
+let countdownInterval;
+
+// ===== DASHBOARD PAGE FUNCTIONALITY =====
 
 // Show the selected tab and hide others
 function showTab(tabId) {
+    // Hide all tabs
     document.querySelectorAll('.tab-content').forEach(tab => tab.style.display = 'none');
     const activeTab = document.getElementById(tabId);
     if (activeTab) activeTab.style.display = 'block';
 
+    // Update menu highlighting
     document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
     const activeMenuItem = Array.from(document.querySelectorAll('.menu-item'))
         .find(item => item.getAttribute('onclick').includes(tabId));
     if (activeMenuItem) activeMenuItem.classList.add('active');
 
+    // Initialize stats charts if needed
     if (tabId === 'stats' && !statsChartInitialized) {
-        createLineChart();
-        createPieChart();
-        statsChartInitialized = true; // Prevent re-creating the chart
+        fetchStatsData()
+            .then(data => {
+                createLineChart(data.monthly_wins);
+                createPieChart(data.win_loss_ratio);
+                statsChartInitialized = true;
+            })
+            .catch(error => console.error('Error fetching stats data:', error));
     }
 }
 
-// Refresh tables with updated data
-function refreshTables() {
-    fetch('/dashboard_data')
-        .then(response => response.json())
+// Fetch dashboard data from server
+function refreshDashboardData() {
+    fetch('/dashboard/data')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
-            updateTable('#ubets tbody', data.upcoming_bets, bet => `
-                <tr>
-                    <td>${bet.event_name}</td>
-                    <td>${bet.bet_type}</td>
-                    <td>$${bet.stake_amount}</td>
-                    <td>${bet.odds}</td>
-                    <td>${bet.scheduled_time}</td>
-                    <td>$${bet.potential_winnings}</td>
-                </tr>
-            `);
-
-            updateTable('#overview .widget-table tbody', data.ongoing_bets, bet => `
-                <tr>
-                    <td>${bet.event_name}</td>
-                    <td>${bet.bet_type}</td>
-                    <td>$${bet.stake_amount}</td>
-                    <td>${bet.odds}</td>
-                    <td>${bet.potential_winnings}</td>
-                    <td class="time-remaining" data-end-time="${bet.scheduled_time}" data-duration="${bet.duration}"></td>
-                </tr>
-            `);
-
-            updateTable('#pbets tbody', data.past_bets, bet => `
-                <tr>
-                    <td>${bet.event_name}</td>
-                    <td>${bet.bet_type}</td>
-                    <td>$${bet.stake_amount}</td>
-                    <td>${bet.odds}</td>
-                    <td>${bet.actual_winnings > 0 ? "Win" : "Loss"}</td>
-                    <td>$${bet.actual_winnings}</td>
-                    <td>${bet.date_settled}</td>
-                </tr>
-            `);
-
-            updateTable('#available-bets-table-body', data.available_bets, bet => `
-                <tr>
-                    <td>${bet.event_name}</td>
-                    <td>
-                        <a href="/place_bet_form/${bet.event_name}">
-                            <button class="place-bet-btn">Place Bet</button>
-                        </a>
-                    </td>
-                </tr>
-            `);
-
+            updateDashboardTables(data);
             initializeTimeRemaining(); // Reinitialize countdown logic
         })
         .catch(error => console.error('Error fetching dashboard data:', error));
 }
 
+// Update all dashboard tables with data
+function updateDashboardTables(data) {
+    // Update Ongoing Bets table
+    updateTable('#ongoing .widget-table tbody', data.ongoing_bets, bet => `
+        <tr>
+            <td>${bet.event_name}</td>
+            <td>${bet.bet_type}</td>
+            <td>$${bet.stake_amount}</td>
+            <td>${bet.odds}</td>
+            <td>$${bet.potential_winnings}</td>
+            <td class="time-remaining" data-end-time="${bet.scheduled_time}" data-duration="${bet.duration}"></td>
+        </tr>
+    `);
+
+    // Update Upcoming Bets table
+    updateTable('#upcoming tbody', data.upcoming_bets, bet => `
+        <tr>
+            <td>${bet.event_name}</td>
+            <td>${bet.bet_type}</td>
+            <td>$${bet.stake_amount}</td>
+            <td>${bet.odds}</td>
+            <td>${new Date(bet.scheduled_time).toLocaleString()}</td>
+            <td>$${bet.potential_winnings}</td>
+        </tr>
+    `);
+
+    // Update Past Bets table
+    updateTable('#past tbody', data.past_bets, bet => `
+        <tr>
+            <td>${bet.event_name}</td>
+            <td>${bet.bet_type}</td>
+            <td>$${bet.stake_amount}</td>
+            <td>${bet.odds}</td>
+            <td>${bet.actual_winnings > 0 ? "Win" : "Loss"}</td>
+            <td>$${bet.actual_winnings}</td>
+            <td>${bet.date_settled ? new Date(bet.date_settled).toLocaleString() : 'N/A'}</td>
+        </tr>
+    `);
+
+    // Update Created Bets table
+    updateTable('#created-body', data.created_bets, bet => `
+        <tr>
+            <td>${bet.event_name}</td>
+            <td>${bet.bet_type}</td>
+            <td>$${bet.max_stake || bet.stake_amount}</td>
+            <td>${bet.odds}</td>
+            <td>${new Date(bet.scheduled_time).toLocaleString()}</td>
+            <td>${bet.duration}</td>
+        </tr>
+    `);
+}
+
 // Helper function to update table content
 function updateTable(selector, data, rowTemplate) {
     const tableBody = document.querySelector(selector);
+    if (!tableBody) return; // Skip if table doesn't exist on current page
+    
     tableBody.innerHTML = ''; // Clear existing rows
-    data.forEach(item => tableBody.innerHTML += rowTemplate(item));
+    
+    if (data && data.length > 0) {
+        data.forEach(item => tableBody.innerHTML += rowTemplate(item));
+    } else {
+        // Show "No data" message
+        const columnCount = tableBody.closest('table').querySelectorAll('thead th').length;
+        tableBody.innerHTML = `<tr><td colspan="${columnCount}" class="no-data">No bets found</td></tr>`;
+    }
 }
+
+// ===== TIME REMAINING FUNCTIONALITY =====
 
 // Initialize countdown for "Time Remaining" cells
 function initializeTimeRemaining() {
@@ -113,14 +147,42 @@ function initializeTimeRemaining() {
     }, 1000); // Update every second
 }
 
+// ===== STATISTICS CHARTS =====
+
+// Fetch stats data from server
+function fetchStatsData() {
+    // In a real app, this would fetch from an endpoint like '/dashboard/stats'
+    // For now, we'll use dummy data to match the backend structure
+    return new Promise((resolve) => {
+        // Sample data - in real app would come from server
+        const data = {
+            monthly_wins: [
+                { month: 'Jan', winnings: 10 },
+                { month: 'Feb', winnings: 15 },
+                { month: 'Mar', winnings: 8 },
+                { month: 'Apr', winnings: 20 },
+                { month: 'May', winnings: 12 }
+            ],
+            win_loss_ratio: {
+                wins: 70,
+                losses: 30
+            }
+        };
+        resolve(data);
+    });
+}
+
 // Create a line chart for monthly wins
-function createLineChart() {
+function createLineChart(monthlyData) {
     const canvas = document.getElementById('lineChart');
+    if (!canvas) return;
+    
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    const data = [10, 15, 8, 20, 12]; // Fake winnings
-    const labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May'];
+    // Extract data from monthlyData
+    const data = monthlyData.map(item => item.winnings);
+    const labels = monthlyData.map(item => item.month);
 
     // Draw axes
     ctx.strokeStyle = '#ccc';
@@ -164,12 +226,14 @@ function createLineChart() {
 }
 
 // Create a pie chart for win/loss ratio
-function createPieChart() {
+function createPieChart(ratioData) {
     const canvas = document.getElementById('pieChart');
+    if (!canvas) return;
+    
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    const data = [70, 30]; // Example: 70% Wins, 30% Losses
+    const data = [ratioData.wins, ratioData.losses]; // Win/Loss percentages
     const colors = ['#4caf50', '#f44336'];
     const labels = ['Wins', 'Losses'];
 
@@ -197,12 +261,16 @@ function createPieChart() {
         ctx.fillText(`${label}: ${data[index]}%`, 40, legendY + 15);
         legendY += 30;
     });
-}
+} 
 
-// Initialize countdown and refresh tables periodically
+// Initialize everything when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    initializeTimeRemaining();
-    setInterval(refreshTables, 30000); // Refresh tables every 30 seconds
-});
-
-
+    // Determine current page
+    const currentPath = window.location.pathname;
+    
+    // Initialize functionality based on current page
+    if (currentPath.includes('/dashboard')) {
+        refreshDashboardData();
+        initializeTimeRemaining();
+        setInterval(refreshDashboardData, 30000); 
+    }})
