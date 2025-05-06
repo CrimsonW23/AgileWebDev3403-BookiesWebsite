@@ -1,7 +1,9 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, TextAreaField, SelectField
-from wtforms.validators import DataRequired, Length
+from wtforms import StringField, SubmitField, TextAreaField, SelectField, DecimalField, IntegerField, DateTimeLocalField
+from wtforms.validators import DataRequired, Length, NumberRange, ValidationError
 from flask import session
+from datetime import datetime
+import re
 
 class PostForm(FlaskForm):
     categories = [
@@ -24,5 +26,23 @@ class ReplyForm(FlaskForm):
     reply = TextAreaField('Add to the conversation:', validators=[DataRequired(), Length(min=1, max=150)])
     submit = SubmitField('Submit')
 
+# Create Bet Form
+class CreateBetForm(FlaskForm):
+    event_name = StringField("Event Name", validators=[DataRequired()])
+    bet_type = StringField("Bet Type", validators=[DataRequired()])
+    max_stake = DecimalField("Max Stake Amount", validators=[DataRequired(), NumberRange(min=1.0)])
+    odds = DecimalField("Odds", validators=[DataRequired(), NumberRange(min=1.0)])
+    scheduled_time = DateTimeLocalField("Scheduled Time", format='%Y-%m-%dT%H:%M', validators=[DataRequired()])
+    duration = IntegerField("Duration (Hours)", validators=[DataRequired(), NumberRange(min=1)])  # Accept only hours
+    submit = SubmitField("Create Bet")
 
-    
+    def validate_scheduled_time(form, field):
+        if field.data <= datetime.now():
+            raise ValidationError("Scheduled time must be in the future.") 
+
+# Place Bet Form
+class PlaceBetForm(FlaskForm):
+    stake_amount = DecimalField("Stake Amount", validators=[DataRequired(), NumberRange(min=1)])
+    submit = SubmitField("Place Bet")
+
+
