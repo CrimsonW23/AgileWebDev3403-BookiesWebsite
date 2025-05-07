@@ -41,39 +41,40 @@
   .bet-card h3 {
     margin-top: 0;
     color: #00ff88;  /* Darker green */
-    font-size: 1.2rem;
+    font-size: 1.3rem;
   }
   
   .bet-card p {
-    margin: 0.3rem;
+    margin: 0.5rem 0; /* Adjust vertical spacing for text */
     color: #ccc;
     font-size: 0.95rem;
   }
   
   .bet-card input {
     width: 100%;
-    padding: 0.6rem;
-    margin-bottom: 1rem;
+    padding: 0.6rem; 
     border-radius: 5px;
     border: 1px solid #333;
     background: #2a2a2a;
     color: #fff;
+    font-size: 1rem; /* Ensure consistent font size */
   }
   
   .bet-card button {
     width: 100%;
     padding: 0.8rem;
     border-radius: 5px;
-    background: #006644;  /* Darker green */
-    color: #fff;
+    background: #00ff88;  /* Darker green */
+    color: #111;
     border: none;
     cursor: pointer;
     font-size: 1rem;
+    font-weight: bold;
     transition: background 0.3s ease;
   }
   
   .bet-card button:hover {
-    background: #004d33;  /* Even darker green */
+    background: #00ff88;  /* Even darker green */
   }
   
   .status.upcoming {
@@ -88,3 +89,25 @@
     color: #ff4c4c;
   }
   
+  /* Form Group Styling */
+  .form-group {
+    display: flex;
+    flex-direction: column; /* Stack label and input vertically */
+    gap: 0.5rem; /* Add a small gap between label and input */
+    margin-bottom: 1rem; /* Add spacing below the group */
+  }
+  
+  .form-group label {
+    font-size: 1rem;
+    color: #ccc;
+  }
+  
+  .input-field {
+    width: 100%;
+    padding: 0.6rem;
+    border-radius: 5px;
+    border: 1px solid #333;
+    background: #2a2a2a;
+    color: #fff;
+    font-size: 1rem;
+  }
