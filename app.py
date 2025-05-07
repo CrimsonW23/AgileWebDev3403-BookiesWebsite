@@ -225,7 +225,8 @@ def view_post(post_id):
         db.session.add(reply)
         db.session.commit()
         return redirect(url_for('view_post', post_id=post.id))
-    return render_template('forum_post.html', post=post, replies=post.replies, form=form) 
+    replies = post.replies.order_by(Reply.timestamp.desc()).all()
+    return render_template('forum_post.html', post=post, replies=replies, form=form) 
 
 # Route for the "Create Bet" page (GET and POST methods)
 @app.route('/create_bet', methods=['GET', 'POST'])

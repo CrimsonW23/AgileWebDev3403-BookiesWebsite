@@ -27,14 +27,18 @@
             {% for error in form.reply.errors %}
                 <span style="color: red;">[{{ error }}]</span>
             {% endfor %}
+            {% if session.get('logged_in') %}
             <div class = "button-container">
                 <button type="submit" id="form_submit" class="button">Submit Comment</button>
             </div>
+            {% else %}
+                <p>You must be logged in to comment. <a href="{{ url_for('login') }}">Login</a></p>
+            {% endif %}
         </div>
     </form>
 
     <div class="comments-list">
-        {% for reply in post.replies %}
+        {% for reply in replies %}
             <div class="reply-item">
                 <p><span class = "author">{{ reply.author }}</span> <i>({{ reply.timestamp }}) said:</i></p>
                 <p>{{ reply.body }}</p>
