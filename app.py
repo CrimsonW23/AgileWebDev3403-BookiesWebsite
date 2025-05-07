@@ -219,7 +219,7 @@ def view_post(post_id):
         reply = Reply(
             body = form.reply.data, 
             timestamp = datetime.now().replace(second=0, microsecond=0), 
-            author = form.author.data, 
+            author = session['username'],
             post_id=post_id
         )  # Example author ID
         db.session.add(reply)
