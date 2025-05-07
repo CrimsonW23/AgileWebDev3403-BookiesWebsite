@@ -109,22 +109,8 @@ def dashboard():
     
     # Query all statuses separately with debugging
     ongoing_bets = PlacedBets.query.filter_by(user_id=user_id, status="ongoing").all()
-    print(f"Ongoing bets found: {len(ongoing_bets)}")
-    
     upcoming_bets = PlacedBets.query.filter_by(user_id=user_id, status="upcoming").all()
-    print(f"Upcoming bets found: {len(upcoming_bets)}")
-    for bet in upcoming_bets:
-        print(f"  - Upcoming bet: {bet.event_name}, {bet.bet_type}, {bet.stake_amount}")
-    
     past_bets = PlacedBets.query.filter_by(user_id=user_id, status="past").order_by(PlacedBets.date_settled.desc()).all()
-    print(f"Past bets found: {len(past_bets)}")
-    
-    last_5_past_bets = past_bets[:5]
-    created_bets = CreatedBets.query.filter_by(created_by=user_id).all()
-    print(f"Created bets found: {len(created_bets)}")
-
-    # Force the session to refresh data from the database
-    db.session.expire_all()
     
     return render_template(
         "dashboard.html",
