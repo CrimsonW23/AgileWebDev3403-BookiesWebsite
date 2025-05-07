@@ -8,6 +8,7 @@ class User(db.Model):
     email = db.Column(db.String(50), index=True, unique=True)
     currency = db.Column(db.Float, default=0.0, index=True)
     posts = db.relationship('Post', backref='user', lazy='dynamic')  # One-to-many relationship with Post
+    replies = db.relationship('Reply', backref='user', lazy='dynamic')  # One-to-many relationship with Reply
 
     def __repr__(self):
         return 'User {}'.format(self.username)
@@ -20,6 +21,12 @@ class Post(db.Model):
     timestamp = db.Column(db.DateTime, index=True, default=lambda: datetime.now().replace(second=0, microsecond=0))
     author = db.Column(db.Integer, db.ForeignKey('user.id'))  # Foreign key to User
     replies = db.relationship('Reply', backref='post', lazy='dynamic')  # One-to-many relationship with Reply
+    
+    @property
+    def most_recent_reply(self):
+        if self.replies.count() == 0:
+            return self
+        return self.replies.order_by(Reply.timestamp.desc()).first()
 
     def __repr__(self):
         return 'Post "{}"'.format(self.body)
@@ -28,8 +35,9 @@ class Reply(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     body = db.Column(db.String(150), index=True, unique=False)
     timestamp = db.Column(db.DateTime, index=True, default=lambda: datetime.now().replace(second=0, microsecond=0))
-    author = db.Column(db.String(25), index=True, unique=False)  # Assuming author is a string for simplicity
+    author = db.Column(db.Integer, db.ForeignKey('user.id')) # Assuming author is a string for simplicity
     post_id = db.Column(db.Integer, db.ForeignKey('post.id'))  # Foreign key to Post
+
 
     def __repr__(self):
         return 'Reply "{}"'.format(self.body)

@@ -14,13 +14,10 @@ import os
 
 app = Flask(__name__)
 app.config.from_object(Config)
-app.secret_key = '9f8c1e6e49b4d9e6b2c442a1a8f3ecb1' #Session id used for testing
+app.secret_key = Config.SECRET_KEY
 
 db.init_app(app)
 migrate = Migrate(app, db)
-
-SECRET_KEY = os.urandom(32)
-app.config['SECRET_KEY'] = SECRET_KEY
 
 # Route for the global home page
 @app.route("/")
@@ -222,13 +219,14 @@ def view_post(post_id):
         reply = Reply(
             body = form.reply.data, 
             timestamp = datetime.now().replace(second=0, microsecond=0), 
-            author = form.author.data, 
+            author = session['username'],
             post_id=post_id
         )  # Example author ID
         db.session.add(reply)
         db.session.commit()
         return redirect(url_for('view_post', post_id=post.id))
-    return render_template('forum_post.html', post=post, replies=post.replies, form=form) 
+    replies = post.replies.order_by(Reply.timestamp.desc()).all()
+    return render_template('forum_post.html', post=post, replies=replies, form=form) 
 
 # Route for the "Create Bet" page (GET and POST methods)
 @app.route('/create_bet', methods=['GET', 'POST'])

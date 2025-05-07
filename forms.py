@@ -20,7 +20,6 @@ class PostForm(FlaskForm):
     submit = SubmitField('Submit')
 
 class ReplyForm(FlaskForm):
-    author = StringField('Name', validators=[DataRequired(), Length(min=1, max=25)])
     reply = TextAreaField('Add to the conversation:', validators=[DataRequired(), Length(min=1, max=150)])
     submit = SubmitField('Submit')
 
