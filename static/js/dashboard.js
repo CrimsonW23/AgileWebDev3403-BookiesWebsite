@@ -1,8 +1,6 @@
 // Global variables 
 let statsChartInitialized = false;
-let countdownInterval;
-
-// ===== DASHBOARD PAGE FUNCTIONALITY =====
+let countdownInterval; 
 
 // Show the selected tab and hide others
 function showTab(tabId) {
@@ -39,11 +37,16 @@ function refreshDashboardData() {
             return response.json();
         })
         .then(data => {
-            updateDashboardTables(data);
+            updateDashboardTables(data); // Update all tables
             initializeTimeRemaining(); // Reinitialize countdown logic
         })
         .catch(error => console.error('Error fetching dashboard data:', error));
 }
+
+// Periodically refresh the dashboard data
+setInterval(() => {
+    refreshDashboardData();
+}, 10000); // Refresh every 10 seconds
 
 // Update all dashboard tables with data
 function updateDashboardTables(data) {
@@ -51,6 +54,7 @@ function updateDashboardTables(data) {
     updateTable('#ongoing .widget-table tbody', data.ongoing_bets, bet => `
         <tr>
             <td>${bet.event_name}</td>
+            <td>${bet.bet_type_description}</td>
             <td>${bet.bet_type}</td>
             <td>$${bet.stake_amount}</td>
             <td>${bet.odds}</td>
@@ -63,6 +67,7 @@ function updateDashboardTables(data) {
     updateTable('#upcoming tbody', data.upcoming_bets, bet => `
         <tr>
             <td>${bet.event_name}</td>
+            <td>${bet.bet_type_description}</td>
             <td>${bet.bet_type}</td>
             <td>$${bet.stake_amount}</td>
             <td>${bet.odds}</td>
@@ -75,6 +80,7 @@ function updateDashboardTables(data) {
     updateTable('#past tbody', data.past_bets, bet => `
         <tr>
             <td>${bet.event_name}</td>
+            <td>${bet.bet_type_description}</td>
             <td>${bet.bet_type}</td>
             <td>$${bet.stake_amount}</td>
             <td>${bet.odds}</td>
@@ -88,11 +94,13 @@ function updateDashboardTables(data) {
     updateTable('#created-body', data.created_bets, bet => `
         <tr>
             <td>${bet.event_name}</td>
+            <td>${bet.bet_type_description}</td>
             <td>${bet.bet_type}</td>
             <td>$${bet.max_stake || bet.stake_amount}</td>
             <td>${bet.odds}</td>
             <td>${new Date(bet.scheduled_time).toLocaleString()}</td>
             <td>${bet.duration}</td>
+            <td>${bet.status}</td>  
         </tr>
     `);
 }
@@ -112,14 +120,15 @@ function updateTable(selector, data, rowTemplate) {
         tableBody.innerHTML = `<tr><td colspan="${columnCount}" class="no-data">No bets found</td></tr>`;
     }
 }
-
-// ===== TIME REMAINING FUNCTIONALITY =====
+ 
 
 // Initialize countdown for "Time Remaining" cells
 function initializeTimeRemaining() {
     if (countdownInterval) clearInterval(countdownInterval);
 
     countdownInterval = setInterval(() => {
+        let refreshNeeded = false;
+
         document.querySelectorAll('.time-remaining').forEach(cell => {
             const endTimeAttr = cell.getAttribute('data-end-time');
             const durationAttr = cell.getAttribute('data-duration');
@@ -136,7 +145,8 @@ function initializeTimeRemaining() {
             const diff = finalEndTime - now;
 
             if (diff <= 0) {
-                cell.textContent = "0h 0m 0s";
+                // Mark that a refresh is needed to move the bet to the next table
+                refreshNeeded = true;
             } else {
                 const hours = Math.floor(diff / (1000 * 60 * 60));
                 const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
@@ -144,10 +154,13 @@ function initializeTimeRemaining() {
                 cell.textContent = `${hours}h ${minutes}m ${seconds}s`;
             }
         });
+
+        if (refreshNeeded) {
+            refreshDashboardData(); // Refresh dashboard data to update tables
+        }
     }, 1000); // Update every second
 }
-
-// ===== STATISTICS CHARTS =====
+ 
 
 // Fetch stats data from server
 function fetchStatsData() {
@@ -267,10 +280,10 @@ function createPieChart(ratioData) {
 document.addEventListener('DOMContentLoaded', () => {
     // Determine current page
     const currentPath = window.location.pathname;
-    
+
     // Initialize functionality based on current page
     if (currentPath.includes('/dashboard')) {
-        refreshDashboardData();
-        initializeTimeRemaining();
-        setInterval(refreshDashboardData, 30000); 
-    }})
+        refreshDashboardData(); // Initial data fetch
+        initializeTimeRemaining(); // Initialize countdown logic
+    }
+});
