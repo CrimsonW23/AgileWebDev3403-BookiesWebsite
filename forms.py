@@ -29,7 +29,8 @@ class ReplyForm(FlaskForm):
 # Create Bet Form
 class CreateBetForm(FlaskForm):
     event_name = StringField("Event Name", validators=[DataRequired()])
-    bet_type = StringField("Bet Type", validators=[DataRequired()])
+    bet_type_description = StringField('Bet Description', validators=[DataRequired()])
+    bet_type = SelectField('Definitive Bet Outcome', choices=[('win', 'Win'), ('loss', 'Loss')], validators=[DataRequired()])
     max_stake = DecimalField("Max Stake Amount", validators=[DataRequired(), NumberRange(min=1.0)])
     odds = DecimalField("Odds", validators=[DataRequired(), NumberRange(min=1.0)])
     scheduled_time = DateTimeLocalField("Scheduled Time", format='%Y-%m-%dT%H:%M', validators=[DataRequired()])
