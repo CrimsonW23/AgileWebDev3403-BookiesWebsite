@@ -14,13 +14,10 @@ import os
 
 app = Flask(__name__)
 app.config.from_object(Config)
-app.secret_key = '9f8c1e6e49b4d9e6b2c442a1a8f3ecb1' #Session id used for testing
+app.secret_key = Config.SECRET_KEY
 
 db.init_app(app)
 migrate = Migrate(app, db)
-
-SECRET_KEY = os.urandom(32)
-app.config['SECRET_KEY'] = SECRET_KEY
 
 # Route for the global home page
 @app.route("/")
