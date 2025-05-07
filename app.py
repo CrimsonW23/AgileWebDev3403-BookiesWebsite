@@ -3,102 +3,19 @@ from config import Config
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from forms import PostForm, ReplyForm, CreateBetForm, PlaceBetForm
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta 
 from extensions import db
-from proj_models import User, Post, Reply, EventResult, PlacedBets, CreatedBets, ActiveBets
-import os 
+from proj_models import User, Post, Reply, CreatedBets, ActiveBets, Placedbets, EventResult
 from sqlalchemy import func
+
+import os
 
 app = Flask(__name__)
 app.config.from_object(Config)
-app.secret_key = '9f8c1e6e49b4d9e6b2c442a1a8f3ecb1' #Session id used for testing
+app.secret_key = Config.SECRET_KEY
 
 db.init_app(app)
 migrate = Migrate(app, db)
-
-SECRET_KEY = os.urandom(32)
-app.config['SECRET_KEY'] = SECRET_KEY
-
-def fetch_event_outcome(event_name):
-    """Simulate fetching the event outcome."""
-    simulated_outcomes = {
-        "Real Madrid vs Barcelona": "win",
-        "FIFA World Cup Final": "loss",
-        "AFL: Fremantle vs. West Coast Eagles": "win",
-        "Basketball Match": "loss",
-        "Rugby Match": "win", 
-    }
-    return simulated_outcomes.get(event_name, None)
-
-# Serialize a bet object into a dictionary
-def serialize_bet(bet):
-    return {
-        "event_name": bet.event_name,
-        "bet_type_description": bet.bet_type_description,
-        "bet_type": bet.bet_type,
-        "stake_amount": bet.stake_amount,
-        "odds": bet.odds,
-        "potential_winnings": bet.potential_winnings,
-        "scheduled_time": bet.scheduled_time.strftime("%Y-%m-%dT%H:%M:%S"),
-        "duration": bet.duration,
-        "status": bet.status,
-        "actual_winnings": bet.actual_winnings,
-        "date_settled": bet.date_settled.strftime("%Y-%m-%d %H:%M:%S") if bet.date_settled else None
-    }
-
-# Background task to update bet statuses and check outcomes
-@app.before_request
-def update_bet_statuses():
-    if session.get('logged_in'):
-        current_time = datetime.now()
-        
-        # Update PlacedBets statuses
-        placed_bets = PlacedBets.query.filter(PlacedBets.status.in_(["upcoming", "ongoing"])).all()
-        
-        for bet in placed_bets:
-            # Convert duration to timedelta if it's not already
-            if isinstance(bet.duration, int):
-                duration = timedelta(hours=bet.duration)
-            else:
-                duration = bet.duration
-                
-            end_time = bet.scheduled_time + duration
-            
-            if bet.status == "upcoming" and bet.scheduled_time <= current_time:
-                bet.status = "ongoing"
-            elif bet.status == "ongoing" and end_time <= current_time:
-                # Check event outcome
-                event_result = EventResult.query.filter_by(event_name=bet.event_name).first()
-                if not event_result:
-                    outcome = fetch_event_outcome(bet.event_name)
-                    if outcome:
-                        event_result = EventResult(event_name=bet.event_name, outcome=outcome)
-                        db.session.add(event_result)
-                        db.session.commit()
-
-                # Update bet based on outcome
-                if event_result:
-                    bet.event_outcome = event_result.outcome
-                    bet.actual_winnings = bet.stake_amount * bet.odds if event_result.outcome == bet.bet_type else 0
-                    bet.status = "past"
-                    bet.date_settled = current_time
-        
-        # Update CreatedBets statuses
-        created_bets = CreatedBets.query.filter(CreatedBets.status.in_(["upcoming", "ongoing"])).all()
-        for bet in created_bets:
-            if isinstance(bet.duration, int):
-                duration = timedelta(hours=bet.duration)
-            else:
-                duration = bet.duration
-                
-            end_time = bet.scheduled_time + duration
-            
-            if bet.status == "upcoming" and bet.scheduled_time <= current_time:
-                bet.status = "ongoing"
-            elif bet.status == "ongoing" and end_time <= current_time:
-                bet.status = "past"
-
-        db.session.commit()
 
 # Route for the global home page
 @app.route("/")
@@ -337,14 +254,27 @@ def forum():
     # Get the selected category from the request args (default to 'all')
     selected_category = request.args.get('category', 'all')
 
+    # Pagination
+    page = request.args.get('page', 1, type=int)
+    posts_per_page = 10  # Number of posts per page
+
     # Query posts based on the selected category
     if selected_category == 'all':
-        filtered_posts = Post.query.order_by(Post.timestamp.desc()).all()
+        query = Post.query.order_by(Post.timestamp.desc())
     else:
-        filtered_posts = Post.query.filter_by(category=selected_category).order_by(Post.timestamp.desc()).all()
+        query = Post.query.filter_by(category=selected_category).order_by(Post.timestamp.desc())
 
-    # Render the forum page with posts and categories
-    return render_template("forum.html", posts=filtered_posts, filter_categories=filter_categories, category=selected_category)
+    pagination = query.paginate(page=page, per_page=posts_per_page, error_out=False)
+    posts = pagination.items
+
+    # Render the forum page
+    return render_template(
+        "forum.html",
+        posts=posts,
+        pagination=pagination,
+        category=selected_category,
+        filter_categories=filter_categories
+    )
 
 '''@app.route("/games") 
 def game_board():
@@ -484,15 +414,37 @@ def view_post(post_id):
         reply = Reply(
             body = form.reply.data, 
             timestamp = datetime.now().replace(second=0, microsecond=0), 
-            author = form.author.data, 
+            author = session['username'],
             post_id=post_id
         )  # Example author ID
         db.session.add(reply)
         db.session.commit()
         return redirect(url_for('view_post', post_id=post.id))
-    return render_template('forum_post.html', post=post, replies=post.replies, form=form) 
+    replies = post.replies.order_by(Reply.timestamp.desc()).all()
+    return render_template('forum_post.html', post=post, replies=replies, form=form) 
 
+# Route for the "Create Bet" page (GET and POST methods)
+@app.route('/create_bet', methods=['GET', 'POST'])
+def create_bet():
+    return handle_create_bet()
 
+@app.route("/active_bets")
+def active_bets():
+    bets = ActiveBets.query.all()
+    return render_template("active_bets.html", bets=bets)
+
+# Route for placing a bet
+@app.route("/place_bet/<int:bet_id>", methods=["POST"])
+def place_bet(bet_id):
+    amount = float(request.form.get('amount'))
+    if amount <= session['currency']:
+        userid = session['userID']
+        return handle_place_bet(bet_id, amount, userid)
+
+# Route for the "Place Bet Form" page
+@app.route("/place_bet_form/<event_name>", methods=["GET", "POST"])
+def place_bet_form(event_name):
+    return handle_place_bet_form(event_name)
 
 # Route for the currency page
 @app.route("/currency")
