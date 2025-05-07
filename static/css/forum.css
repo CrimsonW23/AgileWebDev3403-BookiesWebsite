@@ -44,17 +44,22 @@ body {
 
 .breadcrumb {
     font-weight: bold;
+    display: flex;
+    gap: 0.5rem;
 }
 
-.breadcrumb a {
-    color: #00cc6e;
-    text-decoration: none;
+.filter {
+    width: 50%;
+}
+
+label + form {
+    margin-top: 1rem;
 }
 
 .create-post{
     width: 100%;
     text-align: right;
-    margin-top: 1rem;
+    margin-top: 3.5rem;
 }
 
 .button {
