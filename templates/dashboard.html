@@ -16,7 +16,7 @@
     <div class="content-container">
       <div class="overview-header">
         <h2>My Bets</h2>
-        <button class="create-bet-btn" onclick="window.location.href='/create_bet'">Create Bet</button>
+        <button class="create-bet-btn" id="create-bet-btn" onclick="window.location.href='/create_bet'">Create Bet</button>
       </div>
 
       <!-- Ongoing Bets Table -->
@@ -26,6 +26,7 @@
           <thead>
             <tr>
               <th>Event Name</th>
+              <th>Bet Description</th>
               <th>Bet Type</th>
               <th>Stake</th>
               <th>Odds</th>
@@ -37,7 +38,8 @@
             {% for bet in ongoing_bets %}
             <tr>
               <td>{{ bet.event_name }}</td>
-              <td>{{ bet.bet_type }}</td>
+              <td>{{ bet.bet_type_description }}</td>
+              <td>{{ bet.bet_type }}</td> 
               <td>${{ bet.stake_amount }}</td>
               <td>{{ bet.odds }}</td>
               <td>${{ bet.potential_winnings }}</td>
@@ -55,6 +57,7 @@
           <thead>
             <tr>
               <th>Event Name</th>
+              <th>Bet Description</th>
               <th>Bet Type</th>
               <th>Stake</th>
               <th>Odds</th>
@@ -66,6 +69,7 @@
             {% for bet in upcoming_bets %}
             <tr>
               <td>{{ bet.event_name }}</td>
+              <td>{{ bet.bet_type_description }}</td> 
               <td>{{ bet.bet_type }}</td>
               <td>${{ bet.stake_amount }}</td>
               <td>{{ bet.odds }}</td>
@@ -84,6 +88,7 @@
           <thead>
             <tr>
               <th>Event Name</th>
+              <th>Bet Description</th>
               <th>Bet Type</th>
               <th>Stake</th>
               <th>Odds</th>
@@ -96,6 +101,7 @@
             {% for bet in past_bets[:5] %}
             <tr>
               <td>{{ bet.event_name }}</td>
+              <td>{{ bet.bet_type_description }}</td>
               <td>{{ bet.bet_type }}</td>
               <td>${{ bet.stake_amount }}</td>
               <td>{{ bet.odds }}</td>
@@ -119,6 +125,7 @@
           <thead>
             <tr>
               <th>Event Name</th>
+              <th>Bet Description</th>
               <th>Bet Type</th>
               <th>Stake</th>
               <th>Odds</th>
@@ -130,6 +137,7 @@
             {% for bet in upcoming_bets %}
             <tr>
               <td>{{ bet.event_name }}</td>
+              <td>{{ bet.bet_type_description }}</td>
               <td>{{ bet.bet_type }}</td>
               <td>${{ bet.stake_amount }}</td>
               <td>{{ bet.odds }}</td>
@@ -152,6 +160,7 @@
           <thead>
             <tr>
               <th>Event Name</th>
+              <th>Bet Description</th>
               <th>Bet Type</th>
               <th>Stake</th>
               <th>Odds</th>
@@ -164,6 +173,7 @@
             {% for bet in past_bets %}
             <tr>
               <td>{{ bet.event_name }}</td>
+              <td>{{ bet.bet_type_description }}</td>
               <td>{{ bet.bet_type }}</td>
               <td>${{ bet.stake_amount }}</td>
               <td>{{ bet.odds }}</td>
@@ -181,28 +191,35 @@
   <!-- Created Bets Tab -->
   <div id="created" class="tab-content" style="display:none;">
     <div class="content-container">
-      <h2>Created Bets</h2>
+      <div class="overview-header">
+        <h2>Created Bets</h2>
+        <button class="create-bet-btn" id="create-bet-btn" onclick="window.location.href='/create_bet'">Create Bet</button>
+      </div>
       <div class="widget">
         <table class="widget-table">
           <thead>
             <tr>
               <th>Event Name</th>
+              <th>Bet Description</th>
               <th>Bet Type</th>
               <th>Max Stake</th>
               <th>Odds</th>
               <th>Scheduled Date/Time</th>
               <th>Duration</th>
+              <th>Status</th>
             </tr>
           </thead>
           <tbody>
             {% for bet in created_bets %}
             <tr>
               <td>{{ bet.event_name }}</td>
+              <td>{{ bet.bet_type_description }}</td>
               <td>{{ bet.bet_type }}</td>
               <td>${{ bet.max_stake }}</td>
               <td>{{ bet.odds }}</td>
               <td>{{ bet.scheduled_time }}</td>
               <td>{{ bet.duration }}</td>
+              <td>{{ bet.status }}</td>
             </tr>
             {% endfor %}
           </tbody>
