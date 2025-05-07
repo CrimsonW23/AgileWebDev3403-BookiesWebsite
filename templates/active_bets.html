@@ -13,30 +13,30 @@
     {% if bets %}
       {% for bet in bets %}
       <div class="bet-card" data-search="{{ bet.event_name | lower }} {{ bet.bet_type | lower }}">
-        <h3>{{ bet.event_name }}</h3>
-        <p><strong>Type:</strong> {{ bet.bet_type }}</p>
+        <h3>{{ bet.event_name }}</h3> 
+        <p><strong>Bet Type:</strong> {{ bet.bet_type_description }}</p>
         <p><strong>Max Stake:</strong> ${{ bet.max_stake | int }}</p>
         <p><strong>Odds:</strong> {{ bet.odds }}</p>
-        <p><strong>Scheduled:</strong> {{ bet.scheduled_time.strftime('%d %b %Y %H:%M') }}</p>
+        <p><strong>Scheduled At:</strong> {{ bet.scheduled_time.strftime('%d %b %Y %H:%M') }}</p>
         <p><strong>Duration:</strong> {{ bet.duration.total_seconds() // 3600 }} hrs</p>
-        <p><strong>Created:</strong> {{ bet.scheduled_time.strftime('%d %b %Y') }}</p>
+        <p><strong>Created At:</strong> {{ bet.scheduled_time.strftime('%d %b %Y') }}</p>
         <br>
         {% if session.get('logged_in') %}
-          {% if bet.created_by == session['userID'] %}
-            <p><em>You cannot place a bet on your own event.</em></p>
+          {% if bet.created_by == session['userID'] %} 
           {% else %}
             <form action="{{ url_for('place_bet', bet_id=bet.id) }}" method="POST">
               {{ form.hidden_tag() }}
 
-              {{ form.stake_amount.label }}<br>
-              {{ form.stake_amount(class="input-field") }}<br>
+              <div class="form-group">
+                <label for="stakeAmount">{{ form.stake_amount.label }}</label>
+                {{ form.stake_amount(class="input-field", id="stakeAmount") }}
+              </div>
 
               {% for error in form.stake_amount.errors %}
               <span style="color: red;">[{{ error }}]</span>
               {% endfor %}
               
               <button type="submit">Place Bet</button>
-
             </form>
           {% endif %}
         {% endif %}
