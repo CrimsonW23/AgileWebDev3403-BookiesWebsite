@@ -26,8 +26,9 @@ The creation of the web application should be done in a private GitHub repositor
 4. Run `flask db init` to initialise the database that will store all of your local data.
 5. Run `flask db migrate` to generate the migration script.
 6. Next, run `flask db upgrade` to update the database.
-7. Back in the terminal, `cd` to the directory where you cloned the repository and run `python app.py`
-8. Head over to 127.0.0.1 (or the address your console says the website is hosted at).
+7. Run `SET SECRET_KEY="<enter secret key>"`, or `EXPORT SECRET_KEY="<enter secret key>"` if you're on Linux.
+8. Back in the terminal, `cd` to the directory where you cloned the repository and run `python app.py`
+9. Head over to 127.0.0.1 (or the address your console says the website is hosted at).
 
 For future development please add the new html pages in the template folder and the css in the static folder.
 <br>
