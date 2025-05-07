@@ -11,15 +11,11 @@ import os
 
 app = Flask(__name__)
 app.config.from_object(Config)
-app.secret_key = '9f8c1e6e49b4d9e6b2c442a1a8f3ecb1' #Session id used for testing
 
 from extensions import db
 
 db.init_app(app)
 migrate = Migrate(app, db)
-
-SECRET_KEY = os.urandom(32)
-app.config['SECRET_KEY'] = SECRET_KEY
 
 from proj_models import User, Post, Reply, Bet, EventResult, ActiveBets
 
@@ -63,14 +59,27 @@ def forum():
     # Get the selected category from the request args (default to 'all')
     selected_category = request.args.get('category', 'all')
 
+    # Pagination
+    page = request.args.get('page', 1, type=int)
+    posts_per_page = 10  # Number of posts per page
+
     # Query posts based on the selected category
     if selected_category == 'all':
-        filtered_posts = Post.query.order_by(Post.timestamp.desc()).all()
+        query = Post.query.order_by(Post.timestamp.desc())
     else:
-        filtered_posts = Post.query.filter_by(category=selected_category).order_by(Post.timestamp.desc()).all()
+        query = Post.query.filter_by(category=selected_category).order_by(Post.timestamp.desc())
 
-    # Render the forum page with posts and categories
-    return render_template("forum.html", posts=filtered_posts, filter_categories=filter_categories, category=selected_category)
+    pagination = query.paginate(page=page, per_page=posts_per_page, error_out=False)
+    posts = pagination.items
+
+    # Render the forum page
+    return render_template(
+        "forum.html",
+        posts=posts,
+        pagination=pagination,
+        category=selected_category,
+        filter_categories=filter_categories
+    )
 
 '''@app.route("/games") 
 def game_board():
