@@ -15,8 +15,12 @@
             {{ form.event_name(class="form-control", id="event_name", placeholder="Enter match/sport event") }}
         </div>
         <div class="form-group">
-            <label for="bet_type">Bet Type:</label>
-            {{ form.bet_type(class="form-control", id="bet_type", placeholder="Enter win condition") }}
+            <label for="bet_type_description">Bet Description:</label>
+            {{ form.bet_type_description(class="form-control", id="bet_type_description", placeholder="Describe your bet (e.g., 'Team A wins')") }}
+        </div>
+        <div class="form-group">
+            <label for="bet_type">Definitive Bet Outcome:</label>
+            {{ form.bet_type(class="form-control", id="bet_type") }}
         </div>
         <div class="form-group">
             <label for="max_stake">Max Stake Amount:</label>
