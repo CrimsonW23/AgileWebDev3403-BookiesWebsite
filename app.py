@@ -26,7 +26,7 @@ def fetch_event_outcome(event_name):
         "FIFA World Cup Final": "loss",
         "AFL: Fremantle vs. West Coast Eagles": "win",
         "Basketball Match": "loss",
-        "Rugby Match": "win",
+        "Rugby Match": "win", 
     }
     return simulated_outcomes.get(event_name, None)
 
@@ -34,6 +34,7 @@ def fetch_event_outcome(event_name):
 def serialize_bet(bet):
     return {
         "event_name": bet.event_name,
+        "bet_type_description": bet.bet_type_description,
         "bet_type": bet.bet_type,
         "stake_amount": bet.stake_amount,
         "odds": bet.odds,
@@ -50,12 +51,22 @@ def serialize_bet(bet):
 def update_bet_statuses():
     if session.get('logged_in'):
         current_time = datetime.now()
-        bets = PlacedBets.query.filter(PlacedBets.status.in_(["upcoming", "ongoing"])).all()
-
-        for bet in bets:
+        
+        # Update PlacedBets statuses
+        placed_bets = PlacedBets.query.filter(PlacedBets.status.in_(["upcoming", "ongoing"])).all()
+        
+        for bet in placed_bets:
+            # Convert duration to timedelta if it's not already
+            if isinstance(bet.duration, int):
+                duration = timedelta(hours=bet.duration)
+            else:
+                duration = bet.duration
+                
+            end_time = bet.scheduled_time + duration
+            
             if bet.status == "upcoming" and bet.scheduled_time <= current_time:
                 bet.status = "ongoing"
-            elif bet.status == "ongoing" and bet.scheduled_time + bet.duration <= current_time:
+            elif bet.status == "ongoing" and end_time <= current_time:
                 # Check event outcome
                 event_result = EventResult.query.filter_by(event_name=bet.event_name).first()
                 if not event_result:
@@ -71,43 +82,58 @@ def update_bet_statuses():
                     bet.actual_winnings = bet.stake_amount * bet.odds if event_result.outcome == bet.bet_type else 0
                     bet.status = "past"
                     bet.date_settled = current_time
+        
+        # Update CreatedBets statuses
+        created_bets = CreatedBets.query.filter(CreatedBets.status.in_(["upcoming", "ongoing"])).all()
+        for bet in created_bets:
+            if isinstance(bet.duration, int):
+                duration = timedelta(hours=bet.duration)
+            else:
+                duration = bet.duration
+                
+            end_time = bet.scheduled_time + duration
+            
+            if bet.status == "upcoming" and bet.scheduled_time <= current_time:
+                bet.status = "ongoing"
+            elif bet.status == "ongoing" and end_time <= current_time:
+                bet.status = "past"
 
-        db.session.commit() 
+        db.session.commit()
 
 # Route for the global home page
 @app.route("/")
 def global_home():
     user_count = User.query.count()
     total_bets = PlacedBets.query.count()
-    total_wins = sum(PlacedBets.query.filter(PlacedBets.actual_winnings > 0))
+    total_wins = db.session.query(func.sum(PlacedBets.actual_winnings)).filter(PlacedBets.actual_winnings > 0).scalar() or 0
     biggest_win = PlacedBets.query.order_by(PlacedBets.actual_winnings.desc()).first()
 
-    if isinstance(biggest_win, int):
-        biggest_win = biggest_win  # Already an int, no change needed
+    if biggest_win and isinstance(biggest_win.actual_winnings, (int, float)):
+        biggest_win = biggest_win.actual_winnings
     else:
         biggest_win = "N/A"
 
-    return render_template("global_home.html", 
-                           users=user_count,
-                           total_bets=total_bets,
-                           total_wins=total_wins,
-                           biggest_win=biggest_win,
-                           )  # Global home page
+    return render_template(
+        "global_home.html",
+        users=user_count,
+        total_bets=total_bets,
+        total_wins=total_wins,
+        biggest_win=biggest_win,
+    )
 
-# Route for the dashboard
 @app.route("/dashboard")
 def dashboard():
     if not session.get('logged_in'):
         flash("You must be logged in to view the dashboard.", "error")
         return redirect(url_for('login'))
 
-    # Fetch bets for the logged-in user
-    user_id = session['userID']
+    # Force update bet statuses before fetching data
+    update_bet_statuses()
     
-    # Print debug info to check user_id
-    print(f"Dashboard: Fetching bets for user_id: {user_id}")
+    # Use the correct session key that you set during login
+    user_id = session['userID']  # Changed from 'user_id' to 'userID'
     
-    # Query all statuses separately with debugging
+    # Fetch updated bets
     ongoing_bets = PlacedBets.query.filter_by(user_id=user_id, status="ongoing").all()
     upcoming_bets = PlacedBets.query.filter_by(user_id=user_id, status="upcoming").all()
     past_bets = PlacedBets.query.filter_by(user_id=user_id, status="past").order_by(PlacedBets.date_settled.desc()).all()
@@ -117,8 +143,8 @@ def dashboard():
         ongoing_bets=ongoing_bets,
         upcoming_bets=upcoming_bets,
         past_bets=past_bets,
-        last_5_past_bets=last_5_past_bets,
-        created_bets=created_bets
+        last_5_past_bets=past_bets[:5],
+        created_bets=CreatedBets.query.filter_by(created_by=user_id).all()
     )
 
 @app.route('/dashboard/data')
@@ -130,7 +156,33 @@ def dashboard_data():
     if not user_id:
         return jsonify({"error": "User ID not found in session"}), 401
 
-    # Fetch bets for the logged-in user
+    # Dynamically update bet statuses
+    current_time = datetime.now()
+    bets = PlacedBets.query.filter(PlacedBets.status.in_(["upcoming", "ongoing"])).all()
+
+    for bet in bets:
+        if bet.status == "upcoming" and bet.scheduled_time <= current_time:
+            bet.status = "ongoing"
+        elif bet.status == "ongoing" and bet.scheduled_time + bet.duration <= current_time:   
+            # Check event outcome
+            event_result = EventResult.query.filter_by(event_name=bet.event_name).first()
+            if not event_result:
+                outcome = fetch_event_outcome(bet.event_name)
+                if outcome:
+                    event_result = EventResult(event_name=bet.event_name, outcome=outcome)
+                    db.session.add(event_result)
+                    db.session.commit()
+
+            # Update bet based on outcome
+            if event_result:
+                bet.event_outcome = event_result.outcome
+                bet.actual_winnings = bet.stake_amount * bet.odds if event_result.outcome == bet.bet_type else 0
+                bet.status = "past"
+                bet.date_settled = current_time
+
+    db.session.commit()
+
+    # Fetch updated bets for the logged-in user
     ongoing_bets = [serialize_bet(bet) for bet in PlacedBets.query.filter_by(user_id=user_id, status="ongoing").all()]
     upcoming_bets = [serialize_bet(bet) for bet in PlacedBets.query.filter_by(user_id=user_id, status="upcoming").all()]
     past_bets = [serialize_bet(bet) for bet in PlacedBets.query.filter_by(user_id=user_id, status="past").all()]
@@ -163,6 +215,7 @@ def create_bet():
         # Create a new bet
         new_created_bet = CreatedBets(
             event_name=form.event_name.data,
+            bet_type_description=form.bet_type_description.data,
             bet_type=form.bet_type.data,
             max_stake=form.max_stake.data,
             odds=form.odds.data,
@@ -172,6 +225,7 @@ def create_bet():
         )
         new_active_bet = ActiveBets(
             event_name=form.event_name.data,
+            bet_type_description=form.bet_type_description.data,
             bet_type=form.bet_type.data,
             max_stake=form.max_stake.data,
             odds=form.odds.data,
@@ -237,6 +291,7 @@ def place_bet(bet_id):
         new_placed_bet = PlacedBets(
             user_id=session['userID'],
             event_name=bet.event_name,
+            bet_type_description=bet.bet_type_description,
             bet_type=bet.bet_type,
             stake_amount=amount,
             odds=bet.odds,
