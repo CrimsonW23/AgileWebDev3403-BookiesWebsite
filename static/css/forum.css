@@ -62,6 +62,18 @@ label + form {
     margin-top: 3.5rem;
 }
 
+.button{
+    padding: 0.6rem 1rem; /* Padding for buttons */
+    font-size: 1rem; /* Font size for buttons */
+    font-weight: bold;
+    color: #111;
+    background-color: #00ff88; /* Button color */
+    border: none; /* No border */
+    border-radius: 5px; /* Rounded corners */
+    cursor: pointer; /* Pointer cursor on hover */
+    transition: background-color 0.3s ease, transform 0.3s ease; /* Smooth transition */
+    text-decoration: none;
+}
 
 .button:hover {
     background-color: #00cc6e; /* Darker shade on hover */

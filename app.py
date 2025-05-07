@@ -6,18 +6,21 @@ from forms import PostForm, ReplyForm
 from datetime import datetime, timedelta
 from dashboard_handler import handle_dashboard, handle_dashboard_data
 from bet_handler import handle_create_bet, handle_place_bet, handle_place_bet_form
+from extensions import db
+from proj_models import User, Post, Reply, Bet, EventResult, ActiveBets
+from sqlalchemy import func
 
 import os
 
 app = Flask(__name__)
 app.config.from_object(Config)
-
-from extensions import db
+app.secret_key = '9f8c1e6e49b4d9e6b2c442a1a8f3ecb1' #Session id used for testing
 
 db.init_app(app)
 migrate = Migrate(app, db)
 
-from proj_models import User, Post, Reply, Bet, EventResult, ActiveBets
+SECRET_KEY = os.urandom(32)
+app.config['SECRET_KEY'] = SECRET_KEY
 
 # Route for the global home page
 @app.route("/")
