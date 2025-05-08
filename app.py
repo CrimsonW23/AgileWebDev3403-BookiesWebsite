@@ -423,29 +423,6 @@ def view_post(post_id):
     replies = post.replies.order_by(Reply.timestamp.desc()).all()
     return render_template('forum_post.html', post=post, replies=replies, form=form) 
 
-# Route for the "Create Bet" page (GET and POST methods)
-@app.route('/create_bet', methods=['GET', 'POST'])
-def create_bet():
-    return handle_create_bet()
-
-@app.route("/active_bets")
-def active_bets():
-    bets = ActiveBets.query.all()
-    return render_template("active_bets.html", bets=bets)
-
-# Route for placing a bet
-@app.route("/place_bet/<int:bet_id>", methods=["POST"])
-def place_bet(bet_id):
-    amount = float(request.form.get('amount'))
-    if amount <= session['currency']:
-        userid = session['userID']
-        return handle_place_bet(bet_id, amount, userid)
-
-# Route for the "Place Bet Form" page
-@app.route("/place_bet_form/<event_name>", methods=["GET", "POST"])
-def place_bet_form(event_name):
-    return handle_place_bet_form(event_name)
-
 # Route for the currency page
 @app.route("/currency")
 def currency():

@@ -1,6 +1,9 @@
 {% extends "base.html" %}
 
 {% block content %}
+<script id="chart-data" type="application/json">
+    {{ chart_data|tojson }}
+</script>
 
 <div class="dashboard-wrapper">
   <div class="topbar">
@@ -8,7 +11,7 @@
     <div class="menu-item" onclick="showTab('upcoming')">Upcoming Bets</div>
     <div class="menu-item" onclick="showTab('past')">Past Bets</div>
     <div class="menu-item" onclick="showTab('created')">Created Bets</div>
-    <div class="menu-item" onclick="showTab('statistics')">Past Statistics</div>
+    <div class="menu-item" onclick="showTab('stats')">Past Statistics</div>
   </div>
 
   <!-- My Bets Tab -->
@@ -264,28 +267,22 @@
     </div>
   </div>
   
-  <!-- Past Statistics Tab -->
   <div id="stats" class="tab-content" style="display:none;">
     <div class="content-container">
-      <h2>Past Statistics</h2>
-      {% if stats_data %}
+        <h2>Past Statistics</h2>
         <div class="widget">
-          <h3>Previous Months Wins</h3>
-          <canvas id="lineChart" width="400" height="200"></canvas>
+            <h3>Previous Months Wins</h3>
+            <canvas id="lineChart"></canvas> 
+            <p id="lineChartMessage" class="fallback-message" style="display: none;">No stats available for the previous months.</p>
         </div>
         <div class="widget">
-          <h3>Last Month Win/Loss</h3>
-          <canvas id="pieChart" width="300" height="300"></canvas>
+            <h3>Last Month Win/Loss</h3>
+            <canvas id="pieChart"></canvas>  
+            <p id="pieChartMessage" class="fallback-message" style="display: none;">No wins or losses recorded for the previous month.</p>
         </div>
-      {% else %}
-        <div class="widget">
-          <p style="text-align: center;">No statistics available</p>
-        </div>
-      {% endif %}
     </div>
   </div>
-</div> 
-
+</div>  
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script> 
 {% endblock %}
