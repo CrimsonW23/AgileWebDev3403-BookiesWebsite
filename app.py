@@ -5,7 +5,7 @@ from flask_migrate import Migrate
 from forms import PostForm, ReplyForm, CreateBetForm, PlaceBetForm
 from datetime import datetime, timedelta 
 from extensions import db
-from proj_models import User, Post, Reply, CreatedBets, ActiveBets, Placedbets, EventResult
+from proj_models import User, Post, Reply, CreatedBets, ActiveBets, PlacedBets, EventResult
 from sqlalchemy import func
 
 import os
@@ -16,6 +16,99 @@ app.secret_key = Config.SECRET_KEY
 
 db.init_app(app)
 migrate = Migrate(app, db)
+
+def fetch_event_outcome(event_name):
+    """Simulate fetching the event outcome."""
+    simulated_outcomes = {
+        "Real Madrid vs Barcelona": "win",
+        "FIFA World Cup Final": "loss",
+        "AFL: Fremantle vs. West Coast Eagles": "win",
+        "Basketball Match": "loss",
+        "Rugby Match": "win", 
+    }
+    return simulated_outcomes.get(event_name, None)
+
+# Serialize a bet object into a dictionary
+def serialize_bet(bet):
+    serialized = {
+        "event_name": bet.event_name,
+        "bet_type_description": bet.bet_type_description,
+        "bet_type": bet.bet_type,
+        "odds": bet.odds,
+        "scheduled_time": bet.scheduled_time.strftime("%Y-%m-%dT%H:%M:%S") if bet.scheduled_time else None,
+        "duration": bet.duration.total_seconds() if isinstance(bet.duration, timedelta) else bet.duration,
+        "status": bet.status
+    }
+
+    # Add attributes specific to CreatedBets
+    if hasattr(bet, 'max_stake'):
+        serialized["max_stake"] = bet.max_stake
+
+    # Add attributes specific to PlacedBets
+    if hasattr(bet, 'stake_amount'):
+        serialized["stake_amount"] = bet.stake_amount
+    if hasattr(bet, 'potential_winnings'):
+        serialized["potential_winnings"] = bet.potential_winnings
+    if hasattr(bet, 'actual_winnings'):
+        serialized["actual_winnings"] = bet.actual_winnings
+    if hasattr(bet, 'date_settled'):
+        serialized["date_settled"] = bet.date_settled.strftime("%Y-%m-%d %H:%M:%S") if bet.date_settled else None
+
+    return serialized
+
+# Background task to update bet statuses and check outcomes
+@app.before_request
+def update_bet_statuses():
+    if session.get('logged_in'):
+        current_time = datetime.now()
+        
+        # Update PlacedBets statuses
+        placed_bets = PlacedBets.query.filter(PlacedBets.status.in_(["upcoming", "ongoing"])).all()
+        
+        for bet in placed_bets:
+            # Convert duration to timedelta if it's not already
+            if isinstance(bet.duration, int):
+                duration = timedelta(hours=bet.duration)
+            else:
+                duration = bet.duration
+                
+            end_time = bet.scheduled_time + duration
+            
+            if bet.status == "upcoming" and bet.scheduled_time <= current_time:
+                bet.status = "ongoing"
+            elif bet.status == "ongoing" and end_time <= current_time:
+                # Check event outcome
+                event_result = EventResult.query.filter_by(event_name=bet.event_name).first()
+                if not event_result:
+                    outcome = fetch_event_outcome(bet.event_name)
+                    if outcome:
+                        event_result = EventResult(event_name=bet.event_name, outcome=outcome)
+                        db.session.add(event_result)
+                        db.session.commit()
+
+                # Update bet based on outcome
+                if event_result:
+                    bet.event_outcome = event_result.outcome
+                    bet.actual_winnings = bet.stake_amount * bet.odds if event_result.outcome == bet.bet_type else 0
+                    bet.status = "past"
+                    bet.date_settled = current_time
+        
+        # Update CreatedBets statuses
+        created_bets = CreatedBets.query.filter(CreatedBets.status.in_(["upcoming", "ongoing"])).all()
+        for bet in created_bets:
+            if isinstance(bet.duration, int):
+                duration = timedelta(hours=bet.duration)
+            else:
+                duration = bet.duration
+                
+            end_time = bet.scheduled_time + duration
+            
+            if bet.status == "upcoming" and bet.scheduled_time <= current_time:
+                bet.status = "ongoing"
+            elif bet.status == "ongoing" and end_time <= current_time:
+                bet.status = "past"
+
+        db.session.commit()
 
 # Route for the global home page
 @app.route("/")
@@ -38,6 +131,7 @@ def global_home():
         biggest_win=biggest_win,
     )
 
+# Fix for the stats data generation in the dashboard route
 @app.route("/dashboard")
 def dashboard():
     if not session.get('logged_in'):
@@ -47,21 +141,87 @@ def dashboard():
     # Force update bet statuses before fetching data
     update_bet_statuses()
     
-    # Use the correct session key that you set during login
-    user_id = session['userID']  # Changed from 'user_id' to 'userID'
+    user_id = session.get('userID')
+    if not user_id:
+        return jsonify({"error": "User ID not found in session"}), 401
     
     # Fetch updated bets
     ongoing_bets = PlacedBets.query.filter_by(user_id=user_id, status="ongoing").all()
     upcoming_bets = PlacedBets.query.filter_by(user_id=user_id, status="upcoming").all()
     past_bets = PlacedBets.query.filter_by(user_id=user_id, status="past").order_by(PlacedBets.date_settled.desc()).all()
-    
+    created_bets = CreatedBets.query.filter_by(created_by=user_id).all()
+
+    # Fetch stats data for the charts
+    current_date = datetime.now()
+    start_of_year = datetime(current_date.year, 1, 1)
+
+    # Get monthly data for all months of the current year
+    months_data = []
+    wins_data = []
+
+    for month in range(1, 13):  # Loop through all months of the year
+        month_start = datetime(current_date.year, month, 1)
+        if month == 12:
+            month_end = datetime(current_date.year + 1, 1, 1) - timedelta(seconds=1)
+        else:
+            month_end = datetime(current_date.year, month + 1, 1) - timedelta(seconds=1)
+
+        # Query bets for this month
+        month_bets = PlacedBets.query.filter(
+            PlacedBets.user_id == user_id,
+            PlacedBets.status == "past",
+            PlacedBets.date_settled >= month_start,
+            PlacedBets.date_settled <= month_end
+        ).all()
+
+        # Count wins
+        wins_count = sum(1 for bet in month_bets if bet.actual_winnings > 0)
+
+        # Add to data arrays
+        month_name = month_start.strftime("%b")
+        months_data.append(month_name)
+        wins_data.append(wins_count)
+
+    # Calculate win/loss ratio for the most recent month
+    last_month_start = (current_date.replace(day=1) - timedelta(days=1)).replace(day=1)
+    last_month_end = current_date.replace(day=1) - timedelta(days=1)
+
+    last_month_bets = PlacedBets.query.filter(
+        PlacedBets.user_id == user_id,
+        PlacedBets.status == "past",
+        PlacedBets.date_settled >= last_month_start,
+        PlacedBets.date_settled <= last_month_end
+    ).all()
+
+    wins_count = sum(1 for bet in last_month_bets if bet.actual_winnings > 0)
+    losses_count = len(last_month_bets) - wins_count
+
+    # If no bets were placed, set wins and losses to 0
+    if len(last_month_bets) == 0:
+        wins_count = 0
+        losses_count = 0
+
+    # Prepare chart data
+    chart_data = {
+        "monthly_wins": {
+            "months": months_data,
+            "wins": wins_data
+        },
+        "win_loss_ratio": {
+            "wins": wins_count,
+            "losses": losses_count
+        }
+    } 
+
+    # Pass all data to the template
     return render_template(
         "dashboard.html",
         ongoing_bets=ongoing_bets,
         upcoming_bets=upcoming_bets,
         past_bets=past_bets,
-        last_5_past_bets=past_bets[:5],
-        created_bets=CreatedBets.query.filter_by(created_by=user_id).all()
+        last_5_past_bets=past_bets[:5] if past_bets else [],
+        created_bets=created_bets,
+        chart_data=chart_data
     )
 
 @app.route('/dashboard/data')
@@ -73,44 +233,48 @@ def dashboard_data():
     if not user_id:
         return jsonify({"error": "User ID not found in session"}), 401
 
-    # Dynamically update bet statuses
-    current_time = datetime.now()
-    bets = PlacedBets.query.filter(PlacedBets.status.in_(["upcoming", "ongoing"])).all()
+    try:
+        # Dynamically update bet statuses
+        current_time = datetime.now()
+        bets = PlacedBets.query.filter(PlacedBets.status.in_(["upcoming", "ongoing"])).all()
 
-    for bet in bets:
-        if bet.status == "upcoming" and bet.scheduled_time <= current_time:
-            bet.status = "ongoing"
-        elif bet.status == "ongoing" and bet.scheduled_time + bet.duration <= current_time:   
-            # Check event outcome
-            event_result = EventResult.query.filter_by(event_name=bet.event_name).first()
-            if not event_result:
-                outcome = fetch_event_outcome(bet.event_name)
-                if outcome:
-                    event_result = EventResult(event_name=bet.event_name, outcome=outcome)
-                    db.session.add(event_result)
-                    db.session.commit()
+        for bet in bets:
+            if bet.status == "upcoming" and bet.scheduled_time <= current_time:
+                bet.status = "ongoing"
+            elif bet.status == "ongoing" and bet.scheduled_time + bet.duration <= current_time:
+                # Check event outcome
+                event_result = EventResult.query.filter_by(event_name=bet.event_name).first()
+                if not event_result:
+                    outcome = fetch_event_outcome(bet.event_name)
+                    if outcome:
+                        event_result = EventResult(event_name=bet.event_name, outcome=outcome)
+                        db.session.add(event_result)
+                        db.session.commit()
 
-            # Update bet based on outcome
-            if event_result:
-                bet.event_outcome = event_result.outcome
-                bet.actual_winnings = bet.stake_amount * bet.odds if event_result.outcome == bet.bet_type else 0
-                bet.status = "past"
-                bet.date_settled = current_time
+                # Update bet based on outcome
+                if event_result:
+                    bet.event_outcome = event_result.outcome
+                    bet.actual_winnings = bet.stake_amount * bet.odds if event_result.outcome == bet.bet_type else 0
+                    bet.status = "past"
+                    bet.date_settled = current_time
 
-    db.session.commit()
+        db.session.commit()
 
-    # Fetch updated bets for the logged-in user
-    ongoing_bets = [serialize_bet(bet) for bet in PlacedBets.query.filter_by(user_id=user_id, status="ongoing").all()]
-    upcoming_bets = [serialize_bet(bet) for bet in PlacedBets.query.filter_by(user_id=user_id, status="upcoming").all()]
-    past_bets = [serialize_bet(bet) for bet in PlacedBets.query.filter_by(user_id=user_id, status="past").all()]
-    created_bets = [serialize_bet(bet) for bet in CreatedBets.query.filter_by(created_by=user_id).all()]
+        # Fetch updated bets for the logged-in user
+        ongoing_bets = [serialize_bet(bet) for bet in PlacedBets.query.filter_by(user_id=user_id, status="ongoing").all()]
+        upcoming_bets = [serialize_bet(bet) for bet in PlacedBets.query.filter_by(user_id=user_id, status="upcoming").all()]
+        past_bets = [serialize_bet(bet) for bet in PlacedBets.query.filter_by(user_id=user_id, status="past").all()]
+        created_bets = [serialize_bet(bet) for bet in CreatedBets.query.filter_by(created_by=user_id).all()]
 
-    return jsonify({
-        "ongoing_bets": ongoing_bets,
-        "upcoming_bets": upcoming_bets,
-        "past_bets": past_bets,
-        "created_bets": created_bets
-    })
+        return jsonify({
+            "ongoing_bets": ongoing_bets,
+            "upcoming_bets": upcoming_bets,
+            "past_bets": past_bets,
+            "created_bets": created_bets
+        })
+    except Exception as e: 
+        return jsonify({"error": str(e)}), 500
+
 
 # Route for the "Create Bet" page (GET and POST methods)
 @app.route('/create_bet', methods=['GET', 'POST'])
