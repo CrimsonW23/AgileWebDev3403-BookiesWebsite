@@ -16,12 +16,11 @@ function showTab(tabId) {
     if (activeMenuItem) activeMenuItem.classList.add('active');
 
     // Initialize stats charts if needed
-    if (tabId === 'stats' && !statsChartInitialized) {
+    if (tabId === 'stats') {
         fetchStatsData()
             .then(data => {
                 createLineChart(data.monthly_wins);
                 createPieChart(data.win_loss_ratio);
-                statsChartInitialized = true;
             })
             .catch(error => console.error('Error fetching stats data:', error));
     }
@@ -51,7 +50,10 @@ setInterval(() => {
 // Update all dashboard tables with data
 function updateDashboardTables(data) {
     // Update Ongoing Bets table
-    updateTable('#ongoing .widget-table tbody', data.ongoing_bets, bet => `
+    updateTable(
+        '#ongoing .widget-table tbody',
+        data.ongoing_bets,
+        bet => `
         <tr>
             <td>${bet.event_name}</td>
             <td>${bet.bet_type_description}</td>
@@ -61,10 +63,15 @@ function updateDashboardTables(data) {
             <td>$${bet.potential_winnings}</td>
             <td class="time-remaining" data-end-time="${bet.scheduled_time}" data-duration="${bet.duration}"></td>
         </tr>
-    `);
+        `,
+        "No ongoing bets"
+    );
 
     // Update Upcoming Bets table
-    updateTable('#upcoming tbody', data.upcoming_bets, bet => `
+    updateTable(
+        '#upcoming tbody',
+        data.upcoming_bets,
+        bet => `
         <tr>
             <td>${bet.event_name}</td>
             <td>${bet.bet_type_description}</td>
@@ -74,10 +81,15 @@ function updateDashboardTables(data) {
             <td>${new Date(bet.scheduled_time).toLocaleString()}</td>
             <td>$${bet.potential_winnings}</td>
         </tr>
-    `);
+        `,
+        "No upcoming bets"
+    );
 
     // Update Past Bets table
-    updateTable('#past tbody', data.past_bets, bet => `
+    updateTable(
+        '#past tbody',
+        data.past_bets,
+        bet => `
         <tr>
             <td>${bet.event_name}</td>
             <td>${bet.bet_type_description}</td>
@@ -88,10 +100,15 @@ function updateDashboardTables(data) {
             <td>$${bet.actual_winnings}</td>
             <td>${bet.date_settled ? new Date(bet.date_settled).toLocaleString() : 'N/A'}</td>
         </tr>
-    `);
+        `,
+        "No past bets"
+    );
 
     // Update Created Bets table
-    updateTable('#created-body', data.created_bets, bet => `
+    updateTable(
+        '#created-body',
+        data.created_bets,
+        bet => `
         <tr>
             <td>${bet.event_name}</td>
             <td>${bet.bet_type_description}</td>
@@ -102,22 +119,24 @@ function updateDashboardTables(data) {
             <td>${bet.duration}</td>
             <td>${bet.status}</td>  
         </tr>
-    `);
+        `,
+        "No created bets"
+    );
 }
 
 // Helper function to update table content
-function updateTable(selector, data, rowTemplate) {
+function updateTable(selector, data, rowTemplate, noDataMessage) {
     const tableBody = document.querySelector(selector);
-    if (!tableBody) return; // Skip if table doesn't exist on current page
-    
+    if (!tableBody) return; // Skip if table doesn't exist on the current page
+
     tableBody.innerHTML = ''; // Clear existing rows
-    
+
     if (data && data.length > 0) {
         data.forEach(item => tableBody.innerHTML += rowTemplate(item));
     } else {
-        // Show "No data" message
+        // Show a custom "No data" message
         const columnCount = tableBody.closest('table').querySelectorAll('thead th').length;
-        tableBody.innerHTML = `<tr><td colspan="${columnCount}" class="no-data">No bets found</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="${columnCount}" class="no-data">${noDataMessage}</td></tr>`;
     }
 }
  
@@ -162,119 +181,67 @@ function initializeTimeRemaining() {
 }
  
 
-// Fetch stats data from server
+// Fetch statistics data from the server
 function fetchStatsData() {
-    // In a real app, this would fetch from an endpoint like '/dashboard/stats'
-    // For now, we'll use dummy data to match the backend structure
-    return new Promise((resolve) => {
-        // Sample data - in real app would come from server
-        const data = {
-            monthly_wins: [
-                { month: 'Jan', winnings: 10 },
-                { month: 'Feb', winnings: 15 },
-                { month: 'Mar', winnings: 8 },
-                { month: 'Apr', winnings: 20 },
-                { month: 'May', winnings: 12 }
-            ],
-            win_loss_ratio: {
-                wins: 70,
-                losses: 30
+    return fetch('/dashboard/stats')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
             }
-        };
-        resolve(data);
+            return response.json();
+        });
+}
+
+// Create a line chart for "Previous Months Wins"
+function createLineChart(data) {
+    const ctx = document.getElementById('lineChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: data.months, // e.g., ['January', 'February', 'March']
+            datasets: [{
+                label: 'Wins',
+                data: data.wins, // e.g., [5, 10, 7]
+                borderColor: 'rgba(75, 192, 192, 1)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderWidth: 2,
+                fill: true,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: true,
+                }
+            }
+        }
     });
 }
 
-// Create a line chart for monthly wins
-function createLineChart(monthlyData) {
-    const canvas = document.getElementById('lineChart');
-    if (!canvas) return;
-    
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Extract data from monthlyData
-    const data = monthlyData.map(item => item.winnings);
-    const labels = monthlyData.map(item => item.month);
-
-    // Draw axes
-    ctx.strokeStyle = '#ccc';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(30, 10);
-    ctx.lineTo(30, 190);
-    ctx.lineTo(390, 190);
-    ctx.stroke();
-
-    // Plot data points
-    ctx.beginPath();
-    ctx.strokeStyle = '#4caf50';
-    ctx.lineWidth = 2;
-    data.forEach((value, index) => {
-        const x = 50 + index * 70;
-        const y = 190 - value * 5;
-        if (index === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-
-        // Draw point
-        ctx.fillStyle = '#4caf50';
-        ctx.beginPath();
-        ctx.arc(x, y, 4, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Add label
-        ctx.fillStyle = '#fff';
-        ctx.font = '12px Arial';
-        ctx.fillText(value, x - 10, y - 10);
-    });
-    ctx.stroke();
-
-    // Add month labels
-    ctx.fillStyle = '#aaa';
-    ctx.font = '12px Arial';
-    labels.forEach((label, index) => {
-        const x = 50 + index * 70;
-        ctx.fillText(label, x - 10, 210);
+// Create a pie chart for "Last Month Win/Loss"
+function createPieChart(data) {
+    const ctx = document.getElementById('pieChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: ['Wins', 'Losses'],
+            datasets: [{
+                data: [data.wins, data.losses], // e.g., [15, 5]
+                backgroundColor: ['#4caf50', '#f44336'],
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: true,
+                }
+            }
+        }
     });
 }
-
-// Create a pie chart for win/loss ratio
-function createPieChart(ratioData) {
-    const canvas = document.getElementById('pieChart');
-    if (!canvas) return;
-    
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    const data = [ratioData.wins, ratioData.losses]; // Win/Loss percentages
-    const colors = ['#4caf50', '#f44336'];
-    const labels = ['Wins', 'Losses'];
-
-    let total = data.reduce((a, b) => a + b, 0);
-    let startAngle = 0;
-
-    // Draw pie slices
-    data.forEach((value, index) => {
-        const sliceAngle = (value / total) * 2 * Math.PI;
-        ctx.beginPath();
-        ctx.moveTo(150, 150);
-        ctx.arc(150, 150, 100, startAngle, startAngle + sliceAngle);
-        ctx.closePath();
-        ctx.fillStyle = colors[index];
-        ctx.fill();
-        startAngle += sliceAngle;
-    });
-
-    // Add legend
-    let legendY = 250;
-    labels.forEach((label, index) => {
-        ctx.fillStyle = colors[index];
-        ctx.fillRect(10, legendY, 20, 20);
-        ctx.fillStyle = '#000';
-        ctx.fillText(`${label}: ${data[index]}%`, 40, legendY + 15);
-        legendY += 30;
-    });
-} 
 
 // Initialize everything when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
