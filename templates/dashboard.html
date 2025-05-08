@@ -35,17 +35,23 @@
             </tr>
           </thead>
           <tbody>
-            {% for bet in ongoing_bets %}
-            <tr>
-              <td>{{ bet.event_name }}</td>
-              <td>{{ bet.bet_type_description }}</td>
-              <td>{{ bet.bet_type }}</td> 
-              <td>${{ bet.stake_amount }}</td>
-              <td>{{ bet.odds }}</td>
-              <td>${{ bet.potential_winnings }}</td>
-              <td class="time-remaining" data-end-time="{{ bet.scheduled_time }}" data-duration="{{ bet.duration }}"></td>
-            </tr>
-            {% endfor %}
+            {% if ongoing_bets %}
+              {% for bet in ongoing_bets %}
+              <tr>
+                <td>{{ bet.event_name }}</td>
+                <td>{{ bet.bet_type_description }}</td>
+                <td>{{ bet.bet_type }}</td> 
+                <td>${{ bet.stake_amount }}</td>
+                <td>{{ bet.odds }}</td>
+                <td>${{ bet.potential_winnings }}</td>
+                <td class="time-remaining" data-end-time="{{ bet.scheduled_time }}" data-duration="{{ bet.duration }}"></td>
+              </tr>
+              {% endfor %}
+            {% else %}
+              <tr>
+                <td colspan="7" style="text-align: center;">No ongoing bets</td>
+              </tr>
+            {% endif %}
           </tbody>
         </table>
       </div>
@@ -66,17 +72,23 @@
             </tr>
           </thead>
           <tbody>
-            {% for bet in upcoming_bets %}
-            <tr>
-              <td>{{ bet.event_name }}</td>
-              <td>{{ bet.bet_type_description }}</td> 
-              <td>{{ bet.bet_type }}</td>
-              <td>${{ bet.stake_amount }}</td>
-              <td>{{ bet.odds }}</td>
-              <td>{{ bet.scheduled_time }}</td>
-              <td>${{ bet.potential_winnings }}</td>
-            </tr>
-            {% endfor %}
+            {% if upcoming_bets %}
+              {% for bet in upcoming_bets %}
+              <tr>
+                <td>{{ bet.event_name }}</td>
+                <td>{{ bet.bet_type_description }}</td>
+                <td>{{ bet.bet_type }}</td>
+                <td>${{ bet.stake_amount }}</td>
+                <td>{{ bet.odds }}</td>
+                <td>{{ bet.scheduled_time }}</td>
+                <td>${{ bet.potential_winnings }}</td>
+              </tr>
+              {% endfor %}
+            {% else %}
+              <tr>
+                <td colspan="7" style="text-align: center;">No upcoming bets</td>
+              </tr>
+            {% endif %}
           </tbody>
         </table>
       </div>
@@ -98,18 +110,24 @@
             </tr>
           </thead>
           <tbody>
-            {% for bet in past_bets[:5] %}
-            <tr>
-              <td>{{ bet.event_name }}</td>
-              <td>{{ bet.bet_type_description }}</td>
-              <td>{{ bet.bet_type }}</td>
-              <td>${{ bet.stake_amount }}</td>
-              <td>{{ bet.odds }}</td>
-              <td>{{ "Win" if bet.actual_winnings > 0 else "Loss" }}</td>
-              <td>${{ bet.actual_winnings }}</td>
-              <td>{{ bet.date_settled.strftime('%Y-%m-%d %H:%M:%S') }}</td>
-            </tr>
-            {% endfor %}
+            {% if past_bets and past_bets|length > 0 %}
+              {% for bet in past_bets[:5] %}
+              <tr>
+                <td>{{ bet.event_name }}</td>
+                <td>{{ bet.bet_type_description }}</td>
+                <td>{{ bet.bet_type }}</td>
+                <td>${{ bet.stake_amount }}</td>
+                <td>{{ bet.odds }}</td>
+                <td>{{ "Win" if bet.actual_winnings > 0 else "Loss" }}</td>
+                <td>${{ bet.actual_winnings }}</td>
+                <td>{{ bet.date_settled.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+              </tr>
+              {% endfor %}
+            {% else %}
+              <tr>
+                <td colspan="8" style="text-align: center;">No past bets</td>
+              </tr>
+            {% endif %}
           </tbody>
         </table>
       </div>
@@ -134,17 +152,23 @@
             </tr>
           </thead>
           <tbody>
-            {% for bet in upcoming_bets %}
-            <tr>
-              <td>{{ bet.event_name }}</td>
-              <td>{{ bet.bet_type_description }}</td>
-              <td>{{ bet.bet_type }}</td>
-              <td>${{ bet.stake_amount }}</td>
-              <td>{{ bet.odds }}</td>
-              <td>{{ bet.scheduled_time }}</td>
-              <td>${{ bet.potential_winnings }}</td>
-            </tr>
-            {% endfor %}
+            {% if upcoming_bets %}
+              {% for bet in upcoming_bets %}
+              <tr>
+                <td>{{ bet.event_name }}</td>
+                <td>{{ bet.bet_type_description }}</td>
+                <td>{{ bet.bet_type }}</td>
+                <td>${{ bet.stake_amount }}</td>
+                <td>{{ bet.odds }}</td>
+                <td>{{ bet.scheduled_time }}</td>
+                <td>${{ bet.potential_winnings }}</td>
+              </tr>
+              {% endfor %}
+            {% else %}
+              <tr>
+                <td colspan="7" style="text-align: center;">No upcoming bets</td>
+              </tr>
+            {% endif %}
           </tbody>
         </table>
       </div>
@@ -170,18 +194,24 @@
             </tr>
           </thead>
           <tbody>
-            {% for bet in past_bets %}
-            <tr>
-              <td>{{ bet.event_name }}</td>
-              <td>{{ bet.bet_type_description }}</td>
-              <td>{{ bet.bet_type }}</td>
-              <td>${{ bet.stake_amount }}</td>
-              <td>{{ bet.odds }}</td>
-              <td>{{ "Win" if bet.actual_winnings > 0 else "Loss" }}</td>
-              <td>${{ bet.actual_winnings }}</td>
-              <td>{{ bet.date_settled.strftime('%Y-%m-%d %H:%M:%S') }}</td>
-            </tr>
-            {% endfor %}
+            {% if past_bets and past_bets|length > 0 %}
+              {% for bet in past_bets[:5] %}
+              <tr>
+                <td>{{ bet.event_name }}</td>
+                <td>{{ bet.bet_type_description }}</td>
+                <td>{{ bet.bet_type }}</td>
+                <td>${{ bet.stake_amount }}</td>
+                <td>{{ bet.odds }}</td>
+                <td>{{ "Win" if bet.actual_winnings > 0 else "Loss" }}</td>
+                <td>${{ bet.actual_winnings }}</td>
+                <td>{{ bet.date_settled.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+              </tr>
+              {% endfor %}
+            {% else %}
+              <tr>
+                <td colspan="8" style="text-align: center;">No past bets</td>
+              </tr>
+            {% endif %}
           </tbody>
         </table>
       </div>
@@ -210,18 +240,24 @@
             </tr>
           </thead>
           <tbody>
-            {% for bet in created_bets %}
-            <tr>
-              <td>{{ bet.event_name }}</td>
-              <td>{{ bet.bet_type_description }}</td>
-              <td>{{ bet.bet_type }}</td>
-              <td>${{ bet.max_stake }}</td>
-              <td>{{ bet.odds }}</td>
-              <td>{{ bet.scheduled_time }}</td>
-              <td>{{ bet.duration }}</td>
-              <td>{{ bet.status }}</td>
-            </tr>
-            {% endfor %}
+            {% if created_bets %}
+              {% for bet in created_bets %}
+              <tr>
+                <td>{{ bet.event_name }}</td>
+                <td>{{ bet.bet_type_description }}</td>
+                <td>{{ bet.bet_type }}</td>
+                <td>${{ bet.max_stake }}</td>
+                <td>{{ bet.odds }}</td>
+                <td>{{ bet.scheduled_time }}</td>
+                <td>{{ bet.duration }}</td>
+                <td>{{ bet.status }}</td>
+              </tr>
+              {% endfor %}
+            {% else %}
+              <tr>
+                <td colspan="8" style="text-align: center;">No created bets</td>
+              </tr>
+            {% endif %}
           </tbody>
         </table>
       </div>
@@ -232,17 +268,24 @@
   <div id="stats" class="tab-content" style="display:none;">
     <div class="content-container">
       <h2>Past Statistics</h2>
-      <div class="widget">
-        <h3>Previous Months Wins</h3>
-        <canvas id="lineChart" width="400" height="200"></canvas>
-      </div>
-      <div class="widget">
-        <h3>Last Month Win/Loss</h3>
-        <canvas id="pieChart" width="300" height="300"></canvas>
-      </div>
+      {% if stats_data %}
+        <div class="widget">
+          <h3>Previous Months Wins</h3>
+          <canvas id="lineChart" width="400" height="200"></canvas>
+        </div>
+        <div class="widget">
+          <h3>Last Month Win/Loss</h3>
+          <canvas id="pieChart" width="300" height="300"></canvas>
+        </div>
+      {% else %}
+        <div class="widget">
+          <p style="text-align: center;">No statistics available</p>
+        </div>
+      {% endif %}
     </div>
   </div>
 </div> 
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 {% endblock %}
