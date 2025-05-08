@@ -2,7 +2,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, TextAreaField, SelectField, DecimalField, IntegerField, DateTimeLocalField, PasswordField, TelField, DateField
 from wtforms.validators import DataRequired, Length, NumberRange, ValidationError, Email, EqualTo
 import re
-from datetime import date
+from datetime import datetime
 
 class SignupForm(FlaskForm):
     countries = [
