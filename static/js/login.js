@@ -1,10 +1,32 @@
-document.addEventListener("DOMContentLoaded", () => {
-    const loginForm = document.getElementById("login-form");
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('login-form');
+    const username = document.getElementById('username');
+    const password = document.getElementById('password');
 
-    loginForm.addEventListener("submit", (event) => {
+    form.addEventListener('submit', (event) => {
+        let isValid = true;
+
+        // Validate username/email is not empty
+        if (username.value.trim() === '') {
+            alert('Username/Email is required.');
+            isValid = false;
+        }
+
+        // Validate password is not empty
+        if (password.value.trim() === '') {
+            alert('Password is required.');
+            isValid = false;
+        }
+
+        // Prevent form submission if validation fails
+        if (!isValid) {
+            event.preventDefault();
+            return;
+        }
+
         event.preventDefault(); // Prevent default form submission
 
-        const formData = new FormData(loginForm);
+        const formData = new FormData(form);
 
         fetch('/login', {
             method: 'POST',
