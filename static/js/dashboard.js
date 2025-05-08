@@ -173,12 +173,35 @@ setInterval(() => {
     refreshDashboardData();
 }, 10000); // Refresh every 10 seconds
 
+ 
 // Update all dashboard tables with data
 function updateDashboardTables(data) {
+    // Format date and time
+    function formatDateTime(datetimeStr) {
+        try {
+            const d = new Date(datetimeStr);
+            if (isNaN(d.getTime())) return 'Invalid Date';
+            const pad = n => String(n).padStart(2, '0');
+            return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+        } catch (e) {
+            console.error('Error formatting date:', datetimeStr, e);
+            return 'Invalid Date';
+        }
+    }
+
+    // Sort Ongoing Bets by time remaining (ascending - soonest ending first)
+    const sortedOngoingBets = data.ongoing_bets.sort((a, b) => {
+        const endTimeA = new Date(a.scheduled_time).getTime() + a.duration * 60 * 60 * 1000;
+        const endTimeB = new Date(b.scheduled_time).getTime() + b.duration * 60 * 60 * 1000;
+        const timeRemainingA = endTimeA - Date.now();
+        const timeRemainingB = endTimeB - Date.now();
+        return timeRemainingA - timeRemainingB; // Ascending order
+    });
+
     // Update Ongoing Bets table
     updateTable(
         '#ongoing .widget-table tbody',
-        data.ongoing_bets,
+        sortedOngoingBets,
         bet => `
         <tr>
             <td>${bet.event_name}</td>
@@ -193,10 +216,13 @@ function updateDashboardTables(data) {
         "No ongoing bets"
     );
 
+    // Sort Upcoming Bets by scheduled time (soonest first)
+    const sortedUpcomingBets = data.upcoming_bets.sort((a, b) => new Date(a.scheduled_time) - new Date(b.scheduled_time));
+
     // Update Upcoming Bets table
     updateTable(
         '#upcoming tbody',
-        data.upcoming_bets,
+        sortedUpcomingBets,
         bet => `
         <tr>
             <td>${bet.event_name}</td>
@@ -204,17 +230,20 @@ function updateDashboardTables(data) {
             <td>${bet.bet_type}</td>
             <td>$${bet.stake_amount}</td>
             <td>${bet.odds}</td>
-            <td>${new Date(bet.scheduled_time).toLocaleString()}</td>
+            <td>${formatDateTime(bet.scheduled_time)}</td>
             <td>$${bet.potential_winnings}</td>
         </tr>
         `,
         "No upcoming bets"
     );
 
+    // Sort Past Bets by date settled (latest finished first)
+    const sortedPastBets = data.past_bets.sort((a, b) => new Date(b.date_settled) - new Date(a.date_settled));
+
     // Update Past Bets table
     updateTable(
         '#past tbody',
-        data.past_bets,
+        sortedPastBets,
         bet => `
         <tr>
             <td>${bet.event_name}</td>
@@ -224,16 +253,33 @@ function updateDashboardTables(data) {
             <td>${bet.odds}</td>
             <td>${bet.actual_winnings > 0 ? "Win" : "Loss"}</td>
             <td>$${bet.actual_winnings}</td>
-            <td>${bet.date_settled ? new Date(bet.date_settled).toLocaleString() : 'N/A'}</td>
+            <td>${bet.date_settled ? formatDateTime(bet.date_settled) : 'N/A'}</td>
         </tr>
         `,
         "No past bets"
     );
 
+    // Sort Created Bets by status (upcoming → ongoing → past) and then by time
+    const sortedCreatedBets = data.created_bets.sort((a, b) => {
+        // First sort by status priority
+        const statusOrder = { 'upcoming': 1, 'ongoing': 2, 'past': 3 };
+        const statusComparison = statusOrder[a.status] - statusOrder[b.status];
+        if (statusComparison !== 0) return statusComparison;
+        
+        // Then sort by time within each status group
+        if (a.status === 'past') {
+            // For past bets, show most recent first
+            return new Date(b.scheduled_time) - new Date(a.scheduled_time);
+        } else {
+            // For upcoming/ongoing, show soonest first
+            return new Date(a.scheduled_time) - new Date(b.scheduled_time);
+        }
+    });
+
     // Update Created Bets table
     updateTable(
         '#created-body',
-        data.created_bets,
+        sortedCreatedBets,
         bet => `
         <tr>
             <td>${bet.event_name}</td>
@@ -241,7 +287,7 @@ function updateDashboardTables(data) {
             <td>${bet.bet_type}</td>
             <td>$${bet.max_stake || bet.stake_amount}</td>
             <td>${bet.odds}</td>
-            <td>${new Date(bet.scheduled_time).toLocaleString()}</td>
+            <td>${formatDateTime(bet.scheduled_time)}</td>
             <td>${bet.duration}</td>
             <td>${bet.status}</td>  
         </tr>
@@ -304,7 +350,8 @@ function initializeTimeRemaining() {
         }
     }, 1000); // Update every second
 }
- 
+
+
 // Initialize everything when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     // Initial data fetch
