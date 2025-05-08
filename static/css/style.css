@@ -478,6 +478,17 @@ form .submit-btn:hover {
   background-color: #00cc6e; /* Darker green on hover */
   transform: scale(1.05); /* Slight zoom effect */
 }
+
+/* Statistics Charts */
+
+#lineChart, #pieChart {
+  width: 100%; /* Full width */
+  max-width: 700px; /* Limit max width */
+  height: auto; /* Maintain aspect ratio */
+  max-height: fit-content;  
+  display: block; /* Ensure proper rendering */
+  margin: 0 auto; /* Center the charts */
+  }
  
 /* Create Bet Button Styling */
 .create-bet-btn {
@@ -497,6 +508,22 @@ form .submit-btn:hover {
   transform: scale(1.05); /* Slight zoom effect */
 }
 
+/*Fallback Message */
+.fallback-message {
+  text-align: center;
+  padding: 20px;
+  color: #666;
+  font-size: 16px;
+  background-color: #216734;
+  border-radius: 4px;
+  margin-top: 10px;
+  border: 1px #ddd;
+  color: #ccc;
+  text-transform: capitalize;
+  font-weight: bolder;
+}
+
+/* Currency Link Styling */
 .currency {
   color: #00ff88;
   text-decoration: none;
@@ -506,3 +533,4 @@ form .submit-btn:hover {
   color: #00cc6e;
   text-decoration: none;
 }
+
