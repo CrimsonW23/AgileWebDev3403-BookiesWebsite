@@ -265,7 +265,6 @@ function updateTable(selector, data, rowTemplate, noDataMessage) {
         tableBody.innerHTML = `<tr><td colspan="${columnCount}" class="no-data">${noDataMessage}</td></tr>`;
     }
 }
- 
 
 // Initialize countdown for "Time Remaining" cells
 function initializeTimeRemaining() {
