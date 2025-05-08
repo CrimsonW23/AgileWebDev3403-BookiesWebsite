@@ -9,6 +9,8 @@ class User(db.Model):
     currency = db.Column(db.Float, default=0.0, index=True)
     posts = db.relationship('Post', backref='user', lazy='dynamic')  # One-to-many relationship with Post
     replies = db.relationship('Reply', backref='user', lazy='dynamic')  # One-to-many relationship with Reply
+    created_bets = db.relationship('CreatedBets', backref='creator', lazy=True)
+    placed_bets = db.relationship('PlacedBets', backref='bettor', lazy=True)
 
     def __repr__(self):
         return f"<User {self.username}>"
