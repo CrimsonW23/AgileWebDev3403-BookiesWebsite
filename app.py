@@ -2,11 +2,12 @@ from flask import Flask, render_template, jsonify, request, redirect, url_for, f
 from config import Config
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-from forms import PostForm, ReplyForm, CreateBetForm, PlaceBetForm
-from datetime import datetime, timedelta 
+from forms import PostForm, ReplyForm, CreateBetForm, PlaceBetForm, SignupForm, LoginForm
+from datetime import datetime, timedelta, date
 from extensions import db
 from proj_models import User, Post, Reply, CreatedBets, ActiveBets, PlacedBets, EventResult
 from sqlalchemy import func
+from flask_login import LoginManager, login_user, logout_user
 
 import os
 
@@ -16,6 +17,15 @@ app.secret_key = Config.SECRET_KEY
 
 db.init_app(app)
 migrate = Migrate(app, db)
+
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'  # Redirect to login page if not authenticated
+login_manager.login_message = "Please log in to access this page."
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
 
 def fetch_event_outcome(event_name):
     """Simulate fetching the event outcome."""
@@ -444,81 +454,68 @@ def forum():
 def game_board():
     return render_template("game_board.html")'''
 
-# Route for the sign-up page (GET method)
-@app.route("/signup")
+# Route for the sign-up page (GET and POST methods)
+@app.route("/signup", methods=['GET', 'POST'])
 def signup():
-    return render_template("signup.html")  # Sign-up page
+    form = SignupForm()
+    if form.validate_on_submit():
+        # Extract form data
+        username = form.username.data
+        password = form.password.data
+        email = form.email.data 
 
-# Route for the sign-up page (POST method)
-@app.route('/signup', methods=['POST'])
-def signup_post():
-    username = request.form.get('username')
-    password = request.form.get('password')
-    email = request.form.get('email')
+        # Check if username or email already exists
+        existing_user = User.query.filter((User.username == username) | (User.email == email)).first()
+        if existing_user:
+            flash("Username or email already taken", 'error')
+            return render_template("signup.html", form=form)
 
-    if not username or not password or not email:
-        flash('Please fill in all fields', 'error')
-        return render_template("signup.html")
-    
-    existing_user = User.query.filter((User.username == username) | (User.email == email)).first()
-    if existing_user:
-        flash("Username or email already taken", 'error')
-        return render_template("signup.html")
-    
-    new_user = User(username=username, password=password, email=email, currency=100) #hash password for storing implement soontm
-    try:
-        db.session.add(new_user)
-        db.session.commit()
-        flash("User created successfully", 'success')
-        return redirect(url_for('login'))
-    except Exception as e:
-        db.session.rollback()
-        flash(f"An error occurred: {str(e)}", 'error')
-        return render_template('signup.html')
+        # Create a new user
+        new_user = User(
+            username=username,
+            email=email,
+            currency=100
+        )
+        new_user.set_password(password)  # Hash the password before storing
 
-    '''# Example validation; replace with actual database logic
-    if username and password:
-        # Save user to database (example logic)
-        return jsonify({"success": True})
-    else:
-        return jsonify({"success": False, "message": "Please fill in all fields"})'''
+        try:
+            db.session.add(new_user)
+            db.session.commit()
+            login_user(new_user)  # Log the user in after signup
+            flash("User created successfully", 'success')
+            return redirect(url_for('dashboard'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f"An error occurred: {str(e)}", 'error')
+            return render_template("signup.html", form=form)
 
-# Route for the login page (GET method)
-@app.route("/login")
+    return render_template("signup.html", form=form)
+ 
+
+# Route for the login page (GET and POST methods)
+@app.route("/login", methods=['GET', 'POST'])
 def login():
-    return render_template("login.html")  # Login page
-
-# Route for the login page (POST method)
-@app.route('/login', methods=['POST'])
-def login_post():
-    identifier = request.form.get('username')  # Can be username or email
-    password = request.form.get('password')
-
-    user = User.query.filter(
-        ((User.username == identifier) | (User.email == identifier)) & (User.password == password)
-    ).first()
-
-    if user:
-        session['logged_in'] = True
-        session['username'] = user.username
-        session['userID'] = user.id
-        session['currency'] = user.currency
-        return redirect(url_for('global_home'))
-    else:
-        flash("Login failed", 'error')
-        return render_template('login.html')
-
-    '''# Example validation; replace with actual database logic
-    if username == "testuser" and password == "password123":
-        session['logged_in'] = True
-        return redirect(url_for('global_home')) #jsonify({"success": True})
-    else:
-        return jsonify({"success": False, "message": "Invalid username or password"})'''
+    form = LoginForm()
+    if form.validate_on_submit():
+        identifier = form.username.data  # Can be username or email
+        password = form.password.data
+        
+        # Authenticate user
+        user = User.query.filter((User.username == identifier) | (User.email == identifier)).first()
+        if user and user.check_password(password):  # Verify hashed password
+            login_user(user)
+            flash("Login successful!", 'success')
+            return redirect(url_for('dashboard'))
+        else:
+            flash("Invalid username/email or password.", 'error')
+    
+    return render_template("login.html", form=form)
 
 # Route for logging out
 @app.route('/logout')
 def logout():
-    session.clear()
+    logout_user()  # Use Flask-Login's logout_user function
+    flash("You have been logged out.", 'success')
     return redirect(url_for('global_home'))
 
 # Route for the stats API
@@ -609,6 +606,7 @@ def get_currency():
 @app.template_filter('pretty_currency')
 def pretty_currency(cents):
     return "{:,}".format(int(cents))
+
 
 if __name__ == "__main__":
     app.run(debug=True)
