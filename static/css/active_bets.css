@@ -114,12 +114,15 @@
   
   /* Style for the "No active bets available" message */
   .no-bets-message {
-    text-align: center; /* Center the text horizontally */
-    align-self: center;
-    font-size: 1.5em; /* Increase the font size */
-    color: #ccc; /* Set a neutral gray color */
-    font-weight: bold; /* Make the text bold */
-    text-transform: capitalize; /* Capitalize the text */
-    margin-top: 20px; /* Add some spacing above the message */
-  font-size: 1.2rem; /* Adjust the font size */
-  }
+  display: flex;  
+  justify-content: center;   
+  font-size: 1.5em;  
+  color: #ccc;  
+  font-weight: bold;  
+  text-transform: capitalize; 
+  margin: 0;  
+  height: 100%; 
+  padding: 20px;  
+  word-wrap: break-word; 
+}
+  
