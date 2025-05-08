@@ -1,6 +1,10 @@
-// Global variables 
+// Global variables
 let statsChartInitialized = false;
-let countdownInterval; 
+let countdownInterval;
+
+// Global variables to store chart instances
+let lineChartInstance = null;
+let pieChartInstance = null;
 
 // Show the selected tab and hide others
 function showTab(tabId) {
@@ -15,18 +19,139 @@ function showTab(tabId) {
         .find(item => item.getAttribute('onclick').includes(tabId));
     if (activeMenuItem) activeMenuItem.classList.add('active');
 
-    // Initialize stats charts if needed
+    // Handle stats tab specifically
     if (tabId === 'stats') {
-        fetchStatsData()
-            .then(data => {
-                createLineChart(data.monthly_wins);
-                createPieChart(data.win_loss_ratio);
-            })
-            .catch(error => console.error('Error fetching stats data:', error));
+        // Initialize charts with server-side data
+        initializeChartsWithServerData();
     }
 }
 
-// Fetch dashboard data from server
+// Initialize charts with data from server-side rendering
+function initializeChartsWithServerData() {
+    try {
+        // Get the chart data from the template
+        const chartDataElement = document.getElementById('chart-data');
+        if (!chartDataElement) { 
+            renderNoStatsMessage();
+            return;
+        }
+        
+        const chartData = JSON.parse(chartDataElement.textContent); 
+
+        // Destroy existing charts if they exist
+        if (lineChartInstance) lineChartInstance.destroy();
+        if (pieChartInstance) pieChartInstance.destroy();
+
+        // Check if we have valid monthly data
+        const hasMonthlyData = chartData && 
+                              chartData.monthly_wins && 
+                              chartData.monthly_wins.months && 
+                              chartData.monthly_wins.months.length > 0 &&
+                              chartData.monthly_wins.wins.some(win => win > 0);
+
+        // Create line chart if we have monthly data
+        if (hasMonthlyData) {
+            document.getElementById('lineChart').style.display = 'block';
+            document.getElementById('lineChartMessage').style.display = 'none';
+            lineChartInstance = createLineChart(chartData.monthly_wins);
+        } else {
+            document.getElementById('lineChart').style.display = 'none';
+            document.getElementById('lineChartMessage').textContent = 'No wins recorded for previous months';
+            document.getElementById('lineChartMessage').style.display = 'block';
+        }
+
+        // Check if we have win/loss data for previous month
+        const hasWinLossData = chartData && 
+                              chartData.win_loss_ratio && 
+                              (chartData.win_loss_ratio.wins > 0 || chartData.win_loss_ratio.losses > 0);
+
+        // Create pie chart if we have win/loss data
+        if (hasWinLossData) {
+            pieChartInstance = createPieChart(chartData.win_loss_ratio);
+        } else {
+            document.getElementById('pieChart').style.display = 'none';
+            document.getElementById('pieChartMessage').textContent = 'No wins or losses recorded for the previous month';
+            document.getElementById('pieChartMessage').style.display = 'block';
+        }
+             
+    } catch (error) { 
+        console.error('Error initializing charts:', error);
+        renderNoStatsMessage();
+    }
+}
+
+// Create a line chart for "Previous Months Wins"
+function createLineChart(data) { 
+    const canvas = document.getElementById('lineChart'); 
+    const ctx = canvas.getContext('2d');
+    return new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: data.months || [],
+            datasets: [{
+                label: 'Wins',
+                data: data.wins || [],
+                borderColor: 'rgba(75, 192, 192, 1)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderWidth: 2,
+                fill: true,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: true },
+            },
+            scales: {
+                x: { title: { display: true, text: 'Months' } },
+                y: { title: { display: true, text: 'Wins' } }
+            }
+        }
+    });
+}
+
+// Create a pie chart for "Win/Loss Ratio"
+function createPieChart(data) {
+    const canvas = document.getElementById('pieChart');
+    const ctx = canvas.getContext('2d');
+
+    // Check if there is no data or if both wins and losses are 0
+    if (!data || (data.wins === 0 && data.losses === 0)) {
+        // Hide the chart canvas
+        canvas.style.display = 'none';
+        
+        // Display the fallback message
+        const messageElement = document.getElementById('pieChartMessage');
+        messageElement.textContent = 'No wins or losses recorded for the previous month.';
+        messageElement.style.display = 'block'; // Make sure the message is visible
+        return null; // Return null since we're not creating a chart
+    }
+
+    // If we have data, show the canvas and hide the message
+    canvas.style.display = 'block';
+    document.getElementById('pieChartMessage').style.display = 'none';
+
+    // Create the pie chart
+    return new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: ['Wins', 'Losses'],
+            datasets: [{
+                data: [data.wins || 0, data.losses || 0],
+                backgroundColor: ['#4caf50', '#f44336'],
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: true },
+            }
+        }
+    });
+}
+
+// Fetch dashboard data from the `/dashboard` route
 function refreshDashboardData() {
     fetch('/dashboard/data')
         .then(response => {
@@ -38,6 +163,7 @@ function refreshDashboardData() {
         .then(data => {
             updateDashboardTables(data); // Update all tables
             initializeTimeRemaining(); // Reinitialize countdown logic
+            
         })
         .catch(error => console.error('Error fetching dashboard data:', error));
 }
@@ -180,77 +306,16 @@ function initializeTimeRemaining() {
     }, 1000); // Update every second
 }
  
-
-// Fetch statistics data from the server
-function fetchStatsData() {
-    return fetch('/dashboard/stats')
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
-            }
-            return response.json();
-        });
-}
-
-// Create a line chart for "Previous Months Wins"
-function createLineChart(data) {
-    const ctx = document.getElementById('lineChart').getContext('2d');
-    new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: data.months, // e.g., ['January', 'February', 'March']
-            datasets: [{
-                label: 'Wins',
-                data: data.wins, // e.g., [5, 10, 7]
-                borderColor: 'rgba(75, 192, 192, 1)',
-                backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                borderWidth: 2,
-                fill: true,
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    display: true,
-                }
-            }
-        }
-    });
-}
-
-// Create a pie chart for "Last Month Win/Loss"
-function createPieChart(data) {
-    const ctx = document.getElementById('pieChart').getContext('2d');
-    new Chart(ctx, {
-        type: 'pie',
-        data: {
-            labels: ['Wins', 'Losses'],
-            datasets: [{
-                data: [data.wins, data.losses], // e.g., [15, 5]
-                backgroundColor: ['#4caf50', '#f44336'],
-                hoverOffset: 4
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    display: true,
-                }
-            }
-        }
-    });
-}
-
 // Initialize everything when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    // Determine current page
-    const currentPath = window.location.pathname;
-
-    // Initialize functionality based on current page
-    if (currentPath.includes('/dashboard')) {
-        refreshDashboardData(); // Initial data fetch
-        initializeTimeRemaining(); // Initialize countdown logic
+    // Initial data fetch
+    refreshDashboardData();
+    
+    // Initialize countdown logic
+    initializeTimeRemaining();
+    
+    // If stats tab is active by default, load data
+    if (document.getElementById('stats').style.display === 'block') {
+        initializeChartsWithServerData();
     }
 });
