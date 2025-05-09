@@ -10,21 +10,21 @@
                 <label for="category">Filter by Category:</label>
                 <form method="get" action="{{ url_for('forum') }}">
                     <select name="category" onchange="this.form.submit()">
-                        <option value="all" {% if category == 'all' %}selected{% endif %}>All</option>
+                        <option value="all" {% if category = 'all' %}selected{% endif %}>All</option>
                         {% for cat in filter_categories %}
-                            <option value="{{ cat }}" {% if category == cat %}selected{% endif %}>{{ cat }}</option>
+                            <option value="{{ cat }}" {% if category = cat %}selected{% endif %}>{{ cat }}</option>
                         {% endfor %}
                     </select>
                 </form>                
             </div>
-            {% if session.get('logged_in') %}
+            {% if current_user.is_authenticated %}
                 <div class="create-post">
                     <a href="{{ url_for('create_post') }}" class="button create-post">Create Post</a>
                 </div>
             {% endif %}
         </div>
 
-      <table class="forum-table">
+        <table class="forum-table">
             <thead>
                 <tr>
                     <th>Category</th>
