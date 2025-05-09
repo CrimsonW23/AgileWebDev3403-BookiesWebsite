@@ -19,16 +19,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (selectedTime <= currentTime) {
             alert('Scheduled time must be in the future.');
-            event.preventDefault(); // Prevent form submission
+            event.preventDefault(); 
         }
     });
 });
 
-const form = document.getElementById('create-bet-form'); // Form element
-const eventNameInput = document.getElementById('event-name'); // Event Name input
-const betTypeInput = document.getElementById('bet-type'); // Bet Type dropdown
-const stakeAmountInput = document.getElementById('stake-amount'); // Stake Amount input
-const oddsInput = document.getElementById('odds'); // Odds input 
+const form = document.getElementById('create-bet-form');  
+const eventNameInput = document.getElementById('event-name');  
+const betTypeInput = document.getElementById('bet-type'); 
+const stakeAmountInput = document.getElementById('stake-amount');  
+const oddsInput = document.getElementById('odds');   
 
 // Handle form submission
 form.addEventListener('submit', (event) => { 
