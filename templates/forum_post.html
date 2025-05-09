@@ -20,14 +20,14 @@
     <form action="" method="post">
         {{ form.hidden_tag() }}
         <div class="comment-form">
+            {% if session.get('logged_in') %}
             <div class="row">
-                {{ form.reply.label }}<br>
-                {{ form.reply(class="input-field", cols=50, rows=2) }}<br>
+                {{ form.reply.label }}
+                {{ form.reply(class="input-field", cols=50, rows=2) }}
             </div>
             {% for error in form.reply.errors %}
                 <span style="color: red;">[{{ error }}]</span>
             {% endfor %}
-            {% if session.get('logged_in') %}
             <div class = "button-container">
                 <button type="submit" id="form_submit" class="button">Submit Comment</button>
             </div>
