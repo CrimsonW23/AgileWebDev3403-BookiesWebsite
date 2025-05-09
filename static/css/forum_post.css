@@ -134,3 +134,22 @@ form .row {
     word-break: break-word;
     white-space: normal;
 }
+
+.login-link {
+    color: #fff;
+    text-align: center;
+    font-style: italic;
+}
+
+.login-link a,
+.login-link a:visited {
+    color: #00ff88; 
+    text-decoration: none; 
+    font-weight: bold;  
+    align-self: center;
+    font-style: normal;
+}
+
+.login-link a:hover {
+    text-decoration: underline;
+}
