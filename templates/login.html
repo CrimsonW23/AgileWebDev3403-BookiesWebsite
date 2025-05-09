@@ -8,16 +8,19 @@
             <h1>Login</h1>
             <form id="login-form" method="POST" action="{{ url_for('login') }}">
                 {{ form.hidden_tag() }}
-                <div>
+                <div class="form-field">
                     {{ form.username.label }}
                     {{ form.username(class="form-control", id="username") }}
                 </div>
-                <div>
+                <div class="form-field">
                     {{ form.password.label }}
                     {{ form.password(class="form-control", id="password") }}
                 </div>
                 <div class="button-container">
                     {{ form.submit(class="btn") }}
+                </div>
+                <div class="form-links">
+                    <a href="{{ url_for('signup') }}">Don't have an account? Register</a>
                 </div>
             </form>
         </div>
