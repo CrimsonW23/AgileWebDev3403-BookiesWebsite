@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const searchInput = document.getElementById('searchInput'); // Search input field
-    const betCards = Array.from(document.querySelectorAll('.bet-card')); // All bet cards
+    const searchInput = document.getElementById('searchInput'); 
+    const betCards = Array.from(document.querySelectorAll('.bet-card'));  
 
     // Add an event listener to the search input
     searchInput.addEventListener('input', () => {
@@ -13,9 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     });
-
-// ===== PLACE BET FUNCTIONALITY =====
-
+ 
 // Initialize place bet functionality
 function initializePlaceBetForms() {
   document.querySelectorAll('.place-bet-form').forEach(form => {

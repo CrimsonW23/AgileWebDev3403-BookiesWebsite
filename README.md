@@ -7,6 +7,17 @@ The creation of the web application should be done in a private GitHub repositor
 <br>
 
 ## Application Purpose, Design, and Use
+
+### Purpose
+The Bookies Website is a comprehensive platform designed for sports enthusiasts and betting enthusiasts to track, analyze, and engage with betting data. It provides users with personalized profiles, public statistics, and a social forum to discuss games and predictions. The platform emphasizes data visualization, user engagement, and a safe, interactive environment for betting.
+
+### Purpose
+
+
+### Purpose
+
+
+ 
 <br>
 
 ## Group: 2

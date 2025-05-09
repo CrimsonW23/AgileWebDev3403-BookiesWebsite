@@ -1,12 +1,13 @@
-from flask import Flask, render_template, jsonify, request, redirect, url_for, flash, session
+from flask import Flask, render_template, jsonify, request, redirect, url_for, flash
 from config import Config
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-from forms import PostForm, ReplyForm, CreateBetForm, PlaceBetForm
-from datetime import datetime, timedelta 
+from forms import PostForm, ReplyForm, CreateBetForm, PlaceBetForm, SignupForm, LoginForm
+from datetime import datetime, timedelta, date
 from extensions import db
 from proj_models import User, Post, Reply, CreatedBets, ActiveBets, PlacedBets, EventResult
 from sqlalchemy import func
+from flask_login import LoginManager, login_user, logout_user, current_user, login_required
 
 import os
 
@@ -17,6 +18,15 @@ app.secret_key = Config.SECRET_KEY
 db.init_app(app)
 migrate = Migrate(app, db)
 
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login' 
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+#test data
 def fetch_event_outcome(event_name):
     """Simulate fetching the event outcome."""
     simulated_outcomes = {
@@ -59,14 +69,13 @@ def serialize_bet(bet):
 # Background task to update bet statuses and check outcomes
 @app.before_request
 def update_bet_statuses():
-    if session.get('logged_in'):
+    if current_user.is_authenticated:  
         current_time = datetime.now()
         
         # Update PlacedBets statuses
         placed_bets = PlacedBets.query.filter(PlacedBets.status.in_(["upcoming", "ongoing"])).all()
         
-        for bet in placed_bets:
-            # Convert duration to timedelta if it's not already
+        for bet in placed_bets: 
             if isinstance(bet.duration, int):
                 duration = timedelta(hours=bet.duration)
             else:
@@ -131,20 +140,14 @@ def global_home():
         biggest_win=biggest_win,
     )
 
-# Fix for the stats data generation in the dashboard route
+# Dashboard route
 @app.route("/dashboard")
+@login_required
 def dashboard():
-    if not session.get('logged_in'):
-        flash("You must be logged in to view the dashboard.", "error")
-        return redirect(url_for('login'))
+    update_bet_statuses()  # Call the function to update bet statuses
+     
+    user_id = current_user.id
 
-    # Force update bet statuses before fetching data
-    update_bet_statuses()
-    
-    user_id = session.get('userID')
-    if not user_id:
-        return jsonify({"error": "User ID not found in session"}), 401
-    
     # Fetch updated bets
     ongoing_bets = PlacedBets.query.filter_by(user_id=user_id, status="ongoing").all()
     upcoming_bets = PlacedBets.query.filter_by(user_id=user_id, status="upcoming").all()
@@ -211,7 +214,7 @@ def dashboard():
             "wins": wins_count,
             "losses": losses_count
         }
-    } 
+    }
 
     # Pass all data to the template
     return render_template(
@@ -225,14 +228,8 @@ def dashboard():
     )
 
 @app.route('/dashboard/data')
+@login_required
 def dashboard_data():
-    if not session.get('logged_in'):
-        return jsonify({"error": "User not logged in"}), 401
-
-    user_id = session.get('userID')
-    if not user_id:
-        return jsonify({"error": "User ID not found in session"}), 401
-
     try:
         # Dynamically update bet statuses
         current_time = datetime.now()
@@ -261,10 +258,10 @@ def dashboard_data():
         db.session.commit()
 
         # Fetch updated bets for the logged-in user
-        ongoing_bets = [serialize_bet(bet) for bet in PlacedBets.query.filter_by(user_id=user_id, status="ongoing").all()]
-        upcoming_bets = [serialize_bet(bet) for bet in PlacedBets.query.filter_by(user_id=user_id, status="upcoming").all()]
-        past_bets = [serialize_bet(bet) for bet in PlacedBets.query.filter_by(user_id=user_id, status="past").all()]
-        created_bets = [serialize_bet(bet) for bet in CreatedBets.query.filter_by(created_by=user_id).all()]
+        ongoing_bets = [serialize_bet(bet) for bet in PlacedBets.query.filter_by(user_id=current_user.id, status="ongoing").all()]
+        upcoming_bets = [serialize_bet(bet) for bet in PlacedBets.query.filter_by(user_id=current_user.id, status="upcoming").all()]
+        past_bets = [serialize_bet(bet) for bet in PlacedBets.query.filter_by(user_id=current_user.id, status="past").all()]
+        created_bets = [serialize_bet(bet) for bet in CreatedBets.query.filter_by(created_by=current_user.id).all()]
 
         return jsonify({
             "ongoing_bets": ongoing_bets,
@@ -273,16 +270,12 @@ def dashboard_data():
             "created_bets": created_bets
         })
     except Exception as e: 
-        return jsonify({"error": str(e)}), 500
-
+        return jsonify({"error": str(e)})
 
 # Route for the "Create Bet" page (GET and POST methods)
 @app.route('/create_bet', methods=['GET', 'POST'])
-def create_bet():   
-    if not session.get('logged_in'):
-        flash("You must be logged in to create a bet.", "error")
-        return redirect(url_for('login'))
-
+@login_required
+def create_bet():
     form = CreateBetForm()
     if form.validate_on_submit():
         # Convert duration in hours to timedelta
@@ -290,7 +283,6 @@ def create_bet():
 
         # Ensure scheduled_time is in the future
         if form.scheduled_time.data <= datetime.now():
-            flash("Scheduled time must be in the future.", "error")
             return render_template("create_bet.html", form=form)
 
         # Create a new bet
@@ -301,8 +293,8 @@ def create_bet():
             max_stake=form.max_stake.data,
             odds=form.odds.data,
             scheduled_time=form.scheduled_time.data,
-            duration=duration, 
-            created_by=session['userID']
+            duration=duration,
+            created_by=current_user.id  
         )
         new_active_bet = ActiveBets(
             event_name=form.event_name.data,
@@ -311,29 +303,24 @@ def create_bet():
             max_stake=form.max_stake.data,
             odds=form.odds.data,
             scheduled_time=form.scheduled_time.data,
-            duration=duration, 
-            created_by=session['userID']
+            duration=duration,
+            created_by=current_user.id   
         )
         try:
-            print(f"Creating new_active_bet: {new_active_bet}")  # Debugging
             db.session.add(new_created_bet)
             db.session.add(new_active_bet)
             db.session.commit()
-            flash("Bet created successfully!", "success")
             return redirect(url_for('active_bets'))
         except Exception as e:
             db.session.rollback()
-            print(f"Error while creating bet: {str(e)}")  # Debugging
-            flash(f"An error occurred: {str(e)}", "error")
-    
+
     return render_template("create_bet.html", form=form)
 
 
-# Route for active bets (all upcoming or ongoing bets)
+# Route for active bets page
 @app.route("/active_bets")
 def active_bets():
-    current_time = datetime.now()
-    print("Current time:", current_time)
+    current_time = datetime.now() 
     bets = ActiveBets.query.filter(
         ActiveBets.scheduled_time > current_time
     ).all()
@@ -343,34 +330,28 @@ def active_bets():
 
 # Route for placing a bet
 @app.route("/place_bet/<int:bet_id>", methods=["POST"])
+@login_required
 def place_bet(bet_id):
-    if not session.get('logged_in'):
-        flash("You must be logged in to place a bet.", "error")
-        return redirect(url_for('login'))
-
     form = PlaceBetForm()
     if form.validate_on_submit():
         amount = form.stake_amount.data
-        user_currency = session['currency']
+        user_currency = current_user.currency   
 
         if amount > user_currency:
-            flash("Insufficient funds to place this bet.", "error")
             return redirect(url_for('active_bets'))
 
         # Retrieve the bet from the ActiveBets table
         bet = ActiveBets.query.get(bet_id)
-        if not bet: 
-            flash("Bet not found.", "error")
-            return redirect(url_for('dashboard')) 
+        if not bet:
+            return redirect(url_for('dashboard'))
 
         # Ensure the user is not betting on their own event
-        if bet.created_by == session['userID']:
-            flash("You cannot place a bet on your own event.", "error")
+        if bet.created_by == current_user.id:  
             return redirect(url_for('active_bets'))
 
         # Add the bet to the PlacedBets table
         new_placed_bet = PlacedBets(
-            user_id=session['userID'],
+            user_id=current_user.id,  # Use current_user.id
             event_name=bet.event_name,
             bet_type_description=bet.bet_type_description,
             bet_type=bet.bet_type,
@@ -379,34 +360,19 @@ def place_bet(bet_id):
             potential_winnings=float(amount) * float(bet.odds),
             scheduled_time=bet.scheduled_time,
             duration=bet.duration,
-            status="upcoming"  # Default status
+            status="upcoming"  
         )
-        
-        try:
-            user_id = session['userID']
-            user = User.query.get(user_id)
-            new_currency = float(user.currency) - float(amount)
-            session['currency'] = new_currency
 
+        try:
+            # Deduct the stake amount from the user's currency
+            current_user.currency -= float(amount)
             db.session.add(new_placed_bet)
             db.session.commit()
-    
-            # Verify the bet was added by querying it back
-            added_bet = PlacedBets.query.filter_by(
-                user_id=session['userID'], 
-                event_name=bet.event_name,
-                bet_type=bet.bet_type
-            ).order_by(PlacedBets.id.desc()).first()
-             
-            
-            flash("Bet placed successfully!", "success")
             return redirect(url_for('dashboard'))
         except Exception as e:
-            db.session.rollback() 
-            flash(f"An error occurred: {str(e)}", "error") 
+            db.session.rollback()
 
     return redirect(url_for('active_bets'))
-
 
 
 @app.route("/forum")
@@ -444,126 +410,136 @@ def forum():
 def game_board():
     return render_template("game_board.html")'''
 
-# Route for the sign-up page (GET method)
-@app.route("/signup")
+# Route for the sign-up page (GET and POST methods)
+@app.route("/signup", methods=['GET', 'POST'])
 def signup():
-    return render_template("signup.html")  # Sign-up page
-
-# Route for the sign-up page (POST method)
-@app.route('/signup', methods=['POST'])
-def signup_post():
-    username = request.form.get('username')
-    password = request.form.get('password')
-    email = request.form.get('email')
-
-    if not username or not password or not email:
-        flash('Please fill in all fields', 'error')
-        return render_template("signup.html")
+    form = SignupForm()
     
-    existing_user = User.query.filter((User.username == username) | (User.email == email)).first()
-    if existing_user:
-        flash("Username or email already taken", 'error')
-        return render_template("signup.html")
+    if form.validate_on_submit():
+        # Extract form data
+        username = form.username.data
+        password = form.password.data
+        email = form.email.data
+        
+        # Check if username or email already exists
+        existing_user = User.query.filter((User.username == username) | (User.email == email)).first()
+        if existing_user:  
+            flash("Username or email already taken", 'error')
+            return render_template("signup.html", form=form)
+        
+        # Create a new user
+        try:
+            new_user = User(
+                username=username,
+                email=email,
+                first_name=form.first_name.data,
+                last_name=form.last_name.data,
+                phone=form.phone.data,
+                country=form.country.data,
+                dob=form.dob.data,
+                currency=100  # Default currency value
+            )
+            new_user.set_password(password)  # Hash the password before storing
+            
+            db.session.add(new_user)
+            db.session.commit()
+            
+            # Log the user in after signup
+            login_user(new_user) 
+            return redirect(url_for('global_home'))  
+        
+        except Exception as e:
+            db.session.rollback() 
+            return render_template("signup.html", form=form)
     
-    new_user = User(username=username, password=password, email=email, currency=100) #hash password for storing implement soontm
-    try:
-        db.session.add(new_user)
-        db.session.commit()
-        flash("User created successfully", 'success')
-        return redirect(url_for('login'))
-    except Exception as e:
-        db.session.rollback()
-        flash(f"An error occurred: {str(e)}", 'error')
-        return render_template('signup.html')
-
-    '''# Example validation; replace with actual database logic
-    if username and password:
-        # Save user to database (example logic)
-        return jsonify({"success": True})
-    else:
-        return jsonify({"success": False, "message": "Please fill in all fields"})'''
-
-# Route for the login page (GET method)
-@app.route("/login")
+    # If form validation failed, handle errors without flashing
+    elif request.method == 'POST':
+        pass  
+    
+    return render_template("signup.html", form=form)
+   
+# Route for the login page (GET and POST methods)
+@app.route("/login", methods=['GET', 'POST'])
 def login():
-    return render_template("login.html")  # Login page
+    form = LoginForm()
+    
+    if request.method == 'GET':
+        return render_template("login.html", form=form)
+    
+    if not form.validate_on_submit():
+        return jsonify({
+            "success": False,
+            "message": "Validation failed",
+            "errors": form.errors
+        }) 
 
-# Route for the login page (POST method)
-@app.route('/login', methods=['POST'])
-def login_post():
-    identifier = request.form.get('username')  # Can be username or email
-    password = request.form.get('password')
+    identifier = form.username.data.strip().lower()
+    password = form.password.data
 
     user = User.query.filter(
-        ((User.username == identifier) | (User.email == identifier)) & (User.password == password)
+        (func.lower(User.username) == identifier) | 
+        (func.lower(User.email) == identifier)
     ).first()
 
-    if user:
-        session['logged_in'] = True
-        session['username'] = user.username
-        session['userID'] = user.id
-        session['currency'] = user.currency
-        return redirect(url_for('global_home'))
-    else:
-        flash("Login failed", 'error')
-        return render_template('login.html')
+    if not user or not user.check_password(password):
+        return jsonify({
+            "success": False,
+            "message": "Invalid credentials"
+        }) 
+ 
+    db.session.commit()
+    
+    # Force session creation
+    login_user(user, remember=True, force=True)
+    
+    # Verify login worked
+    if not current_user.is_authenticated:
+        return jsonify({
+            "success": False,
+            "message": "Login failed - session not created"
+        }) 
 
-    '''# Example validation; replace with actual database logic
-    if username == "testuser" and password == "password123":
-        session['logged_in'] = True
-        return redirect(url_for('global_home')) #jsonify({"success": True})
-    else:
-        return jsonify({"success": False, "message": "Invalid username or password"})'''
+    return jsonify({
+        "success": True,
+        "redirect": url_for('global_home')
+    })
 
 # Route for logging out
 @app.route('/logout')
+@login_required
 def logout():
-    session.clear()
+    logout_user()
     return redirect(url_for('global_home'))
 
-# Route for the stats API
-@app.route('/api/stats')
-def stats():
-    # Replace with actual database queries
-    stats_data = {
-        "totalUsers": 1200,  # Example: Query the total number of users
-        "totalBets": 5000,  # Example: Query the total number of bets placed
-        "totalWins": 3200,  # Example: Query the total number of wins
-        "biggestWin": 50000  # Example: Query the biggest win amount
-    }
-    return jsonify(stats_data)
-
 @app.route("/profile")
+@login_required
 def profile():
-    #Example user account for development purposes
     user = {
-        "username": "testuser",
-        "email": "testuser@example.com",
+        "username": current_user.username,
+        "email": current_user.email,
         "stats": {
-            "totalBets": 42,
-            "wins": 30,
-            "losses": 12,
-            "biggestWin": 5000
+            "totalBets": PlacedBets.query.filter_by(user_id=current_user.id).count(),
+            "wins": PlacedBets.query.filter_by(user_id=current_user.id, event_outcome="win").count(),
+            "losses": PlacedBets.query.filter_by(user_id=current_user.id, event_outcome="loss").count(),
+            "biggestWin": db.session.query(func.max(PlacedBets.actual_winnings)).filter_by(user_id=current_user.id).scalar() or 0
         },
-        "date_joined" : "2023-01-01",
-        "bets": [
-            {"bet_id": 1, "game": "Poker", "amount": 100, "outcome": "Loss", "date": "2023-01-15"},
-            {"bet_id": 2, "game": "Horses", "amount": 300, "outcome": "Won", "date": "2023-01-17"},
-        ]
+        "date_joined": current_user.date_joined,
+        "bets": PlacedBets.query.filter_by(user_id=current_user.id).order_by(PlacedBets.date_settled.desc()).limit(5).all()
     }
     return render_template("profile.html", user=user)
 
 @app.route("/createpost", methods=['GET', 'POST'])
+@login_required
 def create_post():
     form = PostForm()
     if form.validate_on_submit():
         post = Post(
-            body=form.post.data, 
-            category=form.category.data, 
-            timestamp = datetime.now().replace(second=0, microsecond=0), 
-            author=session['username'], 
+            body=form.post.data,
+            category=form.category.data,
+            timestamp=datetime.now().replace(second=0, microsecond=0),
+            author=current_user.username,  
             title=form.title.data
-        )  # Example author ID
+        )
         db.session.add(post)
         db.session.commit()
         return redirect(url_for('view_post', post_id=post.id))
@@ -576,39 +552,36 @@ def view_post(post_id):
     form = ReplyForm()
     if form.validate_on_submit():
         reply = Reply(
-            body = form.reply.data, 
-            timestamp = datetime.now().replace(second=0, microsecond=0), 
-            author = session['username'],
+            body=form.reply.data,
+            timestamp=datetime.now().replace(second=0, microsecond=0),
+            author=current_user.username if current_user.is_authenticated else "Anonymous",  
             post_id=post_id
-        )  # Example author ID
+        )
         db.session.add(reply)
         db.session.commit()
         return redirect(url_for('view_post', post_id=post.id))
     replies = post.replies.order_by(Reply.timestamp.desc()).all()
-    return render_template('forum_post.html', post=post, replies=replies, form=form) 
+    return render_template('forum_post.html', post=post, replies=replies, form=form)
 
 # Route for the currency page
 @app.route("/currency")
+@login_required
 def currency():
-    if session['logged_in']:
-        return render_template("currency.html")  # Currency page
+    return render_template("currency.html") 
 
 # Route for getting currency
 @app.route("/get_currency", methods=['POST'])
+@login_required
 def get_currency():
-    if session['logged_in']:
-        content = request.get_json()
-        amount = int(content.get('amount', 0))
-        user = User.query.filter((User.username == session['username']) & (User.id == session['userID'])).first()
-        session['currency'] = user.currency + amount
-        user.currency += amount
-        db.session.commit()
-
-        return jsonify({"success": True, "amount": amount, "new_balance": user.currency})
+    content = request.get_json()
+    amount = int(content.get('amount', 0))
+    current_user.currency += amount 
+    db.session.commit()
+    return jsonify({"success": True, "amount": amount, "new_balance": current_user.currency})
 
 @app.template_filter('pretty_currency')
 def pretty_currency(cents):
     return "{:,}".format(int(cents))
-
+ 
 if __name__ == "__main__":
     app.run(debug=True)

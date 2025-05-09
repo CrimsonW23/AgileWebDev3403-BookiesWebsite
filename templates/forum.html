@@ -17,14 +17,14 @@
                     </select>
                 </form>                
             </div>
-            {% if session.get('logged_in') %}
+            {% if current_user.is_authenticated %}
                 <div class="create-post">
                     <a href="{{ url_for('create_post') }}" class="button create-post">Create Post</a>
                 </div>
             {% endif %}
         </div>
 
-      <table class="forum-table">
+        <table class="forum-table">
             <thead>
                 <tr>
                     <th>Category</th>

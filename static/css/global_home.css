@@ -41,12 +41,12 @@ nav a:hover {
 
 /* Auth Buttons */
 .auth a {
-    display: inline-block; /* Make the links look like buttons */
+    display: inline-block;  
     margin-left: 1rem;
     padding: 0.5rem 1rem;
     border: none;
     cursor: pointer;
-    text-decoration: none; /* Remove underline */
+    text-decoration: none;  
     font-size: 1rem;
     font-weight: bold;
     border-radius: 5px;
@@ -76,18 +76,18 @@ nav a:hover {
 
 /* Footer */
 footer {
-    width: 100%; /* Full width */
+    width: 100%; 
     background-color: #1e1e1e;
     color: #fff;
     padding: 1.5rem 2rem;
     text-align: center;
     border-top: 1px solid #333;
-    margin-top: 2rem; /* Add margin above the footer for spacing */
-    box-sizing: border-box; /* Ensure padding is included in width */
+    margin-top: 2rem;  
+    box-sizing: border-box;  
 }
 
 footer .footer-content {
-    max-width: 1200px; /* Center content within the footer */
+    max-width: 1200px;  
     margin: 0 auto;
 }
 
@@ -116,24 +116,24 @@ footer nav a:hover {
 /* Global Home Page */
 .global-home {
     display: flex;
-    flex-direction: column; /* Stack sections vertically */
-    gap: 2rem; /* Add spacing between sections */ 
-    background-color: #111; /* Matches the page background */
+    flex-direction: column; 
+    gap: 2rem;  
+    background-color: #111;  
     color: #fff;
 }
 
 /* Welcome Section */
 .welcome-section {
-    width: 100%; /* Full width */
-    text-align: center; /* Center align the text */
-    padding: 3rem 2rem; /* Padding for spacing */ 
+    width: 100%; 
+    text-align: center; 
+    padding: 3rem 2rem; 
     color: #fff;
     border-radius: 10px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
     display: flex;
     flex-direction: column;
-    justify-content: center; /* Center content vertically */
-    min-height: 400px; /* Default height */
+    justify-content: center;  
+    min-height: 400px; 
 }
 
 .welcome-text {
@@ -142,28 +142,28 @@ footer nav a:hover {
 }
 
 .welcome-text h1 {
-    font-size: 3rem; /* Adjusted font size */
-    color: #00ff88; /* Use #00ff88 for the heading */
-    margin-bottom: 1.5rem; /* Spacing below the heading */
+    font-size: 3rem;  
+    color: #00ff88;  
+    margin-bottom: 1.5rem; 
     text-shadow: 0 4px 10px rgba(0, 0, 0, 0.7);
-    text-align: center; /* Center align the heading */
+    text-align: center;  
 }
 
 .welcome-text p {
-    font-size: 1.2rem; /* Slightly smaller font size */
-    font-style: italic; /* Italicize the text */
-    line-height: 1.8; /* Increased line height for better spacing */
-    color: #e0e0e0; /* Softer color for readability */
-    margin-bottom: 2rem; /* Spacing below the paragraph */
-    padding: 1rem; /* Add padding for the highlight effect */
-    border-radius: 5px; /* Rounded corners for the highlight */ 
+    font-size: 1.2rem;  
+    font-style: italic;  
+    line-height: 1.8;  
+    color: #e0e0e0; 
+    margin-bottom: 2rem;  
+    padding: 1rem; 
+    border-radius: 5px;   
 }
 
 .welcome-text .btn {
-    padding: 1rem 2rem; /* Button padding */
-    font-size: 1.2rem; /* Button font size */
+    padding: 1rem 2rem;  
+    font-size: 1.2rem;  
     color: #111;
-    background-color: #00ff88; /* Use #00ff88 for the button */
+    background-color: #00ff88;  
     text-decoration: none;
     border-radius: 5px;
     font-weight: bold;
@@ -177,35 +177,35 @@ footer nav a:hover {
 
 /* Global Stats Section */
 .global-stats {
-    width: 100%; /* Full width */
-    padding: 3rem 2rem 5rem; /* Add extra bottom padding for spacing */
+    width: 100%;  
+    padding: 3rem 2rem 5rem; 
     background-color: #1e1e1e;
     border-radius: 10px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
     text-align: center;
     display: flex;
     flex-direction: column;
-    justify-content: center; /* Center content vertically */
-    min-height: 400px; /* Default height */
+    justify-content: center;  
+    min-height: 400px;  
 }
 
 /* Stats Items */
 .stats-flow {
-    display: flex; /* Use flexbox */
-    flex-wrap: wrap; /* Allow wrapping on smaller screens */
-    gap: 1.5rem; /* Add spacing between items */
-    justify-content: center; /* Center align the stats */
+    display: flex;  
+    flex-wrap: wrap;  
+    gap: 1.5rem;  
+    justify-content: center;  
 }
 
 .stat-item {
     background-color: #151815;
-    padding: 1.5rem; /* Padding for spacing */
+    padding: 1.5rem;  
     border-radius: 10px;
     text-align: center;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
-    flex: 1 1 calc(25% - 1rem); /* Each stat takes 25% of the row */
-    max-width: 350px; /* Limit the width of each stat */
+    flex: 1 1 calc(25% - 1rem); 
+    max-width: 350px;  
 }
 
 .stat-item:hover {
@@ -214,78 +214,86 @@ footer nav a:hover {
 }
 
 .stat-item h3 {
-    font-size: 1.5rem; /* Adjusted font size */
+    font-size: 1.5rem;  
     color: #00ff88;
-    margin-bottom: 1rem; /* Spacing below the heading */
+    margin-bottom: 1rem;  
 }
 
 .stat-item p {
-    font-size: 1.2rem; /* Adjusted font size */
+    font-size: 1.2rem; 
     color: #fff;
     font-weight: bold;
 }
 
 /* Centered Form Layout */
 .form {
-    max-width: 600px; /* Slightly larger form width */
-    margin: 3rem auto; /* Center the form vertically and horizontally */
-    padding: 2rem; /* Padding inside the form */
-    background-color: #1e1e1e; /* Dark background for the form */
-    border-radius: 10px; /* Rounded corners */
+    max-width: 600px;  
+    margin: 3rem auto; 
+    padding: 2rem;  
+    background-color: #1e1e1e;  
+    border-radius: 10px; 
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
     text-align: center;
     color: #fff;
 }
 
 .form h1 {
-    font-size: 2rem; /* Font size for the main heading */
-    margin-bottom: 1.5rem; /* Spacing below the heading */
-    color: #00ff88; /* Highlighted heading color */
+    font-size: 2rem;  
+    margin-bottom: 1.5rem;  
+    color: #00ff88;  
+    align-self: center;
+    font-weight: bold;
 }
 
 .form h2 {
-    font-size: 1.5rem; /* Font size for subheadings */
-    margin-bottom: 1rem; /* Spacing below the subheading */
-    margin-top: 2rem; /* Spacing above the subheading */
-    color: #ccc; /* Softer color for subheadings */
-    text-align: center; /* Center align the subheading */
+    font-size: 1.5rem; 
+    margin-bottom: 1rem;  
+    margin-top: 2rem; 
+    color: #00ff88;  
+    text-align: center; 
+    align-self: center;
 }
 
 form {
     display: flex;
-    flex-direction: column; /* Stack form elements vertically */
-    gap: 1.5rem; /* Spacing between form elements */
+    flex-direction: column;  
+    gap: 1.5rem;  
+    width: 100%;  
 }
 
 form .row {
     display: flex;
-    gap: 1rem; /* Spacing between columns */
+    gap: 1rem; 
+    width: 100%;  
 }
 
 form .row div {
-    flex: 1; /* Equal width for columns */
+    flex: 1;  
 }
 
 form div {
     display: flex;
-    flex-direction: column; /* Stack label and input vertically */
-    gap: 0.5rem; /* Spacing between label and input */
-    text-align: left; /* Align labels and inputs to the left */
+    flex-direction: column;  
+    gap: 0.5rem;  
+    width: 100%; 
 }
 
 form label {
-    font-size: 0.9rem; /* Font size for labels */
+    font-size: 0.9rem;  
     color: #ccc;
+    text-align: left;  
+    padding-left: 0.8rem;  
 }
 
 form input, form select {
-    width: 100%;
-    padding: 0.8rem; /* Padding inside input fields */
+    width: 100%;  
+    padding: 0.8rem; 
     border: 1px solid #333;
     border-radius: 5px;
     background-color: #2a2a2a;
     color: #fff;
-    font-size: 0.9rem; /* Font size for inputs */
+    font-size: 0.9rem;  
+    align-self: center;
 }
 
 form input:focus, form select:focus {
@@ -295,32 +303,57 @@ form input:focus, form select:focus {
 }
 
 .button-container {
-    margin-top: 2rem; /* Add space before the Sign Up button */
-    text-align: center; /* Center align the button */
+    margin-top: 2rem; 
+    text-align: center; 
 }
 
-form button {
-    padding: 0.8rem 1.5rem; /* Padding for buttons */
-    font-size: 1rem; /* Font size for buttons */
+form button, form .btn {
+    padding: 0.8rem 1.5rem; 
+    font-size: 1rem; 
     font-weight: bold;
-    color: #111;
-    background-color: #00ff88;
+    color: #111;  
+    background-color: #00ff88;  
     border: none;
     border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.3s ease, transform 0.3s ease;
+    text-align: center; 
 }
 
-form button:hover {
-    background-color: #00cc6e;
-    transform: scale(1.05);
+form button:hover, form .btn:hover {
+    background-color: #00cc6e;  
+    transform: scale(1.05); 
+}
+
+form button.btn {
+    background-color: #00ff88 !important;  
 }
 
 #password-error {
-    font-size: 0.8rem; /* Font size for error message */
+    font-size: 0.8rem;  
     color: red;
-    margin-top: -0.5rem; /* Adjust spacing for error message */
-    text-align: left; /* Align error message with inputs */
+    margin-top: -0.5rem;  
+    text-align: left;  
+}
+
+.error-message {
+    color: red;
+    font-size: 14px;
+    margin-bottom: 15px;
+}
+.form-field {
+    margin-bottom: 15px;
+}
+
+.form-links a {
+    color: #00ff88; 
+    text-decoration: none; 
+    font-weight: bold;  
+    align-self: center;
+}
+
+.form-links a:hover {
+    text-decoration: underline; 
 }
 
 .welcome-text .profile-btn {
