@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify, request, redirect, url_for, flash, session
+from flask import Flask, render_template, jsonify, request, redirect, url_for, flash
 from config import Config
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -7,7 +7,7 @@ from datetime import datetime, timedelta, date
 from extensions import db
 from proj_models import User, Post, Reply, CreatedBets, ActiveBets, PlacedBets, EventResult
 from sqlalchemy import func
-from flask_login import LoginManager, login_user, logout_user
+from flask_login import LoginManager, login_user, logout_user, current_user, login_required
 
 import os
 
@@ -20,12 +20,13 @@ migrate = Migrate(app, db)
 
 login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.login_view = 'login'  # Redirect to login page if not authenticated 
+login_manager.login_view = 'login' 
 
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
 
+#test data
 def fetch_event_outcome(event_name):
     """Simulate fetching the event outcome."""
     simulated_outcomes = {
@@ -68,14 +69,13 @@ def serialize_bet(bet):
 # Background task to update bet statuses and check outcomes
 @app.before_request
 def update_bet_statuses():
-    if session.get('logged_in'):
+    if current_user.is_authenticated:  
         current_time = datetime.now()
         
         # Update PlacedBets statuses
         placed_bets = PlacedBets.query.filter(PlacedBets.status.in_(["upcoming", "ongoing"])).all()
         
-        for bet in placed_bets:
-            # Convert duration to timedelta if it's not already
+        for bet in placed_bets: 
             if isinstance(bet.duration, int):
                 duration = timedelta(hours=bet.duration)
             else:
@@ -140,19 +140,14 @@ def global_home():
         biggest_win=biggest_win,
     )
 
-# Fix for the stats data generation in the dashboard route
+# Dashboard route
 @app.route("/dashboard")
+@login_required
 def dashboard():
-    if not session.get('logged_in'): 
-        return redirect(url_for('login'))
+    update_bet_statuses()  # Call the function to update bet statuses
+     
+    user_id = current_user.id
 
-    # Force update bet statuses before fetching data
-    update_bet_statuses()
-    
-    user_id = session.get('userID')
-    if not user_id:
-        return jsonify({"error": "User ID not found in session"}), 401
-    
     # Fetch updated bets
     ongoing_bets = PlacedBets.query.filter_by(user_id=user_id, status="ongoing").all()
     upcoming_bets = PlacedBets.query.filter_by(user_id=user_id, status="upcoming").all()
@@ -219,7 +214,7 @@ def dashboard():
             "wins": wins_count,
             "losses": losses_count
         }
-    } 
+    }
 
     # Pass all data to the template
     return render_template(
@@ -233,14 +228,8 @@ def dashboard():
     )
 
 @app.route('/dashboard/data')
+@login_required
 def dashboard_data():
-    if not session.get('logged_in'):
-        return jsonify({"error": "User not logged in"}), 401
-
-    user_id = session.get('userID')
-    if not user_id:
-        return jsonify({"error": "User ID not found in session"}), 401
-
     try:
         # Dynamically update bet statuses
         current_time = datetime.now()
@@ -269,10 +258,10 @@ def dashboard_data():
         db.session.commit()
 
         # Fetch updated bets for the logged-in user
-        ongoing_bets = [serialize_bet(bet) for bet in PlacedBets.query.filter_by(user_id=user_id, status="ongoing").all()]
-        upcoming_bets = [serialize_bet(bet) for bet in PlacedBets.query.filter_by(user_id=user_id, status="upcoming").all()]
-        past_bets = [serialize_bet(bet) for bet in PlacedBets.query.filter_by(user_id=user_id, status="past").all()]
-        created_bets = [serialize_bet(bet) for bet in CreatedBets.query.filter_by(created_by=user_id).all()]
+        ongoing_bets = [serialize_bet(bet) for bet in PlacedBets.query.filter_by(user_id=current_user.id, status="ongoing").all()]
+        upcoming_bets = [serialize_bet(bet) for bet in PlacedBets.query.filter_by(user_id=current_user.id, status="upcoming").all()]
+        past_bets = [serialize_bet(bet) for bet in PlacedBets.query.filter_by(user_id=current_user.id, status="past").all()]
+        created_bets = [serialize_bet(bet) for bet in CreatedBets.query.filter_by(created_by=current_user.id).all()]
 
         return jsonify({
             "ongoing_bets": ongoing_bets,
@@ -281,22 +270,19 @@ def dashboard_data():
             "created_bets": created_bets
         })
     except Exception as e: 
-        return jsonify({"error": str(e)}), 500
-
+        return jsonify({"error": str(e)})
 
 # Route for the "Create Bet" page (GET and POST methods)
 @app.route('/create_bet', methods=['GET', 'POST'])
-def create_bet():   
-    if not session.get('logged_in'): 
-        return redirect(url_for('login'))
-
+@login_required
+def create_bet():
     form = CreateBetForm()
     if form.validate_on_submit():
         # Convert duration in hours to timedelta
         duration = timedelta(hours=form.duration.data)
 
         # Ensure scheduled_time is in the future
-        if form.scheduled_time.data <= datetime.now(): 
+        if form.scheduled_time.data <= datetime.now():
             return render_template("create_bet.html", form=form)
 
         # Create a new bet
@@ -307,8 +293,8 @@ def create_bet():
             max_stake=form.max_stake.data,
             odds=form.odds.data,
             scheduled_time=form.scheduled_time.data,
-            duration=duration, 
-            created_by=session['userID']
+            duration=duration,
+            created_by=current_user.id  
         )
         new_active_bet = ActiveBets(
             event_name=form.event_name.data,
@@ -317,21 +303,21 @@ def create_bet():
             max_stake=form.max_stake.data,
             odds=form.odds.data,
             scheduled_time=form.scheduled_time.data,
-            duration=duration, 
-            created_by=session['userID']
+            duration=duration,
+            created_by=current_user.id   
         )
-        try: 
+        try:
             db.session.add(new_created_bet)
             db.session.add(new_active_bet)
-            db.session.commit() 
+            db.session.commit()
             return redirect(url_for('active_bets'))
         except Exception as e:
-            db.session.rollback()   
-    
+            db.session.rollback()
+
     return render_template("create_bet.html", form=form)
 
 
-# Route for active bets (all upcoming or ongoing bets)
+# Route for active bets page
 @app.route("/active_bets")
 def active_bets():
     current_time = datetime.now() 
@@ -344,30 +330,28 @@ def active_bets():
 
 # Route for placing a bet
 @app.route("/place_bet/<int:bet_id>", methods=["POST"])
+@login_required
 def place_bet(bet_id):
-    if not session.get('logged_in'): 
-        return redirect(url_for('login'))
-
     form = PlaceBetForm()
     if form.validate_on_submit():
         amount = form.stake_amount.data
-        user_currency = session['currency']
+        user_currency = current_user.currency   
 
-        if amount > user_currency: 
+        if amount > user_currency:
             return redirect(url_for('active_bets'))
 
         # Retrieve the bet from the ActiveBets table
         bet = ActiveBets.query.get(bet_id)
-        if not bet:  
-            return redirect(url_for('dashboard')) 
+        if not bet:
+            return redirect(url_for('dashboard'))
 
         # Ensure the user is not betting on their own event
-        if bet.created_by == session['userID']: 
+        if bet.created_by == current_user.id:  
             return redirect(url_for('active_bets'))
 
         # Add the bet to the PlacedBets table
         new_placed_bet = PlacedBets(
-            user_id=session['userID'],
+            user_id=current_user.id,  # Use current_user.id
             event_name=bet.event_name,
             bet_type_description=bet.bet_type_description,
             bet_type=bet.bet_type,
@@ -376,29 +360,17 @@ def place_bet(bet_id):
             potential_winnings=float(amount) * float(bet.odds),
             scheduled_time=bet.scheduled_time,
             duration=bet.duration,
-            status="upcoming"  # Default status
+            status="upcoming"  
         )
-        
-        try:
-            user_id = session['userID']
-            user = User.query.get(user_id)
-            new_currency = float(user.currency) - float(amount)
-            session['currency'] = new_currency
 
+        try:
+            # Deduct the stake amount from the user's currency
+            current_user.currency -= float(amount)
             db.session.add(new_placed_bet)
             db.session.commit()
-    
-            # Verify the bet was added by querying it back
-            added_bet = PlacedBets.query.filter_by(
-                user_id=session['userID'], 
-                event_name=bet.event_name,
-                bet_type=bet.bet_type
-            ).order_by(PlacedBets.id.desc()).first()
-             
-             
             return redirect(url_for('dashboard'))
         except Exception as e:
-            db.session.rollback()   
+            db.session.rollback()
 
     return redirect(url_for('active_bets'))
 
@@ -474,7 +446,7 @@ def signup():
             
             # Log the user in after signup
             login_user(new_user) 
-            return redirect(url_for('dashboard'))
+            return redirect(url_for('global_home'))  
         
         except Exception as e:
             db.session.rollback() 
@@ -482,70 +454,92 @@ def signup():
     
     # If form validation failed, handle errors without flashing
     elif request.method == 'POST':
-        pass  # No flash messages or error handling here
+        pass  
     
     return render_template("signup.html", form=form)
-
+   
 # Route for the login page (GET and POST methods)
 @app.route("/login", methods=['GET', 'POST'])
 def login():
     form = LoginForm()
-    if form.validate_on_submit():
-        identifier = form.username.data.strip()  # Can be username or email
-        password = form.password.data.strip()
-        
-        # Authenticate user
-        user = User.query.filter((User.username == identifier) | (User.email == identifier)).first()
-        if user and user.check_password(password):  # Verify hashed password
-            login_user(user) 
-            return jsonify({"success": True})  # Return success for AJAX
-        else:
-            return jsonify({"success": False, "message": "Invalid username/email or password."}), 401
     
-    # Handle GET requests or failed validation
     if request.method == 'GET':
         return render_template("login.html", form=form)
-    else:
-        return jsonify({"success": False, "message": "Form validation failed.", "errors": form.errors}), 400
+    
+    if not form.validate_on_submit():
+        return jsonify({
+            "success": False,
+            "message": "Validation failed",
+            "errors": form.errors
+        }) 
+
+    identifier = form.username.data.strip().lower()
+    password = form.password.data
+
+    user = User.query.filter(
+        (func.lower(User.username) == identifier) | 
+        (func.lower(User.email) == identifier)
+    ).first()
+
+    if not user or not user.check_password(password):
+        return jsonify({
+            "success": False,
+            "message": "Invalid credentials"
+        }) 
+ 
+    db.session.commit()
+    
+    # Force session creation
+    login_user(user, remember=True, force=True)
+    
+    # Verify login worked
+    if not current_user.is_authenticated:
+        return jsonify({
+            "success": False,
+            "message": "Login failed - session not created"
+        }) 
+
+    return jsonify({
+        "success": True,
+        "redirect": url_for('global_home')
+    })
 
 # Route for logging out
 @app.route('/logout')
+@login_required
 def logout():
-    logout_user()  # Use Flask-Login's logout_user function 
+    logout_user()
     return redirect(url_for('global_home'))
- 
 
 @app.route("/profile")
+@login_required
 def profile():
-    #Example user account for development purposes
     user = {
-        "username": "testuser",
-        "email": "testuser@example.com",
+        "username": current_user.username,
+        "email": current_user.email,
         "stats": {
-            "totalBets": 42,
-            "wins": 30,
-            "losses": 12,
-            "biggestWin": 5000
+            "totalBets": PlacedBets.query.filter_by(user_id=current_user.id).count(),
+            "wins": PlacedBets.query.filter_by(user_id=current_user.id, event_outcome="win").count(),
+            "losses": PlacedBets.query.filter_by(user_id=current_user.id, event_outcome="loss").count(),
+            "biggestWin": db.session.query(func.max(PlacedBets.actual_winnings)).filter_by(user_id=current_user.id).scalar() or 0
         },
-        "date_joined" : "2023-01-01",
-        "bets": [
-            {"bet_id": 1, "game": "Poker", "amount": 100, "outcome": "Loss", "date": "2023-01-15"},
-            {"bet_id": 2, "game": "Horses", "amount": 300, "outcome": "Won", "date": "2023-01-17"},
-        ]
+        "date_joined": current_user.date_joined,
+        "bets": PlacedBets.query.filter_by(user_id=current_user.id).order_by(PlacedBets.date_settled.desc()).limit(5).all()
     }
     return render_template("profile.html", user=user)
 
 @app.route("/createpost", methods=['GET', 'POST'])
+@login_required
 def create_post():
     form = PostForm()
     if form.validate_on_submit():
         post = Post(
-            body=form.post.data, 
-            category=form.category.data, 
-            timestamp = datetime.now().replace(second=0, microsecond=0), 
-            author=session['username'], 
+            body=form.post.data,
+            category=form.category.data,
+            timestamp=datetime.now().replace(second=0, microsecond=0),
+            author=current_user.username,  
             title=form.title.data
-        )  # Example author ID
+        )
         db.session.add(post)
         db.session.commit()
         return redirect(url_for('view_post', post_id=post.id))
@@ -558,40 +552,36 @@ def view_post(post_id):
     form = ReplyForm()
     if form.validate_on_submit():
         reply = Reply(
-            body = form.reply.data, 
-            timestamp = datetime.now().replace(second=0, microsecond=0), 
-            author = session['username'],
+            body=form.reply.data,
+            timestamp=datetime.now().replace(second=0, microsecond=0),
+            author=current_user.username if current_user.is_authenticated else "Anonymous",  
             post_id=post_id
-        )  # Example author ID
+        )
         db.session.add(reply)
         db.session.commit()
         return redirect(url_for('view_post', post_id=post.id))
     replies = post.replies.order_by(Reply.timestamp.desc()).all()
-    return render_template('forum_post.html', post=post, replies=replies, form=form) 
+    return render_template('forum_post.html', post=post, replies=replies, form=form)
 
 # Route for the currency page
 @app.route("/currency")
+@login_required
 def currency():
-    if session['logged_in']:
-        return render_template("currency.html")  # Currency page
+    return render_template("currency.html") 
 
 # Route for getting currency
 @app.route("/get_currency", methods=['POST'])
+@login_required
 def get_currency():
-    if session['logged_in']:
-        content = request.get_json()
-        amount = int(content.get('amount', 0))
-        user = User.query.filter((User.username == session['username']) & (User.id == session['userID'])).first()
-        session['currency'] = user.currency + amount
-        user.currency += amount
-        db.session.commit()
-
-        return jsonify({"success": True, "amount": amount, "new_balance": user.currency})
+    content = request.get_json()
+    amount = int(content.get('amount', 0))
+    current_user.currency += amount 
+    db.session.commit()
+    return jsonify({"success": True, "amount": amount, "new_balance": current_user.currency})
 
 @app.template_filter('pretty_currency')
 def pretty_currency(cents):
     return "{:,}".format(int(cents))
-
-
+ 
 if __name__ == "__main__":
     app.run(debug=True)
