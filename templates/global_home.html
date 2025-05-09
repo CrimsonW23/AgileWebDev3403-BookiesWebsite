@@ -5,12 +5,11 @@
 <body>
     <main class="global-home">
         <!-- Welcome Section -->
-        {% if session.get('logged_in') %}
+        {% if current_user.is_authenticated %}
         <div class="welcome-section">
             <div class="welcome-text">
-                <h1>Welcome {{ session.get('username') }}!</h1>
-                <br></br>
-                <!-- Temporary button for routing purposes-->
+                <h1>Welcome {{ current_user.username }}!</h1>
+                <br></br> 
                 <a href="{{ url_for('dashboard') }}" class="btn">Dashboard</a>
                 <a href="{{ url_for('profile') }}" class="btn profile-btn">View Profile</a>
             </div>
