@@ -257,77 +257,72 @@ body {
   font-size: 1.4rem;
 }
 
-/* Tables */
+/* Enhanced Table Styling */
 table, .widget-table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 1rem;
   color: #ccc;
+  background-color: #1e1e1e; /* Table background */
+  border-radius: 8px; /* Rounded corners */
+  overflow: hidden; /* Ensure rounded corners apply to the entire table */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Subtle shadow */
 }
 
 th, td, .widget-table th, .widget-table td {
-  border: 1px solid #555;
-  padding: 8px;
+  border: 1px solid #333; /* Subtle border */
+  padding: 12px 15px; /* Add padding for better spacing */
   text-align: center;
+  text-transform: capitalize;
+  font-size: 0.95rem;
 }
 
 th, .widget-table th {
-  background-color: #158c35;
-  color: #f5f5f5;
-  font-size: 1.05rem;
-  font-weight: 600;
+  background-color: #158c35; /* Header background */
+  color: #f5f5f5; /* Header text color */
+  font-size: 1rem;
+  text-transform: uppercase;
+  font-weight: 600; 
+  letter-spacing: 0.05rem; /* Slight spacing for readability */
+  padding: 8px 10px; /* Reduced padding for lower height */
+  text-align: center;
 }
 
 td, .widget-table td {
-  background-color: #383838;
+  background-color: #292929; /* Row background */
   color: #ccc;
+  transition: background-color 0.3s ease; /* Smooth hover effect */
+  font-size: medium;
 }
 
 tbody tr:nth-child(odd) {
-  background-color: #1f1f1f;
+  background-color: #1f1f1f; /* Alternating row color */
 }
 
 tbody tr:nth-child(even) {
-  background-color: #292929;
+  background-color: #292929; /* Alternating row color */
 }
 
-/* Buttons */
-button, .create-bet-btn, .place-bet-btn {
-  padding: 10px 20px;
-  font-size: 1rem;
+tbody tr:hover {
+  background-color: #333; /* Highlight row on hover */
+  color: #00ff88; /* Highlight text color on hover */
+  cursor: pointer; /* Indicate interactivity */
+}
+
+/* Table Header Styling */
+.widget-table th {
+  position: sticky; /* Keep headers visible when scrolling */
+  top: 0;
+  z-index: 2;
+}
+
+/* Table Footer Styling */
+.widget-table tfoot td {
+  background-color: #158c35; /* Footer background */
+  color: #f5f5f5; /* Footer text color */
   font-weight: bold;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
-}
-
-.create-bet-btn {
-  background-color: #00ff88;
-  color: #111;
-}
-
-.create-bet-btn:hover {
-  background-color: #00cc6e;
-  transform: scale(1.05);
-}
-
-.place-bet-btn {
-  background-color: #4caf50;
-  color: #fff;
-  padding: 8px 16px;
-  font-size: 0.9rem;
-}
-
-.place-bet-btn:hover {
-  background-color: #45a049;
-  transform: scale(1.03);
-  box-shadow: 0 3px 8px rgba(72, 239, 128, 0.4);
-}
-
-.place-bet-btn:active {
-  background-color: #388e3c;
-  transform: scale(0.97);
+  text-align: right;
+  padding: 10px;
 }
 
 /* Charts */
@@ -363,7 +358,8 @@ canvas {
   display: flex;
   justify-content: space-between;  
   align-items: center;  
-  margin-bottom: 1.5rem;  
+  margin-bottom: 1.5rem; 
+  text-align: center;
 }
 
 /* Centered Form Layout */
@@ -380,14 +376,16 @@ canvas {
 
 .form h1 {
   font-size: 2rem;  
-  margin-bottom: 1.5rem;  
+  margin-bottom: 1.5rem;
+  align-self: center;  
   color: #00ff88;  
 } 
 
 /* Form Container Styling */
 .form-container, .place-bet-form-container {
   max-width: 500px; 
-  margin: 3rem auto;  
+  margin: 3rem auto;
+  align-self: center;  
   padding: 2rem; 
   background-color: #1e1e1e;  
   border-radius: 10px; /* Rounded corners */
@@ -400,7 +398,8 @@ canvas {
   font-size: 2rem;  
   margin-bottom: 1.5rem;  
   color: #00ff88;  
-  text-align: center; 
+  text-align: center;
+  align-self: center; 
 }
 
 /* Form Layout */
@@ -454,25 +453,77 @@ form input[readonly] {
   cursor: not-allowed;  
 }
 
-/* Button Styling */
-form button {
-  padding: 0.8rem 1.5rem;  
-  font-size: 1.2rem;  
-  font-weight: bold;  
-  color: #111;  
-  background-color: #00ff88;  
-  border: none;  
-  border-radius: 8px;  
-  cursor: pointer; 
-  transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+/* Button Container Styling */
+.button-container {
+  margin-top: 2rem; /* Add space before the button */
+  text-align: center; /* Center align the button */
+  align-items: center;
 }
 
-form button:hover {
-  background-color: #00cc6e;  
-  transform: scale(1.05);  
-  box-shadow: 0 4px 10px rgba(0, 255, 136, 0.5);  
+/* Submit Button Styling */
+form .submit-btn {
+  padding: 0.8rem 1.2rem; /* Padding for buttons */
+  max-width: 100;
+  font-size: 1rem;  
+  font-weight: bold;
+  color: #111; /* Text color */
+  background-color: #00ff88; /* Green background */
+  border: none;
+  border-radius: 5px; /* Rounded corners */
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.3s ease; /* Smooth transitions */
 }
 
+form .submit-btn:hover {
+  background-color: #00cc6e; /* Darker green on hover */
+  transform: scale(1.05); /* Slight zoom effect */
+}
+
+/* Statistics Charts */
+
+#lineChart, #pieChart {
+  width: 100%; /* Full width */
+  max-width: 700px; /* Limit max width */
+  height: auto; /* Maintain aspect ratio */
+  max-height: fit-content;  
+  display: block; /* Ensure proper rendering */
+  margin: 0 auto; /* Center the charts */
+  }
+ 
+/* Create Bet Button Styling */
+.create-bet-btn {
+  padding: 0.8rem 1.2rem; /* Padding for buttons */
+  font-size: 1rem;  
+  font-weight: bold;
+  color: #111; /* Text color */
+  background-color: #00ff88; /* Green background */
+  border: none;
+  border-radius: 5px; /* Rounded corners */
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.3s ease; /* Smooth transitions */
+}
+
+.create-bet-btn:hover {
+  background-color: #00cc6e; /* Darker green on hover */
+  transform: scale(1.05); /* Slight zoom effect */
+}
+
+/*Fallback Message */
+.fallback-message {
+  text-align: center;
+  padding: 20px;
+  color: #666;
+  font-size: 16px;
+  background-color: #216734;
+  border-radius: 4px;
+  margin-top: 10px;
+  border: 1px #ddd;
+  color: #ccc;
+  text-transform: capitalize;
+  font-weight: bolder;
+}
+
+/* Currency Link Styling */
 .currency {
   color: #00ff88;
   text-decoration: none;
@@ -482,3 +533,4 @@ form button:hover {
   color: #00cc6e;
   text-decoration: none;
 }
+

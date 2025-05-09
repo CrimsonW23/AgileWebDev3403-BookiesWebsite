@@ -10,24 +10,41 @@
 
   <!-- Floating boxes -->
   <div class="bet-cards" id="betCards">
-    {% for bet in bets %}
-    <div class="bet-card" data-search="{{ bet.event_name | lower }} {{ bet.bet_type | lower }}">
-      <h3>{{ bet.event_name }}</h3>
-      <p><strong>Type:</strong> {{ bet.bet_type }}</p>
-      <p><strong>Max Stake:</strong> ${{ bet.stake_amount | int }}</p>
-      <p><strong>Odds:</strong> {{ bet.odds }}</p>
-      <p><strong>Scheduled:</strong> {{ bet.scheduled_time.strftime('%d %b %Y %H:%M') }}</p>
-      <p><strong>Duration:</strong> {{ bet.duration }} hrs</p>
-      <p><strong>Created:</strong> {{ bet.created_at.strftime('%d %b %Y') }}</p>
-      <br>
-      {% if session.get('logged_in') %}
-      <form action="{{ url_for('place_bet', bet_id=bet.id) }}" method="POST">
-        <input type="number" name="amount" placeholder="Enter amount" min="1" required>
-        <button type="submit">Place Bet</button>
-      </form>
-      {% endif %}
-    </div>
-    {% endfor %}
+    {% if bets %}
+      {% for bet in bets %}
+      <div class="bet-card" data-search="{{ bet.event_name | lower }} {{ bet.bet_type | lower }}">
+        <h3>{{ bet.event_name }}</h3> 
+        <p><strong>Bet Type:</strong> {{ bet.bet_type_description }}</p>
+        <p><strong>Max Stake:</strong> ${{ bet.max_stake | int }}</p>
+        <p><strong>Odds:</strong> {{ bet.odds }}</p>
+        <p><strong>Scheduled At:</strong> {{ bet.scheduled_time.strftime('%d %b %Y %H:%M') }}</p>
+        <p><strong>Duration:</strong> {{ bet.duration.total_seconds() // 3600 }} hrs</p>
+        <p><strong>Created At:</strong> {{ bet.scheduled_time.strftime('%d %b %Y') }}</p>
+        <br>
+        {% if session.get('logged_in') %}
+          {% if bet.created_by == session['userID'] %} 
+          {% else %}
+            <form action="{{ url_for('place_bet', bet_id=bet.id) }}" method="POST">
+              {{ form.hidden_tag() }}
+
+              <div class="form-group">
+                <label for="stakeAmount">{{ form.stake_amount.label }}</label>
+                {{ form.stake_amount(class="input-field", id="stakeAmount") }}
+              </div>
+
+              {% for error in form.stake_amount.errors %}
+              <span style="color: red;">[{{ error }}]</span>
+              {% endfor %}
+              
+              <button type="submit">Place Bet</button>
+            </form>
+          {% endif %}
+        {% endif %}
+      </div>
+      {% endfor %}
+    {% else %}
+      <p class="no-bets-message">No active bets available</p>
+    {% endif %}
   </div>
 </section>
 
