@@ -257,8 +257,8 @@ class SignupForm(FlaskForm):
     submit_btn = SubmitField('Sign Up')
 
 class LoginForm(FlaskForm):
-    username = StringField('Username/Email', validators=[DataRequired()])
-    password = PasswordField('Password', validators=[DataRequired()])
+    username = StringField('Username/Email', validators=[DataRequired(message="Username or email is required")])
+    password = PasswordField('Password', validators=[DataRequired(message="Password is required")])
     submit = SubmitField('Login')
 
 
@@ -290,7 +290,7 @@ class CreateBetForm(FlaskForm):
     max_stake = DecimalField("Max Stake Amount", validators=[DataRequired(), NumberRange(min=1.0)])
     odds = DecimalField("Odds", validators=[DataRequired(), NumberRange(min=1.0)])
     scheduled_time = DateTimeLocalField("Scheduled Time", format='%Y-%m-%dT%H:%M', validators=[DataRequired()])
-    duration = IntegerField("Duration (Hours)", validators=[DataRequired(), NumberRange(min=1)])  # Accept only hours
+    duration = IntegerField("Duration (Hours)", validators=[DataRequired(), NumberRange(min=1)]) 
     submit = SubmitField("Create Bet")
 
     def validate_scheduled_time(form, field):
