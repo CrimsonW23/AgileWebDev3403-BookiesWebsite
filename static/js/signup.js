@@ -124,9 +124,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Real-time validation for phone input
     if (phone) {
         phone.addEventListener('input', () => {
-            phone.value = phone.value.replace(/\D/g, ''); // Remove non-digit characters
+            phone.value = phone.value.replace(/\D/g, '');  
             if (phone.value.length > 10) {
-                phone.value = phone.value.slice(0, 10); // Limit to 10 digits
+                phone.value = phone.value.slice(0, 10);  
             }
             
             // Show/hide error message in real-time
