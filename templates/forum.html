@@ -10,9 +10,9 @@
                 <label for="category">Filter by Category:</label>
                 <form method="get" action="{{ url_for('forum') }}">
                     <select name="category" onchange="this.form.submit()">
-                        <option value="all" {% if category = 'all' %}selected{% endif %}>All</option>
+                        <option value="all" {% if category == 'all' %}selected{% endif %}>All</option>
                         {% for cat in filter_categories %}
-                            <option value="{{ cat }}" {% if category = cat %}selected{% endif %}>{{ cat }}</option>
+                            <option value="{{ cat }}" {% if category == cat %}selected{% endif %}>{{ cat }}</option>
                         {% endfor %}
                     </select>
                 </form>                
