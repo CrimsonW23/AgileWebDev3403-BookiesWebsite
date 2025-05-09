@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, TextAreaField, SelectField, DecimalField, IntegerField, DateTimeLocalField, PasswordField, TelField, DateField
-from wtforms.validators import DataRequired, Length, NumberRange, ValidationError, Email, EqualTo
+from wtforms.validators import DataRequired, Length, NumberRange, ValidationError, Email, EqualTo, Regexp
 import re
 from datetime import datetime
 
@@ -204,7 +204,6 @@ class SignupForm(FlaskForm):
         ('Zimbabwe', 'Zimbabwe')
     ]
 
-        
     first_name = StringField('First Name', validators=[
         DataRequired(message="First name is required."),
         Length(max=50, message="First name must be less than 50 characters.")
@@ -217,20 +216,29 @@ class SignupForm(FlaskForm):
     
     email = StringField('Email', validators=[
         DataRequired(message="Email is required."),
-        Email(message="Please enter a valid email address.")
+        Email(message="Please enter a valid email address. Example: user@example.com")
     ])
     
     phone = TelField('Phone Number', validators=[
-        DataRequired(message="Phone number is required.")
+        DataRequired(message="Phone number is required."),
+        Regexp(r'^\d{10}$', message="Phone number must be exactly 10 digits.")
     ])
-
+    
     country = SelectField('Country', choices=countries, validators=[
         DataRequired(message="Please select a country.")
     ])
     
-    dob = DateField('Date of Birth', validators=[
+    dob = DateField('Date of Birth', format='%Y-%m-%d', validators=[
         DataRequired(message="Date of birth is required.")
     ])
+    
+    # Custom validator for date of birth
+    def validate_dob(self, field):
+        if field.data:
+            today = datetime.now().date()
+            if field.data >= today:
+                raise ValidationError('Date of birth must be in the past.')
+    
     username = StringField('Username', validators=[
         DataRequired(message="Username is required."),
         Length(min=4, max=25, message="Username must be between 4 and 25 characters.")
@@ -243,10 +251,10 @@ class SignupForm(FlaskForm):
     
     confirm_password = PasswordField('Confirm Password', validators=[
         DataRequired(message="Please confirm your password."),
-        EqualTo('password', message="Passwords must match.")
-    ]) 
-           
-    submit = SubmitField('Sign Up') 
+        EqualTo('password', message="Passwords do not match.")
+    ])
+    
+    submit_btn = SubmitField('Sign Up')
 
 class LoginForm(FlaskForm):
     username = StringField('Username/Email', validators=[DataRequired()])
