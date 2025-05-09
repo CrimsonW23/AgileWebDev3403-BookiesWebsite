@@ -20,8 +20,7 @@ migrate = Migrate(app, db)
 
 login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.login_view = 'login'  # Redirect to login page if not authenticated
-login_manager.login_message = "Please log in to access this page."
+login_manager.login_view = 'login'  # Redirect to login page if not authenticated 
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -144,8 +143,7 @@ def global_home():
 # Fix for the stats data generation in the dashboard route
 @app.route("/dashboard")
 def dashboard():
-    if not session.get('logged_in'):
-        flash("You must be logged in to view the dashboard.", "error")
+    if not session.get('logged_in'): 
         return redirect(url_for('login'))
 
     # Force update bet statuses before fetching data
@@ -289,8 +287,7 @@ def dashboard_data():
 # Route for the "Create Bet" page (GET and POST methods)
 @app.route('/create_bet', methods=['GET', 'POST'])
 def create_bet():   
-    if not session.get('logged_in'):
-        flash("You must be logged in to create a bet.", "error")
+    if not session.get('logged_in'): 
         return redirect(url_for('login'))
 
     form = CreateBetForm()
@@ -299,8 +296,7 @@ def create_bet():
         duration = timedelta(hours=form.duration.data)
 
         # Ensure scheduled_time is in the future
-        if form.scheduled_time.data <= datetime.now():
-            flash("Scheduled time must be in the future.", "error")
+        if form.scheduled_time.data <= datetime.now(): 
             return render_template("create_bet.html", form=form)
 
         # Create a new bet
@@ -324,17 +320,13 @@ def create_bet():
             duration=duration, 
             created_by=session['userID']
         )
-        try:
-            print(f"Creating new_active_bet: {new_active_bet}")  # Debugging
+        try: 
             db.session.add(new_created_bet)
             db.session.add(new_active_bet)
-            db.session.commit()
-            flash("Bet created successfully!", "success")
+            db.session.commit() 
             return redirect(url_for('active_bets'))
         except Exception as e:
-            db.session.rollback()
-            print(f"Error while creating bet: {str(e)}")  # Debugging
-            flash(f"An error occurred: {str(e)}", "error")
+            db.session.rollback()   
     
     return render_template("create_bet.html", form=form)
 
@@ -342,8 +334,7 @@ def create_bet():
 # Route for active bets (all upcoming or ongoing bets)
 @app.route("/active_bets")
 def active_bets():
-    current_time = datetime.now()
-    print("Current time:", current_time)
+    current_time = datetime.now() 
     bets = ActiveBets.query.filter(
         ActiveBets.scheduled_time > current_time
     ).all()
@@ -354,8 +345,7 @@ def active_bets():
 # Route for placing a bet
 @app.route("/place_bet/<int:bet_id>", methods=["POST"])
 def place_bet(bet_id):
-    if not session.get('logged_in'):
-        flash("You must be logged in to place a bet.", "error")
+    if not session.get('logged_in'): 
         return redirect(url_for('login'))
 
     form = PlaceBetForm()
@@ -363,19 +353,16 @@ def place_bet(bet_id):
         amount = form.stake_amount.data
         user_currency = session['currency']
 
-        if amount > user_currency:
-            flash("Insufficient funds to place this bet.", "error")
+        if amount > user_currency: 
             return redirect(url_for('active_bets'))
 
         # Retrieve the bet from the ActiveBets table
         bet = ActiveBets.query.get(bet_id)
-        if not bet: 
-            flash("Bet not found.", "error")
+        if not bet:  
             return redirect(url_for('dashboard')) 
 
         # Ensure the user is not betting on their own event
-        if bet.created_by == session['userID']:
-            flash("You cannot place a bet on your own event.", "error")
+        if bet.created_by == session['userID']: 
             return redirect(url_for('active_bets'))
 
         # Add the bet to the PlacedBets table
@@ -408,15 +395,12 @@ def place_bet(bet_id):
                 bet_type=bet.bet_type
             ).order_by(PlacedBets.id.desc()).first()
              
-            
-            flash("Bet placed successfully!", "success")
+             
             return redirect(url_for('dashboard'))
         except Exception as e:
-            db.session.rollback() 
-            flash(f"An error occurred: {str(e)}", "error") 
+            db.session.rollback()   
 
     return redirect(url_for('active_bets'))
-
 
 
 @app.route("/forum")
@@ -458,77 +442,78 @@ def game_board():
 @app.route("/signup", methods=['GET', 'POST'])
 def signup():
     form = SignupForm()
+    
     if form.validate_on_submit():
         # Extract form data
         username = form.username.data
         password = form.password.data
-        email = form.email.data 
-
+        email = form.email.data
+        
         # Check if username or email already exists
         existing_user = User.query.filter((User.username == username) | (User.email == email)).first()
-        if existing_user:
+        if existing_user:  
             flash("Username or email already taken", 'error')
             return render_template("signup.html", form=form)
-
+        
         # Create a new user
-        new_user = User(
-            username=username,
-            email=email,
-            currency=100
-        )
-        new_user.set_password(password)  # Hash the password before storing
-
         try:
+            new_user = User(
+                username=username,
+                email=email,
+                first_name=form.first_name.data,
+                last_name=form.last_name.data,
+                phone=form.phone.data,
+                country=form.country.data,
+                dob=form.dob.data,
+                currency=100  # Default currency value
+            )
+            new_user.set_password(password)  # Hash the password before storing
+            
             db.session.add(new_user)
             db.session.commit()
-            login_user(new_user)  # Log the user in after signup
-            flash("User created successfully", 'success')
+            
+            # Log the user in after signup
+            login_user(new_user) 
             return redirect(url_for('dashboard'))
+        
         except Exception as e:
-            db.session.rollback()
-            flash(f"An error occurred: {str(e)}", 'error')
+            db.session.rollback() 
             return render_template("signup.html", form=form)
-
+    
+    # If form validation failed, handle errors without flashing
+    elif request.method == 'POST':
+        pass  # No flash messages or error handling here
+    
     return render_template("signup.html", form=form)
- 
 
 # Route for the login page (GET and POST methods)
 @app.route("/login", methods=['GET', 'POST'])
 def login():
     form = LoginForm()
     if form.validate_on_submit():
-        identifier = form.username.data  # Can be username or email
-        password = form.password.data
+        identifier = form.username.data.strip()  # Can be username or email
+        password = form.password.data.strip()
         
         # Authenticate user
         user = User.query.filter((User.username == identifier) | (User.email == identifier)).first()
         if user and user.check_password(password):  # Verify hashed password
-            login_user(user)
-            flash("Login successful!", 'success')
-            return redirect(url_for('dashboard'))
+            login_user(user) 
+            return jsonify({"success": True})  # Return success for AJAX
         else:
-            flash("Invalid username/email or password.", 'error')
+            return jsonify({"success": False, "message": "Invalid username/email or password."}), 401
     
-    return render_template("login.html", form=form)
+    # Handle GET requests or failed validation
+    if request.method == 'GET':
+        return render_template("login.html", form=form)
+    else:
+        return jsonify({"success": False, "message": "Form validation failed.", "errors": form.errors}), 400
 
 # Route for logging out
 @app.route('/logout')
 def logout():
-    logout_user()  # Use Flask-Login's logout_user function
-    flash("You have been logged out.", 'success')
+    logout_user()  # Use Flask-Login's logout_user function 
     return redirect(url_for('global_home'))
-
-# Route for the stats API
-@app.route('/api/stats')
-def stats():
-    # Replace with actual database queries
-    stats_data = {
-        "totalUsers": 1200,  # Example: Query the total number of users
-        "totalBets": 5000,  # Example: Query the total number of bets placed
-        "totalWins": 3200,  # Example: Query the total number of wins
-        "biggestWin": 50000  # Example: Query the biggest win amount
-    }
-    return jsonify(stats_data)
+ 
 
 @app.route("/profile")
 def profile():
