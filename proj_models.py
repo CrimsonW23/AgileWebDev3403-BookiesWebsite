@@ -1,17 +1,24 @@
 from extensions import db
 from datetime import datetime 
 from werkzeug.security import generate_password_hash, check_password_hash 
+from flask_login import UserMixin
 
-class User(db.Model):
+class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False, index=True)  # Unique and indexed
     email = db.Column(db.String(120), unique=True, nullable=False, index=True)  # Unique and indexed
     password = db.Column(db.String(200), nullable=False)
+    first_name = db.Column(db.String(50), nullable=True)
+    last_name = db.Column(db.String(50), nullable=True)
+    phone = db.Column(db.String(10), nullable=True)
+    country = db.Column(db.String(50), nullable=True)
+    dob = db.Column(db.Date, nullable=True)
     currency = db.Column(db.Float, default=0.0, index=True)  # Indexed for faster queries
     posts = db.relationship('Post', backref='user', lazy='dynamic')  # One-to-many relationship with Post
     replies = db.relationship('Reply', backref='user', lazy='dynamic')  # One-to-many relationship with Reply
     created_bets = db.relationship('CreatedBets', backref='creator', lazy=True)
     placed_bets = db.relationship('PlacedBets', backref='bettor', lazy=True)
+    active = db.Column(db.Boolean, default=True)  # For Flask-Login
 
     def set_password(self, password):
         """Hash and set the user's password."""
@@ -20,6 +27,22 @@ class User(db.Model):
     def check_password(self, password):
         """Check the hashed password."""
         return check_password_hash(self.password, password)
+        
+    # Properties required by Flask-Login
+    @property
+    def is_active(self):
+        return self.active
+        
+    @property
+    def is_authenticated(self):
+        return True
+        
+    @property
+    def is_anonymous(self):
+        return False
+        
+    def get_id(self):
+        return str(self.id)
 
     def __repr__(self):
         return f"<User {self.username}>"
