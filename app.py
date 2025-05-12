@@ -199,6 +199,28 @@ def profile():
     }
     return render_template("profile.html", user=user)
 
+# --- Profile search -------------------------------------------------
+@app.route("/search_profiles")
+def search_profiles():
+    """
+    Return a page of users whose username contains the query string (?q=...).
+    """
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+
+    q = request.args.get("q", "").strip()
+
+    # Basic search: case‑insensitive LIKE on username
+    results = []
+    if q:
+        results = User.query.filter(User.username.ilike(f"%{q}%")).all()
+
+    return render_template(
+        "search_results.html",
+        query=q,
+        users=results,
+    )
+
 # --- Friends page -------------------------------------------------
 @app.route("/friends")
 def friends():
