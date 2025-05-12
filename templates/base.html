@@ -9,9 +9,9 @@
 <body>
   <header>
     <div class="logo">
-      <a class = "logo" href="{{url_for('global_home') }}">GamblePro</a>
+      <a class="logo" href="{{ url_for('global_home') }}">GamblePro</a>
     </div>
-    {% if session.get('logged_in') %}
+    {% if current_user.is_authenticated %}
     <nav>
       <a href="{{ url_for('global_home') }}">Home</a>
       <a href="{{ url_for('dashboard') }}">Dashboard</a>
@@ -19,13 +19,13 @@
       <a href="{{ url_for('forum') }}">Forums</a> 
     </nav>
     <div class="authed">
-      {% if session.get('currency') %}
-      <a href="{{ url_for('currency') }}" class="currency">${{ session.currency | pretty_currency }}</a>
+      {% if current_user.currency %}
+      <a href="{{ url_for('currency') }}" class="currency">${{ current_user.currency | pretty_currency }}</a>
       {% else %}
       <a href="{{ url_for('currency') }}" class="currency">$0.00</a>
       {% endif %}
       <a href="{{ url_for('profile') }}" class="profile">Profile</a>
-      <a href="/logout" class="logout">Logout</a>
+      <a href="{{ url_for('logout') }}" class="logout">Logout</a>
     </div>
     {% else %}
     <nav>

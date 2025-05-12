@@ -18,7 +18,7 @@
   <div id="mybets" class="tab-content" style="display:block;">
     <div class="content-container">
       <div class="overview-header">
-        <h2>My Bets</h2>
+        <h2>Overview</h2>
         <button class="create-bet-btn" id="create-bet-btn" onclick="window.location.href='/create_bet'">Create Bet</button>
       </div>
 
@@ -39,7 +39,7 @@
           </thead>
           <tbody>
             {% if ongoing_bets %}
-              {% for bet in ongoing_bets %}
+              {% for bet in ongoing_bets|sort(attribute='scheduled_time') %}
               <tr>
                 <td>{{ bet.event_name }}</td>
                 <td>{{ bet.bet_type_description }}</td>
@@ -76,7 +76,7 @@
           </thead>
           <tbody>
             {% if upcoming_bets %}
-              {% for bet in upcoming_bets %}
+              {% for bet in upcoming_bets|sort(attribute='scheduled_time') %}
               <tr>
                 <td>{{ bet.event_name }}</td>
                 <td>{{ bet.bet_type_description }}</td>
@@ -156,7 +156,7 @@
           </thead>
           <tbody>
             {% if upcoming_bets %}
-              {% for bet in upcoming_bets %}
+              {% for bet in upcoming_bets|sort(attribute='scheduled_time') %}
               <tr>
                 <td>{{ bet.event_name }}</td>
                 <td>{{ bet.bet_type_description }}</td>
@@ -198,7 +198,7 @@
           </thead>
           <tbody>
             {% if past_bets and past_bets|length > 0 %}
-              {% for bet in past_bets[:5] %}
+              {% for bet in past_bets %}
               <tr>
                 <td>{{ bet.event_name }}</td>
                 <td>{{ bet.bet_type_description }}</td>
@@ -227,7 +227,7 @@
       <div class="overview-header">
         <h2>Created Bets</h2>
         <button class="create-bet-btn" id="create-bet-btn" onclick="window.location.href='/create_bet'">Create Bet</button>
-      </div>
+      </div> 
       <div class="widget">
         <table class="widget-table">
           <thead>
@@ -244,7 +244,7 @@
           </thead>
           <tbody>
             {% if created_bets %}
-              {% for bet in created_bets %}
+              {% for bet in created_bets|sort(attribute='status')|sort(attribute='scheduled_time') %}
               <tr>
                 <td>{{ bet.event_name }}</td>
                 <td>{{ bet.bet_type_description }}</td>
