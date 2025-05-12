@@ -1,18 +1,35 @@
 {% extends "base.html" %}
 
 {% block content %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/global_home.css') }}">
-<section class="search-results">
+<!-- guaranteed‑to‑load link, even if base.html lacks a head/extra_css block -->
+<link rel="stylesheet"
+      href="{{ url_for('static', filename='css/search.css') }}"
+      referrerpolicy="no-referrer" />
+
+<section class="search-results-wrapper">
   <h1>Search Results{% if query %} for “{{ query }}”{% endif %}</h1>
 
   {% if users %}
-    <ul class="user-list">
+    <div class="results-grid">
       {% for u in users %}
-        <li><a href="{{ url_for('profile', username=u.username) }}">{{ u.username }}</a></li>
+        <a class="result-card"
+           href="{{ url_for('profile', username=u.username) }}">
+          <div class="card-avatar"></div>
+
+          {# highlight matched substring #}
+          <span>
+            {{ u.username|replace(
+              query,
+              '<span class="highlight">' ~ query ~ '</span>'
+            )|safe }}
+          </span>
+        </a>
       {% endfor %}
-    </ul>
+    </div>
   {% else %}
-    <p>No users found.</p>
+    <p class="no-results">
+      No users found. Try another search term.
+    </p>
   {% endif %}
 </section>
 {% endblock %}

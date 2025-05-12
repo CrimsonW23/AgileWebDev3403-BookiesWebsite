@@ -1,0 +1,54 @@
+/* ========== PROFILE SEARCH RESULTS =================================== */
+.search-results-wrapper {
+    max-width: 1000px;
+    margin: 2.5rem auto;
+    padding: 0 1rem;
+}
+
+.results-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1.2rem 1.6rem;
+}
+
+/* clickable card */
+.result-card {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 12px;
+    padding: 1.2rem 1rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    text-decoration: none;
+    color: #eee;
+    box-shadow: 0 0 12px rgba(0, 0, 0, 0.45);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.result-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 0 16px rgba(0, 255, 136, 0.35);
+}
+
+/* avatar placeholder */
+.card-avatar {
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: #444;
+}
+
+/* highlight query substring (added by Jinja below) */
+.highlight {
+    color: #00ff88;
+}
+
+/* Empty‑state message */
+.no-results {
+    text-align: center;
+    margin: 4rem 0 3rem;
+    color: #999;
+    font-style: italic;
+}
