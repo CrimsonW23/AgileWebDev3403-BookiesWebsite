@@ -17,7 +17,14 @@
       <a href="{{ url_for('dashboard') }}">Dashboard</a>
       <a href="{{ url_for('active_bets') }}">Active Bets</a>
       <a href="{{ url_for('forum') }}">Forums</a> 
+      <a href="{{ url_for('friends') }}">Friends</a>  
     </nav>
+    <form class="search-bar" action="{{ url_for('search_profiles') }}" method="get">
+      <input type="text"
+             name="q"
+             placeholder="Search profiles…"
+             aria-label="Search profiles">
+    </form>
     <div class="authed">
       {% if session.get('currency') %}
       <a href="{{ url_for('currency') }}" class="currency">${{ session.currency | pretty_currency }}</a>

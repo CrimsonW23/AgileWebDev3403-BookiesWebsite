@@ -47,6 +47,8 @@ def global_home():
 def dashboard():
     if session['logged_in']:
         return handle_dashboard()
+    
+
 
 @app.route("/dashboard_data")
 def dashboard_data():
@@ -196,6 +198,28 @@ def profile():
         ]
     }
     return render_template("profile.html", user=user)
+
+# --- Friends page -------------------------------------------------
+@app.route("/friends")
+def friends():
+    """
+    Show my friends & pending requests.
+    Swap the placeholder lists out for real DB queries later.
+    """
+    if not session.get("logged_in"):
+        # Re‑use your login guard pattern
+        return redirect(url_for("login"))
+
+    # TODO: pull real data once the Friend & FriendRequest models exist
+    friends_list = []          # e.g. User.query.join(Friend, ...)
+    pending_list = []          # e.g. FriendRequest.query.filter_by(to_id=session["userID"])
+
+    return render_template(
+        "friends.html",
+        friends=friends_list,
+        pending=pending_list,
+    )
+
 
 @app.route("/createpost", methods=['GET', 'POST'])
 def create_post():

@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/global_home.css') }}">
+
+<section class="friends-page">
+  <h1>Your Friends</h1>
+
+  {% if friends %}
+    <ul class="friends-list">
+      {% for f in friends %}
+        <li>{{ f.username }}</li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>You don’t have any friends yet. 😢</p>
+  {% endif %}
+
+  <h2>Pending Requests</h2>
+  {% if pending %}
+    <ul class="pending-list">
+      {% for p in pending %}
+        <li>{{ p.from_user.username }} wants to connect</li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No pending friend requests.</p>
+  {% endif %}
+</section>
+{% endblock %}
