@@ -480,15 +480,14 @@ form .submit-btn:hover {
 }
 
 /* Statistics Charts */
-
-#lineChart, #pieChart {
+#lineChart, #pieChart, #netProfitChart, #winRateChart {
   width: 100%; 
   max-width: 700px;  
   height: auto;  
   max-height: fit-content;  
   display: block;  
   margin: 0 auto;  
-  }
+}
  
 /* Create Bet Button Styling */
 .create-bet-btn {
