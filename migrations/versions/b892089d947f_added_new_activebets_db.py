@@ -29,7 +29,7 @@ def upgrade():
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
-    op.drop_table('_alembic_tmp_bet')
+    
     with op.batch_alter_table('user', schema=None) as batch_op:
         batch_op.alter_column('currency',
                existing_type=sa.INTEGER(),
