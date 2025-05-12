@@ -5,6 +5,7 @@
 {% endblock %}
 
 {% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/create_bet_form.css') }}">
 <div class="form-container">
     <h1>Create a New Bet</h1>
    
@@ -32,7 +33,7 @@
         </div>
         <div class="form-group">
             <label for="scheduled_time">Scheduled Time:</label>
-            {{ form.scheduled_time(class="form-control", id="scheduled_time") }}
+            {{ form.scheduled_time(class="form-control", id="scheduled_time", type="datetime-local") }}
         </div>
         <div class="form-group">
             <label for="duration">Duration (Hours):</label>
