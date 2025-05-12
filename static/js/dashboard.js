@@ -1,8 +1,8 @@
 // Global variables
+let countdownInterval; 
 let statsChartInitialized = false;
-let countdownInterval;
-
-// Global variables to store chart instances
+let netProfitChartInstance = null; 
+let winRateChartInstance = null;    
 let lineChartInstance = null;
 let pieChartInstance = null;
 
@@ -26,6 +26,7 @@ function showTab(tabId) {
     }
 }
 
+
 // Initialize charts with data from server-side rendering
 function initializeChartsWithServerData() {
     try {
@@ -36,20 +37,56 @@ function initializeChartsWithServerData() {
             return;
         }
         
-        const chartData = JSON.parse(chartDataElement.textContent); 
+        const chartData = JSON.parse(chartDataElement.textContent);
 
         // Destroy existing charts if they exist
+        if (netProfitChartInstance) netProfitChartInstance.destroy(); 
+        if (winRateChartInstance) winRateChartInstance.destroy();      
         if (lineChartInstance) lineChartInstance.destroy();
         if (pieChartInstance) pieChartInstance.destroy();
 
-        // Check if we have valid monthly data
+        
+        // NET PROFIT CHART 
+        const netProfitContainer = document.querySelector('#netProfitChart').closest('.widget');
+        if (chartData?.net_profit?.overall !== undefined && chartData.net_profit.overall !== null) {
+            document.getElementById('netProfitChart').style.display = 'block';
+            document.getElementById('netProfitChartMessage').style.display = 'none';
+            netProfitChartInstance = createOverallNetProfitBar(
+                chartData.net_profit.overall,
+                chartData.net_profit.is_positive
+            );
+        } else {
+            document.getElementById('netProfitChart').style.display = 'none';
+            document.getElementById('netProfitChartMessage').textContent = 'No net profit recorded';
+            document.getElementById('netProfitChartMessage').style.display = 'block';
+            if (netProfitChartInstance) {
+                netProfitChartInstance.destroy();
+                netProfitChartInstance = null;
+            }
+        }
+
+        // WIN RATE CHART 
+        const winRateContainer = document.querySelector('#winRateChart').closest('.widget');
+        if (chartData?.win_rate?.rate !== undefined && chartData.win_rate.rate !== null) {
+            document.getElementById('winRateChart').style.display = 'block';
+            document.getElementById('winRateChartMessage').style.display = 'none';
+            winRateChartInstance = createOverallWinRateChart(chartData.win_rate);
+        } else {
+            document.getElementById('winRateChart').style.display = 'none';
+            document.getElementById('winRateChartMessage').textContent = 'No win rate recorded';
+            document.getElementById('winRateChartMessage').style.display = 'block';
+            if (winRateChartInstance) {
+                winRateChartInstance.destroy();
+                winRateChartInstance = null;
+            }
+        }
+
+        // LINE CHART 
         const hasMonthlyData = chartData && 
                               chartData.monthly_wins && 
                               chartData.monthly_wins.months && 
                               chartData.monthly_wins.months.length > 0 &&
                               chartData.monthly_wins.wins.some(win => win > 0);
-
-        // Create line chart if we have monthly data
         if (hasMonthlyData) {
             document.getElementById('lineChart').style.display = 'block';
             document.getElementById('lineChartMessage').style.display = 'none';
@@ -60,13 +97,13 @@ function initializeChartsWithServerData() {
             document.getElementById('lineChartMessage').style.display = 'block';
         }
 
-        // Check if we have win/loss data for previous month
+        // PIE CHART 
         const hasWinLossData = chartData && 
                               chartData.win_loss_ratio && 
                               (chartData.win_loss_ratio.wins > 0 || chartData.win_loss_ratio.losses > 0);
-
-        // Create pie chart if we have win/loss data
         if (hasWinLossData) {
+            document.getElementById('pieChart').style.display = 'block';
+            document.getElementById('pieChartMessage').style.display = 'none';
             pieChartInstance = createPieChart(chartData.win_loss_ratio);
         } else {
             document.getElementById('pieChart').style.display = 'none';
@@ -80,6 +117,108 @@ function initializeChartsWithServerData() {
     }
 }
 
+// Helper function to show "no stats" message
+function renderNoStatsMessage() {
+    document.querySelectorAll('.widget canvas').forEach(canvas => {
+        canvas.style.display = 'none';
+    });
+    document.querySelectorAll('.fallback-message').forEach(msg => {
+        msg.textContent = 'No statistics data available';
+        msg.style.display = 'block';
+    }); 
+ 
+        }
+ 
+// Create a horizontal bar chart for "Overall Net Profit"
+function createOverallNetProfitBar(overallNetProfit, isPositive) {
+    const canvas = document.getElementById('netProfitChart');
+    const ctx = canvas.getContext('2d');
+
+    // Determine the color based on the isPositive flag
+    const displayColor = isPositive ? '#158c35' : '#ce2d22'; // Green for positive, red for negative 
+    
+    // Determine the display symbol for the value (+ or - or empty)
+    const displaySymbol = isPositive ? '+' : '-';
+
+    return new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: [''],  
+            datasets: [{
+                data: [Math.abs(overallNetProfit)],  
+                backgroundColor: displayColor,  
+                borderColor: displayColor, 
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },  
+                tooltip: {
+                    callbacks: {
+                        label: function (context) { 
+                            return `Net Profit: ${displaySymbol}$${Math.abs(context.raw)}`;
+                        }
+                    }
+                },
+                title: {
+                    display: true,
+                    text: `Net Profit: ${displaySymbol}$${Math.abs(overallNetProfit)}`,  
+                    font: {
+                        size: 16
+                    },
+                    color: displayColor  
+                }
+            },
+            indexAxis: 'y',  
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Amount ($)'
+                    },
+                    ticks: {
+                        callback: function (value) {
+                            return `$${value}`; 
+                        }
+                    }, 
+                    suggestedMin: 0
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Net Profit'
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Create a doughnut chart for "Overall Win Rate"
+function createOverallWinRateChart(data) {
+    const canvas = document.getElementById('winRateChart');
+    const ctx = canvas.getContext('2d');
+    return new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Wins', 'Losses'],
+            datasets: [{
+                data: [data.wins || 0, data.losses || 0],
+                backgroundColor: ['#158c35', '#ce2d22'],
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: true },
+            }
+        }
+    });
+}
+
 // Create a line chart for "Previous Months Wins"
 function createLineChart(data) { 
     const canvas = document.getElementById('lineChart'); 
@@ -91,8 +230,8 @@ function createLineChart(data) {
             datasets: [{
                 label: 'Wins',
                 data: data.wins || [],
-                borderColor: 'rgba(75, 192, 192, 1)',
-                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgb(49, 169, 69)',
+                backgroundColor: 'rgba(26, 219, 84, 0.2)',
                 borderWidth: 2,
                 fill: true,
             }]
@@ -138,7 +277,7 @@ function createPieChart(data) {
             labels: ['Wins', 'Losses'],
             datasets: [{
                 data: [data.wins || 0, data.losses || 0],
-                backgroundColor: ['#4caf50', '#f44336'],
+                backgroundColor: ['#158c35', '#ce2d22'],
                 hoverOffset: 4
             }]
         },

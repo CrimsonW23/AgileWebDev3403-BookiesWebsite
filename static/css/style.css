@@ -218,29 +218,6 @@ body {
   font-weight: bold;
 }
 
-/* Tab Content Layout */
-.tab-content {
-  display: none;
-  padding: 1rem;
-}
-
-.tab-content.active {
-  display: block;
-}
-
-.tab-content h2 {
-  font-size: 2rem;
-  margin-bottom: 1.5rem;
-  color: #eee;
-  text-align: left;
-}
-
-.content-container {
-  max-width: 2000px;
-  margin: 0 auto;
-  padding: 1rem;
-}
-
 /* Widgets */
 .widget {
   margin-bottom: 20px;
@@ -477,50 +454,6 @@ form .submit-btn {
 form .submit-btn:hover {
   background-color: #00cc6e; 
   transform: scale(1.05); 
-}
-
-/* Statistics Charts */
-
-#lineChart, #pieChart {
-  width: 100%; 
-  max-width: 700px;  
-  height: auto;  
-  max-height: fit-content;  
-  display: block;  
-  margin: 0 auto;  
-  }
- 
-/* Create Bet Button Styling */
-.create-bet-btn {
-  padding: 0.8rem 1.2rem; 
-  font-size: 1rem;  
-  font-weight: bold;
-  color: #111; 
-  background-color: #00ff88;  
-  border: none;
-  border-radius: 5px;  
-  cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.3s ease;  
-}
-
-.create-bet-btn:hover {
-  background-color: #00cc6e;  
-  transform: scale(1.05);  
-}
-
-/*Fallback Message */
-.fallback-message {
-  text-align: center;
-  padding: 20px;
-  color: #666;
-  font-size: 16px;
-  background-color: #216734;
-  border-radius: 4px;
-  margin-top: 10px;
-  border: 1px #ddd;
-  color: #ccc;
-  text-transform: capitalize;
-  font-weight: bolder;
 }
 
 /* Currency Link Styling */

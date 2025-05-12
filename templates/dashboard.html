@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
 <script id="chart-data" type="application/json">
     {{ chart_data|tojson }}
 </script>
@@ -269,17 +270,35 @@
   
   <div id="stats" class="tab-content" style="display:none;">
     <div class="content-container">
-        <h2>Past Statistics</h2>
+      <div class="charts-grid">
+        <!-- Net Profit -->
         <div class="widget">
-            <h3>Previous Months Wins</h3>
-            <canvas id="lineChart"></canvas> 
-            <p id="lineChartMessage" class="fallback-message" style="display: none;">No stats available for the previous months.</p>
+          <h3>Overall Net Profit</h3>
+          <canvas id="netProfitChart"></canvas>
+          <p id="netProfitChartMessage" class="fallback-message" style="display: none;"></p>
         </div>
+
+        <!-- Win Rate -->
         <div class="widget">
-            <h3>Last Month Win/Loss</h3>
-            <canvas id="pieChart"></canvas>  
-            <p id="pieChartMessage" class="fallback-message" style="display: none;">No wins or losses recorded for the previous month.</p>
+          <h3>Overall Win Rate</h3>
+          <canvas id="winRateChart"></canvas>
+          <p id="winRateChartMessage" class="fallback-message" style="display: none;"></p>
         </div>
+
+        <!-- Previous Months Wins -->
+        <div class="widget">
+          <h3>Previous Months Wins</h3>
+          <canvas id="lineChart"></canvas>
+          <p id="lineChartMessage" class="fallback-message" style="display: none;"></p>
+        </div>
+
+        <!-- Last Month Win/Loss -->
+        <div class="widget">
+          <h3>Last Month Win/Loss</h3>
+          <canvas id="pieChart"></canvas>
+          <p id="pieChartMessage" class="fallback-message" style="display: none;"></p>
+        </div>
+      </div>
     </div>
   </div>
 </div>  

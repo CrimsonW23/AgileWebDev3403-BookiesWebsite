@@ -141,12 +141,103 @@ def global_home():
         biggest_win=biggest_win,
     )
 
+# Route for the sign-up page (GET and POST methods)
+@app.route("/signup", methods=['GET', 'POST'])
+def signup():
+    form = SignupForm()
+    
+    if form.validate_on_submit():
+        # Extract form data
+        username = form.username.data
+        password = form.password.data
+        email = form.email.data
+        
+        # Check if username or email already exists
+        existing_user = User.query.filter((User.email == email) | (User.username == username) ).first()
+        if existing_user:
+            if existing_user.email == email:
+                flash("The email is already registered. Please use a different email", 'error')
+            if existing_user.username == username:
+                flash("The username is already taken. Please choose a different one", 'error')
+            return render_template("signup.html", form=form)
+        
+        # Create a new user
+        try:
+            new_user = User(
+                username=username,
+                email=email,
+                first_name=form.first_name.data,
+                last_name=form.last_name.data,
+                phone=form.phone.data,
+                country=form.country.data,
+                dob=form.dob.data,
+                currency=100  # Default currency value
+            )
+            new_user.set_password(password)  # Hash the password before storing
+            
+            db.session.add(new_user)
+            db.session.commit()
+            
+            # Log the user in after signup
+            login_user(new_user) 
+            return redirect(url_for('global_home'))  
+        
+        except Exception as e:
+            db.session.rollback() 
+            return render_template("signup.html", form=form)
+    
+    # If form validation failed, handle errors without flashing
+    elif request.method == 'POST':
+        pass  
+    
+    return render_template("signup.html", form=form)
+   
+# Route for the login page (GET and POST methods)
+@app.route("/login", methods=['GET', 'POST'])
+def login():
+    form = LoginForm()
+    
+    if request.method == 'GET':
+        return render_template("login.html", form=form)
+    
+    if form.validate_on_submit():
+        username = form.username.data.strip().lower()
+        password = form.password.data
+
+    user = User.query.filter(
+        (func.lower(User.username) == username) | 
+        (func.lower(User.email) == username)
+    ).first()
+
+    if not user or not user.check_password(password):
+        return jsonify({
+            "success": False,
+            "message": "Invalid Username/Email or Password"
+        }) 
+ 
+    db.session.commit()
+    
+    # Force session creation
+    login_user(user, remember=True, force=True)
+
+    return jsonify({
+        "success": True,
+        "redirect": url_for('global_home')
+    })
+
+# Route for logging out
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('global_home'))
+
 # Dashboard route
 @app.route("/dashboard")
 @login_required
 def dashboard():
     update_bet_statuses()  # Call the function to update bet statuses
-     
+
     user_id = current_user.id
 
     # Fetch updated bets
@@ -157,9 +248,14 @@ def dashboard():
 
     # Fetch stats data for the charts
     current_date = datetime.now()
-    start_of_year = datetime(current_date.year, 1, 1)
 
-    # Get monthly data for all months of the current year
+    # Helper function to calculate wins and losses
+    def calculate_wins_and_losses(bets):
+        wins = sum(1 for bet in bets if bet.actual_winnings > 0)
+        losses = len(bets) - wins
+        return wins, losses
+
+    # Get monthly data for all months of the current year (for Pie Chart and Line Chart)
     months_data = []
     wins_data = []
 
@@ -178,15 +274,15 @@ def dashboard():
             PlacedBets.date_settled <= month_end
         ).all()
 
-        # Count wins
-        wins_count = sum(1 for bet in month_bets if bet.actual_winnings > 0)
+        # Count wins for the month
+        wins_count, _ = calculate_wins_and_losses(month_bets)
 
         # Add to data arrays
         month_name = month_start.strftime("%b")
         months_data.append(month_name)
         wins_data.append(wins_count)
 
-    # Calculate win/loss ratio for the most recent month
+    # Calculate win/loss ratio for the most recent month (for Pie Chart)
     last_month_start = (current_date.replace(day=1) - timedelta(days=1)).replace(day=1)
     last_month_end = current_date.replace(day=1) - timedelta(days=1)
 
@@ -197,16 +293,37 @@ def dashboard():
         PlacedBets.date_settled <= last_month_end
     ).all()
 
-    wins_count = sum(1 for bet in last_month_bets if bet.actual_winnings > 0)
-    losses_count = len(last_month_bets) - wins_count
+    wins_count, losses_count = calculate_wins_and_losses(last_month_bets)
 
-    # If no bets were placed, set wins and losses to 0
-    if len(last_month_bets) == 0:
-        wins_count = 0
-        losses_count = 0
+    # Calculate overall net profit (for Net Profit Chart)
+    if past_bets:
+        overall_net_profit = sum(bet.actual_winnings - bet.stake_amount for bet in past_bets)
+        is_net_profit_positive = overall_net_profit > 0
+    else:
+        overall_net_profit = None   
+        is_net_profit_positive = None
+
+    # Calculate overall win rate (for Win Rate Chart) 
+    total_bets = len(past_bets)
+    if total_bets > 0:
+        total_wins = sum(1 for bet in past_bets if bet.actual_winnings > 0)
+        overall_win_rate = (total_wins / total_bets) * 100
+    else:
+        total_wins = 0
+        overall_win_rate = None   
+        
 
     # Prepare chart data
     chart_data = {
+        "net_profit": {
+            "overall": overall_net_profit,
+            "is_positive": is_net_profit_positive
+        },
+        "win_rate": {
+            "wins": total_wins,
+            "losses": total_bets - total_wins if total_bets > 0 else 0,
+            "rate": overall_win_rate   
+        },
         "monthly_wins": {
             "months": months_data,
             "wins": wins_data
@@ -410,107 +527,6 @@ def forum():
 '''@app.route("/games") 
 def game_board():
     return render_template("game_board.html")'''
-
-# Route for the sign-up page (GET and POST methods)
-@app.route("/signup", methods=['GET', 'POST'])
-def signup():
-    form = SignupForm()
-    
-    if form.validate_on_submit():
-        # Extract form data
-        username = form.username.data
-        password = form.password.data
-        email = form.email.data
-        
-        # Check if username or email already exists
-        existing_user = User.query.filter((User.username == username) | (User.email == email)).first()
-        if existing_user:  
-            flash("Username or email already taken", 'error')
-            return render_template("signup.html", form=form)
-        
-        # Create a new user
-        try:
-            new_user = User(
-                username=username,
-                email=email,
-                first_name=form.first_name.data,
-                last_name=form.last_name.data,
-                phone=form.phone.data,
-                country=form.country.data,
-                dob=form.dob.data,
-                currency=100  # Default currency value
-            )
-            new_user.set_password(password)  # Hash the password before storing
-            
-            db.session.add(new_user)
-            db.session.commit()
-            
-            # Log the user in after signup
-            login_user(new_user) 
-            return redirect(url_for('global_home'))  
-        
-        except Exception as e:
-            db.session.rollback() 
-            return render_template("signup.html", form=form)
-    
-    # If form validation failed, handle errors without flashing
-    elif request.method == 'POST':
-        pass  
-    
-    return render_template("signup.html", form=form)
-   
-# Route for the login page (GET and POST methods)
-@app.route("/login", methods=['GET', 'POST'])
-def login():
-    form = LoginForm()
-    
-    if request.method == 'GET':
-        return render_template("login.html", form=form)
-    
-    if not form.validate_on_submit():
-        return jsonify({
-            "success": False,
-            "message": "Validation failed",
-            "errors": form.errors
-        }) 
-
-    identifier = form.username.data.strip().lower()
-    password = form.password.data
-
-    user = User.query.filter(
-        (func.lower(User.username) == identifier) | 
-        (func.lower(User.email) == identifier)
-    ).first()
-
-    if not user or not user.check_password(password):
-        return jsonify({
-            "success": False,
-            "message": "Invalid credentials"
-        }) 
- 
-    db.session.commit()
-    
-    # Force session creation
-    login_user(user, remember=True, force=True)
-    
-    # Verify login worked
-    if not current_user.is_authenticated:
-        return jsonify({
-            "success": False,
-            "message": "Login failed - session not created"
-        }) 
-
-    return jsonify({
-        "success": True,
-        "redirect": url_for('global_home')
-    })
-
-# Route for logging out
-@app.route('/logout')
-@login_required
-def logout():
-    logout_user()
-    return redirect(url_for('global_home'))
 
 @app.route("/profile")
 @login_required

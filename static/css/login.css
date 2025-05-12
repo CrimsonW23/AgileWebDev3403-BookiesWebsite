@@ -1,0 +1,98 @@
+/* Login Form Styling */
+.form {
+    max-width: 500px;
+    margin: 3rem auto;
+    padding: 2rem;
+    background-color: #1e1e1e;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    text-align: center;
+    color: #fff;
+}
+
+.form h1 {
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+    color: #00ff88;
+    font-weight: bold;
+}
+
+.form-field {
+    margin-bottom: 1.5rem;
+    text-align: left;
+}
+
+form label {
+    font-size: 0.9rem;
+    color: #ccc;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+form input {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid #333;
+    border-radius: 5px;
+    background-color: #2a2a2a;
+    color: #fff;
+    font-size: 0.9rem;
+}
+
+form input:focus {
+    outline: none;
+    border-color: #00ff88;
+    box-shadow: 0 0 5px #00ff88;
+}
+
+.button-container {
+    margin-top: 1.5rem;
+    text-align: center;
+}
+
+form button, form .btn {
+    padding: 0.8rem 1.5rem;
+    font-size: 1rem;
+    font-weight: bold;
+    color: #111;
+    background-color: #00ff88;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+form button:hover, form .btn:hover {
+    background-color: #00cc6e;
+    transform: scale(1.05);
+}
+
+.form-links {
+    margin-top: 1rem;
+    text-align: center;
+}
+
+.form-links a {
+    color: #00ff88;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.form-links a:hover {
+    text-decoration: underline;
+}
+
+/* Error Messages */
+.error-container {
+    color: red;
+    font-size: 16px;
+    font-weight: bold; 
+    padding: 12px;
+    margin-bottom: 20px;
+    white-space: pre-line;
+    text-transform: capitalize;  
+}
+
+.error-container:empty {
+    display: none;
+}
