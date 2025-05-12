@@ -110,13 +110,12 @@ form .row {
     box-sizing: border-box; /* Include padding and border in element's total width and height */
 }
 
-.reply-item {
+.reply-item,
+.recent-reply {
     max-width: 1200px;
     margin: 1.5rem auto;
     padding: 2rem;
-    background-color: #353535;
     border-radius: 10px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
     text-align: left;
     color: #fff;
     display: flex;
@@ -127,6 +126,27 @@ form .row {
     word-wrap: break-word;
     word-break: break-word; /* <-- this is key for unbreakable long strings */
     white-space: normal;
+}
+
+.reply-item {
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    background-color: #353535;
+}
+
+.recent-reply {
+    animation: fadeHighlight 4s forwards;
+    background-color: #353535;
+}
+
+@keyframes fadeHighlight {
+    0% {
+        box-shadow: 0 0 15px #00ff88;
+        background-color: #464646;
+    }
+    100% {
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+        background-color: #353535;
+    }
 }
 
 .reply-item p,

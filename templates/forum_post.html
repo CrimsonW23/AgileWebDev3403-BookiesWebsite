@@ -39,7 +39,11 @@
 
     <div class="comments-list">
         {% for reply in replies %}
+            {% if reply.author == session.get('username') and (now - reply.timestamp).total_seconds() < 60*5 %}
+            <div class="recent-reply">
+            {% else %}
             <div class="reply-item">
+            {% endif %}
                 <p><span class = "author">{{ reply.author }}</span> <i>({{ reply.timestamp }}) said:</i></p>
                 <p>{{ reply.body }}</p>
             </div>
