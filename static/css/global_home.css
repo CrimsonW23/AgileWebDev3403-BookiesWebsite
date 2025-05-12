@@ -22,6 +22,46 @@ header {
     box-sizing: border-box;
 }
 
+/* ---------- Fixed‑slot header nav ---------- */
+.main-nav {
+    list-style: none;
+    display: grid;
+    grid-template-columns: 200px repeat(5, max-content);
+    align-items: center;
+    gap: 1.2rem;
+    margin: 0;                 /* reset <ul>/<ol> defaults */
+    padding: 0;
+}
+
+/* normal links */
+.main-nav a {
+    color: #ccc;
+    text-decoration: none;
+    transition: color .3s ease;
+}
+.main-nav a:hover { color: #00ff88; }
+
+/* search bar input */
+.nav-search input {
+    width: 100%;
+    padding: .45rem .8rem;
+    border: 1px solid #333;
+    border-radius: 6px;
+    background: #2a2a2a;
+    color: #fff;
+}
+.nav-search input:focus {
+    border-color: #00ff88;
+    outline: none;
+}
+
+/* invisible placeholders keep the column width */
+.placeholder {
+    visibility: hidden;          /* keeps space, removes display */
+    pointer-events: none;
+}
+
+
 .logo {
     font-size: 1.5rem;
     color: #00ff88;

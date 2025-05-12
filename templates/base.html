@@ -12,19 +12,38 @@
       <a class = "logo" href="{{url_for('global_home') }}">GamblePro</a>
     </div>
     {% if session.get('logged_in') %}
-    <nav>
-      <a href="{{ url_for('global_home') }}">Home</a>
-      <a href="{{ url_for('dashboard') }}">Dashboard</a>
-      <a href="{{ url_for('active_bets') }}">Active Bets</a>
-      <a href="{{ url_for('forum') }}">Forums</a> 
-      <a href="{{ url_for('friends') }}">Friends</a>  
+    <nav class="main-nav">
+      <!-- 1 Search – always present -->
+      <li class="nav-search">
+        <form action="{{ url_for('search_profiles') }}" method="get">
+          <input type="text" name="q" placeholder="Search profiles…">
+        </form>
+      </li>
+    
+      <!-- 2 Home (always visible) -->
+      <li><a href="{{ url_for('global_home') }}">Home</a></li>
+    
+      <!-- 3 Dashboard (only when logged in) -->
+      {% if session.get('logged_in') %}
+        <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+      {% else %}
+        <li class="placeholder"></li>
+      {% endif %}
+    
+      <!-- 4 Active Bets (always) -->
+      <li><a href="{{ url_for('active_bets') }}">Active Bets</a></li>
+    
+      <!-- 5 Forums (always) -->
+      <li><a href="{{ url_for('forum') }}">Forums</a></li>
+    
+      <!-- 6 Friends (only when logged in) -->
+      {% if session.get('logged_in') %}
+        <li><a href="{{ url_for('friends') }}">Friends</a></li>
+      {% else %}
+        <li class="placeholder"></li>
+      {% endif %}
     </nav>
-    <form class="search-bar" action="{{ url_for('search_profiles') }}" method="get">
-      <input type="text"
-             name="q"
-             placeholder="Search profiles…"
-             aria-label="Search profiles">
-    </form>
+    
     <div class="authed">
       {% if session.get('currency') %}
       <a href="{{ url_for('currency') }}" class="currency">${{ session.currency | pretty_currency }}</a>
