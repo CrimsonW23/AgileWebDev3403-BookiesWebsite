@@ -2,11 +2,20 @@
 .main-nav {
     list-style: none;
     display: grid;
-    grid-template-columns: 200px repeat(5, max-content);
+
+    /* 1️⃣  FIXED 12‑rem SEARCH COLUMN  +  five auto‑sized link columns */
+    grid-template-columns: minmax(12rem, 12rem) repeat(5, max-content);
+
     align-items: center;
     gap: 1.2rem;
     margin: 0;
     padding: 0;
+}
+
+/* 2️⃣  LOCK THE <li> THAT HOLDS THE SEARCH FORM TO THE SAME WIDTH */
+.nav-search {
+    width: 12rem;          /* exact match to the grid’s first column */
+    min-width: 12rem;
 }
 
 .main-nav a {
@@ -18,7 +27,8 @@
 
 /* search bar */
 .nav-search input {
-    width: 100%;
+    width: 100%;           /* always fills that 12‑rem slot */
+    box-sizing: border-box;
     padding: .45rem .8rem;
     border: 1px solid #333;
     border-radius: 6px;
