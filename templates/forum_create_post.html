@@ -7,24 +7,23 @@
     <h1>Create Forum Post</h1>
     <form action="" method="post">
         {{ form.hidden_tag() }}
-        <p>
-            <div class = "row">
-                {{ form.title.label }}<br>
-                {{ form.title(class="input-field") }}<br>
-            </div>
-            <div class = "row">    
-                {{ form.category.label }}<br>
-                {{ form.category(class="input-field") }}<br>
-            <div class = "row">
-                {{ form.post.label }}<br>
-                {{ form.post(class="input-field", cols=50, rows=4) }}<br>
-            </div>
-            {% for error in form.post.errors %}
-                <span style="color: red;">[{{ error }}]</span>
-            {% endfor %}
-        </p>
-        <div class="button">
-            <button type="submit" id="form_submit">Submit</button>
+        <div class = "row">
+            {{ form.title.label }}
+            {{ form.title(class="input-field") }}
+        </div>
+        <div class = "row">    
+            {{ form.category.label }}
+            {{ form.category(class="input-field") }}
+        </div>
+        <div class = "row">
+            {{ form.post.label }}
+            {{ form.post(class="input-field", rows=4) }}
+        </div>
+        {% for error in form.post.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+        {% endfor %}
+        <div class="button-container">
+            <button type="submit" id="form_submit">Publish Post</button>
         </div>
     </form>
 </div>

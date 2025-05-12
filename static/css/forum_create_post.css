@@ -35,18 +35,18 @@ h1{
     text-align: left;
     margin: 1rem auto;
     max-width: 1020px;
-    color:#00ff88
+    color:#00ff88;
+    margin-bottom: 3rem;
 }
 
 .create-form {
     background: #1e1e1e;
     margin: 1rem auto;
     max-width: 1000px;
-    padding: 1rem;
+    padding: 2rem;
     border-radius: 8px;
     display: flex;
     flex-direction: column;
-    gap: 1rem;
 }
 
 .create-form form{
@@ -62,6 +62,7 @@ form .row {
 
 .input-field {
     width: 100%;
+    max-width: 100%;
     padding: 0.8rem; /* Padding inside input fields */
     border: 1px solid #333;
     border-radius: 5px;
@@ -71,11 +72,12 @@ form .row {
     box-sizing: border-box; /* Include padding and border in element's total width and height */
 }
 
-.button {
-    text-align: right;
+.button-container{
+    text-align:center;
 }
 
 button {
+    width: 15%;
     padding: 0.8rem 1.5rem; /* Padding for buttons */
     font-size: 1rem; /* Font size for buttons */
     font-weight: bold;
@@ -90,53 +92,4 @@ button {
 button:hover {
     background-color: #00cc6e;
     transform: scale(1.05);
-}
-
-.forum-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.forum-table th,
-.forum-table td {
-    border-bottom: 1px solid #555;
-    padding: 1rem;
-    text-align: left;
-}
-
-.forum-table th {
-    background: #555;
-    color: #00cc6e;
-}
-
-.forum-table td {
-    background: #444;
-}
-
-.forum-table tr:hover td {
-    background: #555;
-}
-
-.pagination {
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-top: 1rem;
-}
-
-.pagination button,
-.pagination span {
-    background: #444;
-    border: 1px solid #666;
-    color: #00cc6e;
-    padding: 0.5rem 0.75rem;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-.pagination .active {
-    background: #00cc6e;
-    color: #222;
-    font-weight: bold;
 }

@@ -20,9 +20,10 @@
     <form action="" method="post">
         {{ form.hidden_tag() }}
         <div class="comment-form">
+            {% if session.get('logged_in') %}
             <div class="row">
-                {{ form.reply.label }}<br>
-                {{ form.reply(class="input-field", cols=50, rows=2) }}<br>
+                {{ form.reply.label }}
+                {{ form.reply(class="input-field", cols=50, rows=2) }}
             </div>
             {% for error in form.reply.errors %}
                 <span style="color: red;">[{{ error }}]</span>
@@ -39,8 +40,12 @@
 
     <div class="comments-list">
         {% for reply in replies %}
+            {% if reply.author == session.get('username') and (now - reply.timestamp).total_seconds() < 60*5 %}
+            <div class="recent-reply">
+            {% else %}
             <div class="reply-item">
-                <p><span class="author">{{ reply.author }}</span> <i>({{ reply.timestamp }}) said:</i></p>
+            {% endif %}
+                <p><span class = "author">{{ reply.author }}</span> <i>({{ reply.timestamp }}) said:</i></p>
                 <p>{{ reply.body }}</p>
             </div>
         {% endfor %}

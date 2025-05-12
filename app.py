@@ -562,7 +562,7 @@ def view_post(post_id):
         db.session.commit()
         return redirect(url_for('view_post', post_id=post.id))
     replies = post.replies.order_by(Reply.timestamp.desc()).all()
-    return render_template('forum_post.html', post=post, replies=replies, form=form)
+    return render_template('forum_post.html', post=post, replies=replies, form=form, now=datetime.now()) 
 
 # Route for the currency page
 @app.route("/currency")
