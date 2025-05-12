@@ -141,6 +141,110 @@ def global_home():
         biggest_win=biggest_win,
     )
 
+# Route for the sign-up page (GET and POST methods)
+@app.route("/signup", methods=['GET', 'POST'])
+def signup():
+    form = SignupForm()
+    
+    if form.validate_on_submit():
+        # Extract form data
+        username = form.username.data
+        password = form.password.data
+        email = form.email.data
+        
+        # Check if username or email already exists
+        existing_user = User.query.filter((User.email == email) | (User.username == username) ).first()
+        if existing_user:
+            if existing_user.email == email:
+                flash("The email is already registered. Please use a different email", 'error')
+            if existing_user.username == username:
+                flash("The username is already taken. Please choose a different one", 'error')
+            return render_template("signup.html", form=form)
+        
+        # Create a new user
+        try:
+            new_user = User(
+                username=username,
+                email=email,
+                first_name=form.first_name.data,
+                last_name=form.last_name.data,
+                phone=form.phone.data,
+                country=form.country.data,
+                dob=form.dob.data,
+                currency=100  # Default currency value
+            )
+            new_user.set_password(password)  # Hash the password before storing
+            
+            db.session.add(new_user)
+            db.session.commit()
+            
+            # Log the user in after signup
+            login_user(new_user) 
+            return redirect(url_for('global_home'))  
+        
+        except Exception as e:
+            db.session.rollback() 
+            return render_template("signup.html", form=form)
+    
+    # If form validation failed, handle errors without flashing
+    elif request.method == 'POST':
+        pass  
+    
+    return render_template("signup.html", form=form)
+   
+# Route for the login page (GET and POST methods)
+@app.route("/login", methods=['GET', 'POST'])
+def login():
+    form = LoginForm()
+    
+    if request.method == 'GET':
+        return render_template("login.html", form=form)
+    
+    if not form.validate_on_submit():
+        return jsonify({
+            "success": False,
+            "message": "Validation failed",
+            "errors": form.errors
+        }) 
+
+    identifier = form.username.data.strip().lower()
+    password = form.password.data
+
+    user = User.query.filter(
+        (func.lower(User.username) == identifier) | 
+        (func.lower(User.email) == identifier)
+    ).first()
+
+    if not user or not user.check_password(password):
+        return jsonify({
+            "success": False,
+            "message": "Invalid credentials"
+        }) 
+ 
+    db.session.commit()
+    
+    # Force session creation
+    login_user(user, remember=True, force=True)
+    
+    # Verify login worked
+    if not current_user.is_authenticated:
+        return jsonify({
+            "success": False,
+            "message": "Login failed - session not created"
+        }) 
+
+    return jsonify({
+        "success": True,
+        "redirect": url_for('global_home')
+    })
+
+# Route for logging out
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('global_home'))
+
 # Dashboard route
 @app.route("/dashboard")
 @login_required
@@ -436,107 +540,6 @@ def forum():
 '''@app.route("/games") 
 def game_board():
     return render_template("game_board.html")'''
-
-# Route for the sign-up page (GET and POST methods)
-@app.route("/signup", methods=['GET', 'POST'])
-def signup():
-    form = SignupForm()
-    
-    if form.validate_on_submit():
-        # Extract form data
-        username = form.username.data
-        password = form.password.data
-        email = form.email.data
-        
-        # Check if username or email already exists
-        existing_user = User.query.filter((User.username == username) | (User.email == email)).first()
-        if existing_user:  
-            flash("Username or email already taken", 'error')
-            return render_template("signup.html", form=form)
-        
-        # Create a new user
-        try:
-            new_user = User(
-                username=username,
-                email=email,
-                first_name=form.first_name.data,
-                last_name=form.last_name.data,
-                phone=form.phone.data,
-                country=form.country.data,
-                dob=form.dob.data,
-                currency=100  # Default currency value
-            )
-            new_user.set_password(password)  # Hash the password before storing
-            
-            db.session.add(new_user)
-            db.session.commit()
-            
-            # Log the user in after signup
-            login_user(new_user) 
-            return redirect(url_for('global_home'))  
-        
-        except Exception as e:
-            db.session.rollback() 
-            return render_template("signup.html", form=form)
-    
-    # If form validation failed, handle errors without flashing
-    elif request.method == 'POST':
-        pass  
-    
-    return render_template("signup.html", form=form)
-   
-# Route for the login page (GET and POST methods)
-@app.route("/login", methods=['GET', 'POST'])
-def login():
-    form = LoginForm()
-    
-    if request.method == 'GET':
-        return render_template("login.html", form=form)
-    
-    if not form.validate_on_submit():
-        return jsonify({
-            "success": False,
-            "message": "Validation failed",
-            "errors": form.errors
-        }) 
-
-    identifier = form.username.data.strip().lower()
-    password = form.password.data
-
-    user = User.query.filter(
-        (func.lower(User.username) == identifier) | 
-        (func.lower(User.email) == identifier)
-    ).first()
-
-    if not user or not user.check_password(password):
-        return jsonify({
-            "success": False,
-            "message": "Invalid credentials"
-        }) 
- 
-    db.session.commit()
-    
-    # Force session creation
-    login_user(user, remember=True, force=True)
-    
-    # Verify login worked
-    if not current_user.is_authenticated:
-        return jsonify({
-            "success": False,
-            "message": "Login failed - session not created"
-        }) 
-
-    return jsonify({
-        "success": True,
-        "redirect": url_for('global_home')
-    })
-
-# Route for logging out
-@app.route('/logout')
-@login_required
-def logout():
-    logout_user()
-    return redirect(url_for('global_home'))
 
 @app.route("/profile")
 @login_required
