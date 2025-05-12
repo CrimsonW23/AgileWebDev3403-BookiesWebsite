@@ -204,56 +204,15 @@ class SignupForm(FlaskForm):
         ('Zimbabwe', 'Zimbabwe')
     ]
 
-    first_name = StringField('First Name', validators=[
-        DataRequired(message="First name is required."),
-        Length(max=50, message="First name must be less than 50 characters.")
-    ])
-    
-    last_name = StringField('Last Name', validators=[
-        DataRequired(message="Last name is required."),
-        Length(max=50, message="Last name must be less than 50 characters.")
-    ])
-    
-    email = StringField('Email', validators=[
-        DataRequired(message="Email is required."),
-        Email(message="Please enter a valid email address. Example: user@example.com")
-    ])
-    
-    phone = TelField('Phone Number', validators=[
-        DataRequired(message="Phone number is required."),
-        Regexp(r'^\d{10}$', message="Phone number must be exactly 10 digits.")
-    ])
-    
-    country = SelectField('Country', choices=countries, validators=[
-        DataRequired(message="Please select a country.")
-    ])
-    
-    dob = DateField('Date of Birth', format='%Y-%m-%d', validators=[
-        DataRequired(message="Date of birth is required.")
-    ])
-    
-    # Custom validator for date of birth
-    def validate_dob(self, field):
-        if field.data:
-            today = datetime.now().date()
-            if field.data >= today:
-                raise ValidationError('Date of birth must be in the past.')
-    
-    username = StringField('Username', validators=[
-        DataRequired(message="Username is required."),
-        Length(min=4, max=25, message="Username must be between 4 and 25 characters.")
-    ])
-    
-    password = PasswordField('Password', validators=[
-        DataRequired(message="Password is required."),
-        Length(min=6, message="Password must be at least 6 characters long.")
-    ])
-    
-    confirm_password = PasswordField('Confirm Password', validators=[
-        DataRequired(message="Please confirm your password."),
-        EqualTo('password', message="Passwords do not match.")
-    ])
-    
+    first_name = StringField('First Name', validators=[DataRequired(), Length(max=50)])
+    last_name = StringField('Last Name', validators=[DataRequired(), Length(max=50)])
+    email = StringField('Email', validators=[DataRequired(),Email(message="Please enter a valid email address")])
+    phone = TelField('Phone Number', validators=[DataRequired(), Regexp(r'^\d{10}$', message="Please enter a valid 10-digit phone number")])
+    country = SelectField('Country', choices=countries, validators=[DataRequired()])
+    dob = DateField('Date of Birth', format='%Y-%m-%d', validators=[DataRequired()])
+    username = StringField('Username', validators=[DataRequired(), Length(min=4, max=25)])
+    password = PasswordField('Password', validators=[DataRequired(), Length(min=6)])
+    confirm_password = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password', message="Passwords do not match")])
     submit_btn = SubmitField('Sign Up')
 
 class LoginForm(FlaskForm):
