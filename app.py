@@ -146,7 +146,7 @@ def global_home():
 @login_required
 def dashboard():
     update_bet_statuses()  # Call the function to update bet statuses
-     
+
     user_id = current_user.id
 
     # Fetch updated bets
@@ -157,9 +157,14 @@ def dashboard():
 
     # Fetch stats data for the charts
     current_date = datetime.now()
-    start_of_year = datetime(current_date.year, 1, 1)
 
-    # Get monthly data for all months of the current year
+    # Helper function to calculate wins and losses
+    def calculate_wins_and_losses(bets):
+        wins = sum(1 for bet in bets if bet.actual_winnings > 0)
+        losses = len(bets) - wins
+        return wins, losses
+
+    # Get monthly data for all months of the current year (for Pie Chart and Line Chart)
     months_data = []
     wins_data = []
 
@@ -178,15 +183,15 @@ def dashboard():
             PlacedBets.date_settled <= month_end
         ).all()
 
-        # Count wins
-        wins_count = sum(1 for bet in month_bets if bet.actual_winnings > 0)
+        # Count wins for the month
+        wins_count, _ = calculate_wins_and_losses(month_bets)
 
         # Add to data arrays
         month_name = month_start.strftime("%b")
         months_data.append(month_name)
         wins_data.append(wins_count)
 
-    # Calculate win/loss ratio for the most recent month
+    # Calculate win/loss ratio for the most recent month (for Pie Chart)
     last_month_start = (current_date.replace(day=1) - timedelta(days=1)).replace(day=1)
     last_month_end = current_date.replace(day=1) - timedelta(days=1)
 
@@ -197,16 +202,37 @@ def dashboard():
         PlacedBets.date_settled <= last_month_end
     ).all()
 
-    wins_count = sum(1 for bet in last_month_bets if bet.actual_winnings > 0)
-    losses_count = len(last_month_bets) - wins_count
+    wins_count, losses_count = calculate_wins_and_losses(last_month_bets)
 
-    # If no bets were placed, set wins and losses to 0
-    if len(last_month_bets) == 0:
-        wins_count = 0
-        losses_count = 0
+    # Calculate overall net profit (for Net Profit Chart)
+    if past_bets:
+        overall_net_profit = sum(bet.actual_winnings - bet.stake_amount for bet in past_bets)
+        is_net_profit_positive = overall_net_profit > 0
+    else:
+        overall_net_profit = None   
+        is_net_profit_positive = None
+
+    # Calculate overall win rate (for Win Rate Chart) 
+    total_bets = len(past_bets)
+    if total_bets > 0:
+        total_wins = sum(1 for bet in past_bets if bet.actual_winnings > 0)
+        overall_win_rate = (total_wins / total_bets) * 100
+    else:
+        total_wins = 0
+        overall_win_rate = None   
+        
 
     # Prepare chart data
     chart_data = {
+        "net_profit": {
+            "overall": overall_net_profit,
+            "is_positive": is_net_profit_positive
+        },
+        "win_rate": {
+            "wins": total_wins,
+            "losses": total_bets - total_wins if total_bets > 0 else 0,
+            "rate": overall_win_rate   
+        },
         "monthly_wins": {
             "months": months_data,
             "wins": wins_data
