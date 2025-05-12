@@ -206,7 +206,7 @@ function createOverallWinRateChart(data) {
             labels: ['Wins', 'Losses'],
             datasets: [{
                 data: [data.wins || 0, data.losses || 0],
-                backgroundColor: ['#4caf50', '#ce2d22'],
+                backgroundColor: ['#158c35', '#ce2d22'],
                 hoverOffset: 4
             }]
         },
@@ -277,7 +277,7 @@ function createPieChart(data) {
             labels: ['Wins', 'Losses'],
             datasets: [{
                 data: [data.wins || 0, data.losses || 0],
-                backgroundColor: ['#4caf50', '#ce2d22'],
+                backgroundColor: ['#158c35', '#ce2d22'],
                 hoverOffset: 4
             }]
         },
