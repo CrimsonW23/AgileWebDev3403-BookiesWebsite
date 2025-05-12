@@ -1,25 +1,22 @@
 document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('login-form');
-    const username = document.getElementById('username');
-    const password = document.getElementById('password');
+    const errorContainer = document.getElementById('form-errors');
     
     const showError = (message) => {
-        document.querySelectorAll('.error-message').forEach(el => el.remove());
-        const errorDiv = document.createElement('div');
-        errorDiv.className = 'error-message';
-        errorDiv.textContent = message;
-        errorDiv.style.color = 'red';
-        form.insertBefore(errorDiv, form.firstChild);
+        errorContainer.textContent = message;
+        errorContainer.style.display = 'block';
+    };
+    
+    const clearErrors = () => {
+        errorContainer.textContent = '';
+        errorContainer.style.display = 'none';
     };
     
     form.addEventListener('submit', async (event) => {
         event.preventDefault();
+        clearErrors();
         
-        // Clear previous errors
-        document.querySelectorAll('.error-message').forEach(el => el.remove());
-        
-        // Basic validation
-        if (!username.value.trim() || !password.value.trim()) {
+        if (!form.username.value.trim() || !form.password.value.trim()) {
             showError('Please fill in all fields');
             return;
         }
@@ -36,23 +33,12 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const data = await response.json();
             
-            if (!response.ok) {
-                // Handle validation errors
-                if (data.errors) {
-                    for (const field in data.errors) {
-                        showError(data.errors[field][0]);
-                    }
-                } else {
-                    showError(data.message || 'Login failed');
-                }
+            if (!data.success) {
+                showError(data.message || 'Login failed');
                 return;
             }
             
-            if (data.success) {
-                window.location.href = data.redirect;
-            } else {
-                showError(data.message || 'Login failed');
-            }
+            window.location.href = data.redirect;
         } catch (error) {
             console.error("Error:", error);
             showError("An unexpected error occurred. Please try again.");
