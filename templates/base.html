@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Gambling Site</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/header.css') }}">
+
 </head>
 <body>
   <header>
@@ -43,7 +45,7 @@
         <li class="placeholder"></li>
       {% endif %}
     </nav>
-    
+
     <div class="authed">
       {% if session.get('currency') %}
       <a href="{{ url_for('currency') }}" class="currency">${{ session.currency | pretty_currency }}</a>
