@@ -394,3 +394,70 @@ form button:hover {
     border-color: #00ff88;
     box-shadow: 0 0 5px #00ff88;
 }
+
+
+/* ===== FRIENDS PAGE =================================================== */
+.friends-page {
+    max-width: 900px;                  /* centred card */
+    margin: 2.5rem auto;
+    padding: 2.5rem 2rem;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 12px;
+    box-shadow: 0 0 18px rgba(0, 255, 136, 0.15);
+}
+
+/* headings inherit global font; just tint + spacing */
+.friends-page h1,
+.friends-page h2 {
+    color: #00ff88;
+    margin-bottom: 1.25rem;
+    text-shadow: 0 0 6px rgba(0, 255, 136, 0.35);
+}
+
+/* shared list styles */
+.friends-list,
+.pending-list {
+    list-style: none;
+    margin: 0 0 2.5rem 0;
+    padding: 0;
+}
+
+/* individual friend / request item */
+.friends-list li,
+.pending-list li {
+    background: #222;
+    padding: 0.9rem 1.2rem;
+    margin-bottom: 0.7rem;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+    transition: background 0.25s ease, transform 0.25s ease;
+}
+
+.friends-list li:hover,
+.pending-list li:hover {
+    background: #00ff88;
+    color: #111;
+    transform: translateY(-2px);
+    cursor: pointer;                   /* signals clickability for future UX */
+}
+
+/* avatar placeholder (optional) */
+.friend-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #444;
+    flex-shrink: 0;
+}
+
+/* subtle empty‑state paragraphs */
+.friends-page p {
+    color: #aaa;
+    font-style: italic;
+    margin-bottom: 2rem;
+    text-align: center;
+}
