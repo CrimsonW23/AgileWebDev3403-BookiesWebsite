@@ -200,38 +200,25 @@ def login():
     if request.method == 'GET':
         return render_template("login.html", form=form)
     
-    if not form.validate_on_submit():
-        return jsonify({
-            "success": False,
-            "message": "Validation failed",
-            "errors": form.errors
-        }) 
-
-    identifier = form.username.data.strip().lower()
-    password = form.password.data
+    if form.validate_on_submit():
+        username = form.username.data.strip().lower()
+        password = form.password.data
 
     user = User.query.filter(
-        (func.lower(User.username) == identifier) | 
-        (func.lower(User.email) == identifier)
+        (func.lower(User.username) == username) | 
+        (func.lower(User.email) == username)
     ).first()
 
     if not user or not user.check_password(password):
         return jsonify({
             "success": False,
-            "message": "Invalid credentials"
+            "message": "Invalid Username/Email or Password"
         }) 
  
     db.session.commit()
     
     # Force session creation
     login_user(user, remember=True, force=True)
-    
-    # Verify login worked
-    if not current_user.is_authenticated:
-        return jsonify({
-            "success": False,
-            "message": "Login failed - session not created"
-        }) 
 
     return jsonify({
         "success": True,
