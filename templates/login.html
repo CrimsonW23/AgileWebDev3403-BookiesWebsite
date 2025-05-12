@@ -1,13 +1,17 @@
 {% extends "base.html" %}
 
 {% block content %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/global_home.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
 <body>
     <main>
         <div class="form">
-            <h1>Login</h1>
+            <h1>Login</h1> 
             <form id="login-form" method="POST" action="{{ url_for('login') }}">
                 {{ form.hidden_tag() }}
+                
+                <!-- Error Container -->
+                <div id="form-errors" class="error-container" style="display: none;"></div>
+                
                 <div class="form-field">
                     {{ form.username.label }}
                     {{ form.username(class="form-control", id="username") }}
