@@ -4,24 +4,17 @@ from logging.config import fileConfig
 
 from alembic import context
 from flask import current_app
-
-# this is the Alembic Config object, which provides
-# access to the values within the .ini file in use.
-config = context.config
-
-# Interpret the config file for Python logging.
-# This line sets up loggers basically.
+ 
+config = context.config 
 fileConfig(config.config_file_name)
 logger = logging.getLogger('alembic.env')
-
-# Add your Flask app's SQLAlchemy database URL
+ 
 config.set_main_option(
     'sqlalchemy.url',
     str(current_app.config.get('SQLALCHEMY_DATABASE_URI'))
 )
-
-# Import your app's database object
-from proj_models import db  # Replace 'your_app' with your app's module name
+ 
+from proj_models import db   
 
 target_metadata = db.metadata
 
