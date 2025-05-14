@@ -9,7 +9,9 @@ class User(db.Model, UserMixin):
     email = db.Column(db.String(50), index=True, unique=True)
     currency = db.Column(db.Float, default=0.0, index=True)
     posts = db.relationship('Post', backref='user', lazy='dynamic')  # One-to-many relationship with Post
-
+    joined_at   = db.Column(db.DateTime, default=datetime.utcnow,
+                            server_default=db.func.now())
+    
     profile_pic = db.Column(db.String(256), default="default.png")
 
     def is_friends_with(self, other) -> bool:

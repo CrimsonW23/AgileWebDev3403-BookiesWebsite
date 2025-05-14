@@ -242,8 +242,7 @@ def profile(username=None):
         "id":          db_user.id,  
         "username": db_user.username,
         "email": db_user.email,
-        "date_joined": db_user.created_at.strftime("%Y‑%m‑%d")
-                      if hasattr(db_user, "created_at") else "N/A",
+        "date_joined": db_user.joined_at.strftime("%Y‑%m‑%d"),
         "profile_pic": db_user.profile_pic or "default.png",
         # Stubs until you wire real stats/bets
         "stats": {
