@@ -12,3 +12,6 @@ class Config(object):
         )
     }
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+    UPLOAD_FOLDER = "static/uploads/avatars"
+    ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}

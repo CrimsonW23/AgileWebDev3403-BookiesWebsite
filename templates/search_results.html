@@ -19,7 +19,9 @@
           <!-- avatar + username (clickable) -->
           <a href="{{ url_for('profile', username=u.username) }}"
              class="result-link">
-            <div class="card-avatar"></div>
+             <img src="{{ url_for('static',
+             filename='uploads/avatars/' ~ u.profile_pic) }}"
+          alt="avatar" class="card-avatar">
             <span>
               {{ u.username | replace(
                    query,

@@ -11,6 +11,7 @@ from proj_models import User, Post, Reply, Bet, EventResult, ActiveBets, FriendR
 from sqlalchemy import func
 from flask_login import login_required, current_user, LoginManager, login_user
 from sqlalchemy.orm import Session
+from werkzeug.utils import secure_filename
 
 import os
 
@@ -33,6 +34,32 @@ def load_user(user_id):
 SECRET_KEY = os.urandom(32)
 app.config['SECRET_KEY'] = SECRET_KEY
 
+def allowed_file(filename):
+    return "." in filename and \
+           filename.rsplit(".", 1)[1].lower() in app.config["ALLOWED_EXTENSIONS"]
+
+@app.post("/upload_avatar")
+@login_required
+def upload_avatar():
+    file = request.files.get("avatar")
+    if not file or file.filename == "":
+        flash("No file selected.", "error")
+        return redirect(url_for("profile"))
+
+    if not allowed_file(file.filename):
+        flash("Invalid file type.", "error")
+        return redirect(url_for("profile"))
+
+    filename  = secure_filename(f"{current_user.id}_{file.filename}")
+    save_path = os.path.join(app.root_path, app.config["UPLOAD_FOLDER"], filename)
+    file.save(save_path)
+
+    # update DB
+    current_user.profile_pic = filename
+    db.session.commit()
+
+    flash("Profile picture updated!", "success")
+    return redirect(url_for("profile"))
 
 # Route for the global home page
 @app.route("/")
@@ -212,10 +239,12 @@ def profile(username=None):
     # 2. Prepare dict for the template
     # -------------------------------------------------
     user_dict = {
+        "id":          db_user.id,  
         "username": db_user.username,
         "email": db_user.email,
         "date_joined": db_user.created_at.strftime("%Y‑%m‑%d")
                       if hasattr(db_user, "created_at") else "N/A",
+        "profile_pic": db_user.profile_pic or "default.png",
         # Stubs until you wire real stats/bets
         "stats": {
             "totalBets": db_user.bets.count() if hasattr(db_user, "bets") else 0,

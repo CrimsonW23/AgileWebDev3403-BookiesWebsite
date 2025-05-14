@@ -1,68 +1,72 @@
 {% extends "base.html" %}
 
 {% block content %}
-<script>
-    const userEmail = "{{ user.email }}";  // Get the user's email from the server-side template
-    const userStats = {
-        totalBets: '{{ user.stats["totalBets"] }}',
-        wins: '{{ user.stats["wins"] }}',
-        losses: '{{ user.stats["losses"] }}',
-        biggestWin: '{{ user.stats["biggestWin"] }}'
-    };
-    const userBets = [
-        {% for bet in user.bets %}
-        {
-            game: "{{ bet.game|escape }}",
-            amount: "{{ bet.amount|escape }}",
-            outcome: "{{ bet.outcome|escape }}",
-            date: "{{ bet.date|escape }}"
-        }{% if not loop.last %},{% endif %}
-        {% endfor %}
-    ];
-</script>
-
 <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
 
-<body>
+<!-- keep the <script> that defines userEmail/userStats/userBets here if you still use it -->
 
-    <main class="user-profile">
-        <section class="profile-header">
-            <h1>
-                {% if session.get('username') == user.username %}
-                    Your Profile
-                {% else %}
-                    {{ user.username }}’s Profile
-                {% endif %}
-              </h1>
-            <p>Manage your information and customize what others can see.</p>
-        </section>
+<main class="user-profile">
 
-        <section class="profile-section personal-details">
-            <h2>Personal Details</h2>
-            <div class = "profile-information">
-                <div class = "user-details">
-                    <p><strong>Username:</strong> {{ user.username }}</p>
-                    <p>
-                        <strong>Email:</strong>
-                        <input type="text" id="email-input" value="*****" readonly>
-                    </p>
-                    <p><strong>Date Joined:</strong> {{ user.date_joined }}</p>
-                    <br>
-                
-                    <div class = "checkbox-container">
-                        <label for="show-email">
-                            Show Email on Profile
-                        </label>
-                        <input type="checkbox" id="show-email" onclick="toggleVisibility('email')">
-                    </div>
-                </div>
-                
-                <div class="profile-image">
-                    <img src="{{ url_for('static', filename='images/profile-placeholder.png') }}">
-                </div>
+  <!-- ------------ header + avatar --------------------------------- -->
+  <section class="profile-header">
+    <div class="header-flex">
+      <img src="{{ url_for('static',
+             filename='uploads/avatars/' ~ user.profile_pic) }}"
+           alt="avatar"
+           class="avatar-lg">
+
+      <div>
+        <h1>
+          {% if current_user.is_authenticated and current_user.id == user.id %}
+              Your Profile
+          {% else %}
+              {{ user.username }}’s Profile
+          {% endif %}
+        </h1>
+        <p>Manage your information and customize what others can see.</p>
+
+        {% if current_user.is_authenticated and current_user.id == user.id %}
+        <!-- upload form only for the owner -->
+        <form action="{{ url_for('upload_avatar') }}"
+              method="post" enctype="multipart/form-data" class="avatar-form">
+          <input type="file" name="avatar" accept="image/*" required>
+          <button type="submit" class="btn neon-sm">Change Picture</button>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+
+  <!-- ------------ personal details -------------------------------- -->
+  <section class="profile-section personal-details">
+    <h2>Personal Details</h2>
+
+    <div class="profile-information">
+      <div class="user-details">
+        <p><strong>Username:</strong> {{ user.username }}</p>
+        <p>
+          <strong>Email:</strong>
+          <input type="text" id="email-input" value="*****" readonly>
+        </p>
+        <p><strong>Date Joined:</strong> {{ user.date_joined }}</p>
+        <br>
+
+        <div class="checkbox-container">
+          <label for="show-email">Show Email on Profile</label>
+          <input type="checkbox" id="show-email"
+                 onclick="toggleVisibility('email')">
         </div>
+      </div>
 
-        </section>
+      <!-- avatar duplicated here if you want it in both places;
+           otherwise delete this <div> -->
+      <div class="profile-image">
+        <img src="{{ url_for('static',
+               filename='uploads/avatars/' ~ user.profile_pic) }}"
+             class="avatar-md" alt="avatar">
+      </div>
+    </div>
+  </section>
 
         <section class="profile-section individual-stats">
             <h2>Your Stats</h2>

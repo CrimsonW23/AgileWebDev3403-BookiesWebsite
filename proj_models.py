@@ -10,6 +10,8 @@ class User(db.Model, UserMixin):
     currency = db.Column(db.Float, default=0.0, index=True)
     posts = db.relationship('Post', backref='user', lazy='dynamic')  # One-to-many relationship with Post
 
+    profile_pic = db.Column(db.String(256), default="default.png")
+
     def is_friends_with(self, other) -> bool:
         """Return True if self and other are already friends."""
         return db.session.execute(
