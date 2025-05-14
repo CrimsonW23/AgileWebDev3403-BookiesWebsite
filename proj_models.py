@@ -14,6 +14,10 @@ class User(db.Model, UserMixin):
     
     profile_pic = db.Column(db.String(256), default="default.png")
 
+    show_email  = db.Column(db.Boolean,
+                            default=False,
+                            server_default="0")
+
     def is_friends_with(self, other) -> bool:
         """Return True if self and other are already friends."""
         return db.session.execute(
@@ -57,6 +61,7 @@ class User(db.Model, UserMixin):
                      (FriendRequest.status == "pending"))
         ).all()
     
+
     def __repr__(self):
         return 'User {}'.format(self.username)
 

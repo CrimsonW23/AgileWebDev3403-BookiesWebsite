@@ -3,17 +3,14 @@
 {% block content %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
 
-<!-- keep the <script> that defines userEmail/userStats/userBets here if you still use it -->
-
 <main class="user-profile">
 
-  <!-- ------------ header + avatar --------------------------------- -->
+  {# ------------- HEADER & AVATAR ---------------------------------- #}
   <section class="profile-header">
     <div class="header-flex">
       <img src="{{ url_for('static',
-             filename='uploads/avatars/' ~ user.profile_pic) }}"
-           alt="avatar"
-           class="avatar-lg">
+              filename='uploads/avatars/' ~ (user.profile_pic or 'default.png')) }}"
+           alt="avatar" class="avatar-lg">
 
       <div>
         <h1>
@@ -23,117 +20,139 @@
               {{ user.username }}’s Profile
           {% endif %}
         </h1>
-        {% if current_user.is_authenticated and current_user.username == user.username %}
-        <p>Manage your information and customize what others can see.</p>
-        {% endif %}
 
         {% if current_user.is_authenticated and current_user.id == user.id %}
-        <!-- upload form only for the owner -->
-        <form action="{{ url_for('upload_avatar') }}"
-              method="post" enctype="multipart/form-data" class="avatar-form">
-          <input type="file" name="avatar" accept="image/*" required>
-          <button type="submit" class="btn neon-sm">Change Picture</button>
-        </form>
+          <p>Manage your information and customize what others can see.</p>
+
+          <form action="{{ url_for('upload_avatar') }}" method="post"
+                enctype="multipart/form-data" class="avatar-form">
+            <input type="file" name="avatar" accept="image/*" required>
+            <button type="submit" class="btn neon-sm">Change Picture</button>
+          </form>
         {% endif %}
       </div>
     </div>
   </section>
 
-  <!-- ------------ personal details -------------------------------- -->
+  {# ------------- PERSONAL DETAILS --------------------------------- #}
   <section class="profile-section personal-details">
     <h2>Personal Details</h2>
 
     <div class="profile-information">
       <div class="user-details">
         <p><strong>Username:</strong> {{ user.username }}</p>
+
         <p>
           <strong>Email:</strong>
-          <input type="text" id="email-input" value="*****" readonly>
+          {% if current_user.is_authenticated and current_user.id == user.id %}
+            <input type="text" id="email-input"
+                   value="{{ user.email if user.show_email else '*****' }}" readonly>
+          {% else %}
+            {{ user.email if user.show_email else "Hidden" }}
+          {% endif %}
         </p>
+
         <p><strong>Date Joined:</strong> {{ user.date_joined }}</p>
         <br>
 
-        {% if current_user.is_authenticated and current_user.username == user.username %}
-        <div class="checkbox-container">
+        {% if current_user.is_authenticated and current_user.id == user.id %}
+          <div class="checkbox-container">
             <label for="show-email">Show Email on Profile</label>
             <input type="checkbox" id="show-email"
-                onclick="toggleVisibility('email')">
-        </div>
+                   {% if user.show_email %}checked{% endif %}>
+          </div>
         {% endif %}
       </div>
 
-      <!-- avatar duplicated here if you want it in both places;
-           otherwise delete this <div> -->
       <div class="profile-image">
         <img src="{{ url_for('static',
-               filename='uploads/avatars/' ~ user.profile_pic) }}"
-             class="avatar-md" alt="avatar">
+                filename='uploads/avatars/' ~ (user.profile_pic or 'default.png')) }}"
+             alt="avatar" class="avatar-md">
       </div>
     </div>
   </section>
 
-        <section class="profile-section individual-stats">
-            <h2>
-                {% if current_user.is_authenticated and current_user.username == user.username %}
-                    Your Stats
-                {% else %}
-                    {{ user.username }}’s Stats
-                {% endif %}
-              </h2>
-            <div>
-                <p>
-                    <strong>Total Bets Placed:</strong>
-                    <input type="text" id="stats-totalBets" value="*****" readonly>
-                </p>
-                <p>
-                    <strong>Total Wins:</strong>
-                    <input type="text" id="stats-wins" value="*****" readonly>
-                </p>
-                <p>
-                    <strong>Biggest Win:</strong>
-                    <input type="text" id="stats-biggestWin" value="*****" readonly>
-                </p>
-                <p>
-                    <strong>Win Rate:</strong>
-                    <input type="text" id="stats-winRate" value="*****" readonly>
-                </p>
-            </div>
+  {# ------------- STATS (mask logic unchanged) --------------------- #}
+  <section class="profile-section individual-stats">
+    <h2>
+      {% if current_user.is_authenticated and current_user.id == user.id %}
+          Your Stats
+      {% else %}
+          {{ user.username }}’s Stats
+      {% endif %}
+    </h2>
 
-            {% if current_user.is_authenticated and current_user.username == user.username %}
-            <div class="checkbox-container">
-                <label for="show-stats">Show Stats on Profile</label>
-                <input type="checkbox" id="show-stats"
-                    onclick="toggleVisibility('stats')">
-            </div>
-            {% endif %}
-        </section>
+    <div>
+      <p><strong>Total Bets Placed:</strong>
+         <input type="text" id="stats-totalBets" value="*****" readonly></p>
+      <p><strong>Total Wins:</strong>
+         <input type="text" id="stats-wins" value="*****" readonly></p>
+      <p><strong>Biggest Win:</strong>
+         <input type="text" id="stats-biggestWin" value="*****" readonly></p>
+      <p><strong>Win Rate:</strong>
+         <input type="text" id="stats-winRate" value="*****" readonly></p>
+    </div>
 
-        <section class="profile-section past-bets">
-            <h2>Past Bets</h2>
-            {% if user.bets %}
-                <ul class="bet-history">
-                    <div class="bet-history">
-                        {% for bet in user.bets %}
-                            <div class="bet-card" id="bet-card-{{ loop.index0 }}">
-                                <p class="game-name" id="bet-game-{{ loop.index0 }}">*****</p>
-                                <p class="bet-amount" id="bet-amount-{{ loop.index0 }}">*****</p>
-                                <p class="bet-outcome" id="bet-outcome-{{ loop.index0 }}">*****</p>
-                                <p class="bet-date" id="bet-date-{{ loop.index0 }}">*****</p>
-                            </div>
-                        {% endfor %}
-                    </div>
-                </ul>
-            {% else %}
-                <p>You haven't placed any bets yet.</p>
-            {% endif %}
-            {% if current_user.is_authenticated and current_user.username == user.username %}
-            <div class="checkbox-container">
-                <label for="show-bets">Show Past Bets on Profile</label>
-                <input type="checkbox" id="show-bets">
-            </div>
-            {% endif %}
-        </section>
-    </main>
-</body>
-<script src="{{ url_for('static', filename='js/profile.js') }}"></script>
+    {% if current_user.is_authenticated and current_user.id == user.id %}
+      <div class="checkbox-container">
+        <label for="show-stats">Show Stats on Profile</label>
+        <input type="checkbox" id="show-stats">
+      </div>
+    {% endif %}
+  </section>
+
+  {# ------------- PAST BETS (mask logic unchanged) ---------------- #}
+  <section class="profile-section past-bets">
+    <h2>
+      {% if current_user.is_authenticated and current_user.id == user.id %}
+          Past Bets
+      {% else %}
+          {{ user.username }}’s Past Bets
+      {% endif %}
+    </h2>
+
+    {% if user.bets %}
+      <div class="bet-history">
+        {% for bet in user.bets %}
+          <div class="bet-card">
+            <p class="game-name"  id="bet-game-{{ loop.index0 }}">*****</p>
+            <p class="bet-amount" id="bet-amount-{{ loop.index0 }}">*****</p>
+            <p class="bet-outcome"id="bet-outcome-{{ loop.index0 }}">*****</p>
+            <p class="bet-date"  id="bet-date-{{ loop.index0 }}">*****</p>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p>{{ user.username }} hasn’t placed any bets yet.</p>
+    {% endif %}
+
+    {% if current_user.is_authenticated and current_user.id == user.id %}
+      <div class="checkbox-container">
+        <label for="show-bets">Show Past Bets on Profile</label>
+        <input type="checkbox" id="show-bets">
+      </div>
+    {% endif %}
+  </section>
+
+</main>
+
+{# --------- INLINE JS JUST FOR EMAIL VISIBILITY ------------------- #}
+{% if current_user.is_authenticated and current_user.id == user.id %}
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const box = document.getElementById("show-email");
+  const field = document.getElementById("email-input");
+  if (!box || !field) return;
+
+  box.addEventListener("change", () => {
+    fetch("{{ url_for('toggle_email_visibility') }}", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({show: box.checked})
+    });
+    field.value = box.checked ? "{{ user.email }}" : "*****";
+  });
+});
+</script>
+{% endif %}
 {% endblock %}

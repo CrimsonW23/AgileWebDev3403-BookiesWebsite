@@ -173,6 +173,15 @@ def signup_post():
 def login():
     return render_template("login.html")  # Login page
 
+@app.post("/toggle_email_visibility")
+@login_required
+def toggle_email_visibility():
+    # expects JSON: {"show": true/false}
+    data = request.get_json()
+    current_user.show_email = bool(data.get("show"))
+    db.session.commit()
+    return jsonify(success=True)
+
 # Route for the login page (POST method)
 @app.route('/login', methods=['POST'])
 def login_post():
@@ -242,6 +251,7 @@ def profile(username=None):
         "id":          db_user.id,  
         "username": db_user.username,
         "email": db_user.email,
+        "show_email":   db_user.show_email,
         "date_joined": db_user.joined_at.strftime("%Y‑%m‑%d"),
         "profile_pic": db_user.profile_pic or "default.png",
         # Stubs until you wire real stats/bets
