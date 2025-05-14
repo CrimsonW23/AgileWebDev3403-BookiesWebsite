@@ -26,6 +26,14 @@ login_manager = LoginManager()
 login_manager.login_view = "login"      # route name for your sign‑in page
 login_manager.init_app(app)             # plugs 'current_user' into every request
 
+def init_friends_tables():
+    with app.app_context():
+        engine = db.get_engine(bind="friends")  # get the engine for the 'friends' bind
+        FriendRequest.metadata.create_all(bind=engine)
+        Friendship.metadata.create_all(bind=engine)
+
+init_friends_tables()
+
 # Flask‑Login needs a user‑loader callback
 @login_manager.user_loader
 def load_user(user_id):
