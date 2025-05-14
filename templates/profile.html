@@ -27,7 +27,13 @@
 
     <main class="user-profile">
         <section class="profile-header">
-            <h1>Welcome, <span style="color:#00ff88">{{ user.username }}</span></h1>
+            <h1>
+                {% if session.get('username') == user.username %}
+                    Your Profile
+                {% else %}
+                    {{ user.username }}’s Profile
+                {% endif %}
+              </h1>
             <p>Manage your information and customize what others can see.</p>
         </section>
 

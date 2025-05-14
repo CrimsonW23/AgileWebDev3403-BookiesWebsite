@@ -179,25 +179,39 @@ def stats():
     }
     return jsonify(stats_data)
 
-@app.route("/profile")
-def profile():
-    #Example user account for development purposes
-    user = {
-        "username": "testuser",
-        "email": "testuser@example.com",
+@app.route("/profile")                     # your own profile
+@app.route("/profile/<username>")          # someone else’s profile
+def profile(username=None):
+
+    # -------------------------------------------------
+    # 1. Decide whose page we’re showing
+    # -------------------------------------------------
+    if username is None:
+        # → no slug → fall back to the logged‑in user
+        if not session.get("logged_in"):
+            return redirect(url_for("login"))
+        db_user = User.query.get(session["userID"])
+    else:
+        # → slug present → look that person up (404 if not found)
+        db_user = User.query.filter_by(username=username).first_or_404()
+
+    # -------------------------------------------------
+    # 2. Prepare dict for the template
+    # -------------------------------------------------
+    user_dict = {
+        "username": db_user.username,
+        "email": db_user.email,
+        "date_joined": db_user.created_at.strftime("%Y‑%m‑%d")
+                      if hasattr(db_user, "created_at") else "N/A",
+        # Stubs until you wire real stats/bets
         "stats": {
-            "totalBets": 42,
-            "wins": 30,
-            "losses": 12,
-            "biggestWin": 5000
+            "totalBets": db_user.bets.count() if hasattr(db_user, "bets") else 0,
+            "wins": 0, "losses": 0, "biggestWin": 0
         },
-        "date_joined" : "2023-01-01",
-        "bets": [
-            {"bet_id": 1, "game": "Poker", "amount": 100, "outcome": "Loss", "date": "2023-01-15"},
-            {"bet_id": 2, "game": "Horses", "amount": 300, "outcome": "Won", "date": "2023-01-17"},
-        ]
+        "bets": db_user.bets if hasattr(db_user, "bets") else []
     }
-    return render_template("profile.html", user=user)
+
+    return render_template("profile.html", user=user_dict)
 
 # --- Profile search -------------------------------------------------
 @app.route("/search_profiles")
