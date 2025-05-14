@@ -422,3 +422,34 @@ form button:hover {
     margin-bottom: 2rem;
     text-align: center;
 }
+
+/* smaller “Accept” button inside pending requests */
+.btn.neon-sm {
+    padding: .25rem .7rem;   /* compact */
+    font-size: .75rem;
+    border: 1px solid #00ff88;
+    background: transparent;
+    color: #00ff88;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background .25s ease, color .25s ease;
+}
+.btn.neon-sm:hover {
+    background: #00ff88;
+    color: #111;
+}
+
+/* push the form (or badge) to the far right inside each pending <li> */
+.pending-list li {
+    justify-content: space-between;   /* username left – button right */
+}
+
+.pending-list form { margin-left: auto; }   /* extra safety */
+
+.friends-page .friends-list li:hover,
+.friends-page .pending-list li:hover {
+    background: #262626;        /* only a slightly lighter strip */
+    color: #eee;                /* keep normal text colour       */
+    transform: translateY(-2px);/* keep the tiny lift if you like */
+    box-shadow: 0 2px 6px rgba(0,0,0,.45);  /* same as non‑hover */
+}

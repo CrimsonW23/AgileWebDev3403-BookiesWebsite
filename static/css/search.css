@@ -74,3 +74,19 @@
     color: #999;
     font-style: italic;
 }
+
+/* smaller neon button used in search cards */
+.btn.neon {
+    padding: .35rem .75rem;    /* ↓ height & width */
+    font-size: .8rem;          /* ↓ text size     */
+    border: 1px solid #00ff88;
+    background: transparent;
+    color: #00ff88;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background .25s ease, color .25s ease;
+}
+.btn.neon:hover {
+    background: #00ff88;
+    color: #111;
+}
