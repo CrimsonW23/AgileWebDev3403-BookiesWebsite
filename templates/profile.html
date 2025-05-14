@@ -23,7 +23,9 @@
               {{ user.username }}’s Profile
           {% endif %}
         </h1>
+        {% if current_user.is_authenticated and current_user.username == user.username %}
         <p>Manage your information and customize what others can see.</p>
+        {% endif %}
 
         {% if current_user.is_authenticated and current_user.id == user.id %}
         <!-- upload form only for the owner -->
@@ -69,7 +71,13 @@
   </section>
 
         <section class="profile-section individual-stats">
-            <h2>Your Stats</h2>
+            <h2>
+                {% if current_user.is_authenticated and current_user.username == user.username %}
+                    Your Stats
+                {% else %}
+                    {{ user.username }}’s Stats
+                {% endif %}
+              </h2>
             <div>
                 <p>
                     <strong>Total Bets Placed:</strong>
