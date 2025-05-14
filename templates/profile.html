@@ -53,11 +53,13 @@
         <p><strong>Date Joined:</strong> {{ user.date_joined }}</p>
         <br>
 
+        {% if current_user.is_authenticated and current_user.username == user.username %}
         <div class="checkbox-container">
-          <label for="show-email">Show Email on Profile</label>
-          <input type="checkbox" id="show-email"
-                 onclick="toggleVisibility('email')">
+            <label for="show-email">Show Email on Profile</label>
+            <input type="checkbox" id="show-email"
+                onclick="toggleVisibility('email')">
         </div>
+        {% endif %}
       </div>
 
       <!-- avatar duplicated here if you want it in both places;
@@ -97,12 +99,13 @@
                 </p>
             </div>
 
-            <div class = "checkbox-container">
-                <label for="show-stats">
-                    Show Stats on Profile
-                </label>
-                <input type="checkbox" id="show-stats" onclick="toggleVisibility('stats')">
+            {% if current_user.is_authenticated and current_user.username == user.username %}
+            <div class="checkbox-container">
+                <label for="show-stats">Show Stats on Profile</label>
+                <input type="checkbox" id="show-stats"
+                    onclick="toggleVisibility('stats')">
             </div>
+            {% endif %}
         </section>
 
         <section class="profile-section past-bets">
@@ -123,10 +126,12 @@
             {% else %}
                 <p>You haven't placed any bets yet.</p>
             {% endif %}
+            {% if current_user.is_authenticated and current_user.username == user.username %}
             <div class="checkbox-container">
                 <label for="show-bets">Show Past Bets on Profile</label>
                 <input type="checkbox" id="show-bets">
             </div>
+            {% endif %}
         </section>
     </main>
 </body>
