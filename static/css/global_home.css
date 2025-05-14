@@ -453,3 +453,5 @@ form button:hover {
     transform: translateY(-2px);/* keep the tiny lift if you like */
     box-shadow: 0 2px 6px rgba(0,0,0,.45);  /* same as non‑hover */
 }
+
+.card-clickable { cursor: pointer; }

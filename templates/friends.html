@@ -9,7 +9,9 @@
   {% if friends %}
     <ul class="friends-list">
       {% for f in friends %}
-        <li>{{ f.username }}</li>
+        <li class="card-clickable" data-username="{{ f.username }}">
+          {{ f.username }}
+        </li>
       {% endfor %}
     </ul>
   {% else %}
@@ -20,11 +22,11 @@
   {% if pending %}
     <ul class="pending-list">
       {% for r in pending %}
-        <li>
+        <li class="card-clickable" data-username="{{ r.sender.username }}">
           {{ r.sender.username }}
+
           <form method="post"
-                action="{{ url_for('accept_friend_request', rid=r.id) }}"
-                style="display:inline">
+                action="{{ url_for('accept_friend_request', rid=r.id) }}">
             <button class="btn neon-sm" type="submit">Accept</button>
           </form>
         </li>
@@ -33,6 +35,18 @@
   {% else %}
     <p>No pending friend requests.</p>
   {% endif %}
-
 </section>
+
+<!-- ───────── make entire card clickable (except the button) ───────── -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('.card-clickable').forEach(function (el) {
+    el.addEventListener('click', function (e) {
+      if (e.target.tagName.toLowerCase() === 'button') return;   // ignore Accept
+      const username = el.dataset.username;
+      window.location = `/profile/${username}`;
+    });
+  });
+});
+</script>
 {% endblock %}
