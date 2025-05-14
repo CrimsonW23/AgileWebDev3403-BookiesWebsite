@@ -19,12 +19,20 @@
   <h2>Pending Requests</h2>
   {% if pending %}
     <ul class="pending-list">
-      {% for p in pending %}
-        <li>{{ p.from_user.username }} wants to connect</li>
+      {% for r in pending %}
+        <li>
+          {{ r.sender.username }}
+          <form method="post"
+                action="{{ url_for('accept_friend_request', rid=r.id) }}"
+                style="display:inline">
+            <button class="btn neon-sm" type="submit">Accept</button>
+          </form>
+        </li>
       {% endfor %}
     </ul>
   {% else %}
     <p>No pending friend requests.</p>
   {% endif %}
+
 </section>
 {% endblock %}

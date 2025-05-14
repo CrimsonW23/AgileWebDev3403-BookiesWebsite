@@ -7,8 +7,10 @@ from datetime import datetime, timedelta
 from dashboard_handler import handle_dashboard, handle_dashboard_data
 from bet_handler import handle_create_bet, handle_place_bet, handle_place_bet_form
 from extensions import db
-from proj_models import User, Post, Reply, Bet, EventResult, ActiveBets
+from proj_models import User, Post, Reply, Bet, EventResult, ActiveBets, FriendRequest, Friendship
 from sqlalchemy import func
+from flask_login import login_required, current_user, LoginManager, login_user
+from sqlalchemy.orm import Session
 
 import os
 
@@ -19,8 +21,18 @@ app.secret_key = '9f8c1e6e49b4d9e6b2c442a1a8f3ecb1' #Session id used for testing
 db.init_app(app)
 migrate = Migrate(app, db)
 
+login_manager = LoginManager()
+login_manager.login_view = "login"      # route name for your sign‑in page
+login_manager.init_app(app)             # plugs 'current_user' into every request
+
+# Flask‑Login needs a user‑loader callback
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
 SECRET_KEY = os.urandom(32)
 app.config['SECRET_KEY'] = SECRET_KEY
+
 
 # Route for the global home page
 @app.route("/")
@@ -145,6 +157,7 @@ def login_post():
     ).first()
 
     if user:
+        login_user(user) 
         session['logged_in'] = True
         session['username'] = user.username
         session['userID'] = user.id
@@ -237,24 +250,29 @@ def search_profiles():
 
 # --- Friends page -------------------------------------------------
 @app.route("/friends")
+@login_required
 def friends():
-    """
-    Show my friends & pending requests.
-    Swap the placeholder lists out for real DB queries later.
-    """
-    if not session.get("logged_in"):
-        # Re‑use your login guard pattern
-        return redirect(url_for("login"))
+    # 1. Pull friend IDs from friends.db
+    session_friends: Session = db.session
+    session_friends.bind = db.get_engine(app, bind="friends")
 
-    # TODO: pull real data once the Friend & FriendRequest models exist
-    friends_list = []          # e.g. User.query.join(Friend, ...)
-    pending_list = []          # e.g. FriendRequest.query.filter_by(to_id=session["userID"])
+    friend_ids = session_friends.scalars(
+        db.select(Friendship.friend_id)
+          .where(Friendship.user_id == current_user.id)
+    ).all()
 
-    return render_template(
-        "friends.html",
-        friends=friends_list,
-        pending=pending_list,
-    )
+    # 2. Now pull the User rows from the main DB
+    my_friends = User.query.filter(User.id.in_(friend_ids)).all() if friend_ids else []
+
+    pending_in = session_friends.scalars(
+        db.select(FriendRequest)
+          .where((FriendRequest.to_id == current_user.id) &
+                 (FriendRequest.status == "pending"))
+    ).all()
+
+    return render_template("friends.html",
+                           friends=my_friends,
+                           pending=pending_in)
 
 
 @app.route("/createpost", methods=['GET', 'POST'])
@@ -335,6 +353,46 @@ def get_currency():
 @app.template_filter('pretty_currency')
 def pretty_currency(cents):
     return "{:,}".format(int(cents))
+
+@app.post("/friend-request/<username>")
+@login_required
+def send_friend_request(username):
+    target = User.query.filter_by(username=username).first_or_404()
+
+    if current_user.id == target.id:
+        flash("That's you!", "info")
+    elif current_user.is_friends_with(target):
+        flash("Already friends.", "info")
+    elif current_user.has_pending_with(target):
+        flash("Request already pending.", "warning")
+    else:
+        fr = FriendRequest(from_id=current_user.id, to_id=target.id)
+        db.session.add(fr)
+        db.session.commit()
+        flash(f"Request sent to {target.username}.", "success")
+
+    return redirect(request.referrer or url_for("search_profiles"))
+
+@app.post("/friend-request/<int:rid>/accept")
+@login_required
+def accept_friend_request(rid):
+    fr = FriendRequest.query.get_or_404(rid)
+
+    if fr.to_id != current_user.id or fr.status != "pending":
+        flash("Cannot accept.", "error")
+        return redirect(url_for("friends"))
+
+    # mark accepted & create reciprocal rows
+    fr.status = "accepted"
+    db.session.add_all([
+        Friendship(user_id=fr.from_id, friend_id=fr.to_id),
+        Friendship(user_id=fr.to_id,   friend_id=fr.from_id)
+    ])
+    db.session.commit()
+
+    flash("Friend request accepted.", "success")
+    return redirect(url_for("friends"))
+
 
 if __name__ == "__main__":
     app.run(debug=True)
