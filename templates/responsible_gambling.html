@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/responsible_gambling.css') }}">
+
+<body>
+    <main class="wrapper">
+        <div class="container">
+            <header class="responsible-header">
+                <h1>Responsible Gambling</h1>
+            </header>
+            <section class="responsible-content">
+                <p>At GamblePro, we are committed to promoting responsible gambling. Here are some guidelines:</p>
+                <ul>
+                    <li>Set a budget and stick to it. Never gamble more than you can afford to lose</li>
+                    <li>Take regular breaks and avoid gambling when stressed or upset</li>
+                    <li>Seek help if you feel gambling is becoming a problem</li>
+                </ul>
+                <p>Resources include: 
+                    <a href="https://www.gamblinghelponline.org.au/" target="_blank">Gambling Help Online</a>, 
+                    <a href="https://www.responsiblegambling.vic.gov.au/" target="_blank">Responsible Gambling Victoria</a>
+                </p>
+            </section>
+        </div>
+    </main>
+</body>
+{% endblock %}
