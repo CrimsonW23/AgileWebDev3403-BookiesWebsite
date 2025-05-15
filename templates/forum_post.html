@@ -20,7 +20,7 @@
     <form action="" method="post">
         {{ form.hidden_tag() }}
         <div class="comment-form">
-            {% if session.get('logged_in') %}
+            {% if current_user.is_authenticated %}
             <div class="row">
                 {{ form.reply.label }}
                 {{ form.reply(class="input-field", cols=50, rows=2) }}
@@ -28,7 +28,6 @@
             {% for error in form.reply.errors %}
                 <span style="color: red;">[{{ error }}]</span>
             {% endfor %}
-            {% if current_user.is_authenticated %}
             <div class="button-container">
                 <button type="submit" id="form_submit" class="button">Submit Comment</button>
             </div>
