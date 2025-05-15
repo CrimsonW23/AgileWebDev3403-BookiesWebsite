@@ -34,7 +34,8 @@ def init_friends_tables():
         engine = db.get_engine(bind="friends")  # get the engine for the 'friends' bind
         FriendRequest.metadata.create_all(bind=engine)
         Friendship.metadata.create_all(bind=engine)
-        init_friends_tables()
+
+init_friends_tables()
 
 #test data
 def fetch_event_outcome(event_name):
