@@ -141,6 +141,21 @@ def global_home():
         biggest_win=biggest_win,
     )
 
+# Route for the terms and conditions page
+@app.route('/terms_conditions')
+def terms_conditions():
+    return render_template('terms_conditions.html')
+
+# Route for the privacy policy page
+@app.route('/privacy_policy')
+def privacy_policy():
+    return render_template('privacy_policy.html')
+
+# Route for the responsible gambling page
+@app.route('/responsible_gambling')
+def responsible_gambling():
+    return render_template('responsible_gambling.html')
+
 # Route for the sign-up page (GET and POST methods)
 @app.route("/signup", methods=['GET', 'POST'])
 def signup():
