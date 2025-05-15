@@ -1,0 +1,120 @@
+/* General Styling */
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #111;
+  color: #fff;
+  font-weight: bold;
+  display: flex;
+  flex-direction: column;  
+  min-height: 100vh;
+  align-self: center;
+}
+
+/* Wrapper to Center Content Vertically */
+.wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;  
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  width: 100%;  
+}
+
+/* Centered Container */
+.container {
+  max-width: 100%; 
+  padding: 2rem;
+  background-color: #1a1a1a;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+}
+
+/* Header Styling */
+.terms-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.terms-header h1 {
+  color: #00ff88;
+  font-size: 2.5rem;
+  margin: 0 auto; 
+  text-align: center; 
+  display: flex; 
+  justify-content: center;  
+  align-items: center;  
+}
+
+/* Main Content Styling */
+.terms-content p {
+  font-size: 1.1rem;
+  line-height: 1.8;
+  margin-bottom: 1.7rem;
+  color: #ccc;
+  text-align: center; 
+}
+
+/* Styling for Unordered Lists */
+.terms-content ul {
+  list-style: none;  
+  padding: 0;  
+  margin: 0 auto;
+  display: block;
+  width: fit-content;
+  text-align: center;
+}
+
+/* Styling for Nested Lists */
+.terms-content ul ul {
+  list-style: none; 
+  padding-left: 1.5rem; 
+}
+
+/* Styling for List Items */
+.terms-content ul li {
+  margin:0;  
+  padding: 0.75rem 1rem;  
+  border-radius: 5px;  
+  color: #ccc;   
+  transition: background-color 0.3s ease, color 0.3s ease;  
+  font-size: 1.0rem;
+  font-weight: bold; 
+  font-style: italic;
+}
+
+/* Hover Effect for List Items */
+.terms-content ul li:hover {
+  background-color: #333; 
+  color: #00ff88;  
+}
+
+/* Styling for Links in List Items */
+.terms-content ul li a {
+  color: #00ff88;
+  text-decoration: none;
+}
+
+.terms-content ul li a:hover {
+  text-decoration: underline;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .container {
+    padding: 1.5rem;
+  }
+
+  .terms-header h1 {
+    font-size: 2rem;
+  }
+
+  .terms-content p {
+    font-size: 0.9rem;
+  }
+
+  .terms-content ul li {
+    padding: 0.5rem;  
+  }
+}
