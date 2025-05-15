@@ -17,21 +17,21 @@
                     </select>
                 </form>                
             </div>
-            {% if session.get('logged_in') %}
+            {% if current_user.is_authenticated %}
                 <div class="create-post">
                     <a href="{{ url_for('create_post') }}" class="button create-post">Create Post</a>
                 </div>
             {% endif %}
         </div>
 
-      <table class="forum-table">
+        <table class="forum-table">
             <thead>
                 <tr>
                     <th>Category</th>
                     <th>Title</th>
                     <th>Replies</th>
                     <th>Author</th>
-                    <th>Last Post</th>
+                    <th>Last Post by</th>
                     <th>First Posted on</th>
                 </tr>
             </thead>
@@ -42,9 +42,9 @@
                     <tr>
                         <td> {{ post.category }} </td>
                         <td><a href="{{ url_for('view_post', post_id=post.id) }}"> {{ post.title }} </a></td>
-                        <td> {{ post.replies.count() }} </td>
+                        <td style="text-align: center"> {{ post.replies.count() }} </td>
                         <td> {{ post.author }} </td>
-                        <td> "Placeholder" </td>
+                        <td> {{ post.most_recent_reply.author }} </td>
                         <td> {{ post.timestamp }} </td>
                     </tr>
                     {% endif %}

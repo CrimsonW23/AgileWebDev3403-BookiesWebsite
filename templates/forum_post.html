@@ -5,12 +5,12 @@
 
 <div class="post-container">
     <h1>{{ post.title }}</h1>
-    <p><i><strong>Posted by:</strong></i> <span class = "author">{{ post.author }}</span><i> on </i>{{ post.timestamp }}</p>
+    <p><i><strong>Posted by:</strong></i> <span class="author">{{ post.author }}</span><i> on </i>{{ post.timestamp }}</p>
     <p><strong>Category:</strong> {{ post.category }}</p>
     <br>
     <p>{{ post.body }}</p>
     <br>
-    <div class = "button-container">
+    <div class="button-container">
         <a href="{{ url_for('forum') }}" class="button">Back to Forum</a>
     </div>
 </div>
@@ -20,26 +20,31 @@
     <form action="" method="post">
         {{ form.hidden_tag() }}
         <div class="comment-form">
+            {% if session.get('logged_in') %}
             <div class="row">
-                {{ form.author.label }}<br>
-                {{ form.author(class="input-field") }}<br>
-            </div>
-            <div class="row">
-                {{ form.reply.label }}<br>
-                {{ form.reply(class="input-field", cols=50, rows=2) }}<br>
+                {{ form.reply.label }}
+                {{ form.reply(class="input-field", cols=50, rows=2) }}
             </div>
             {% for error in form.reply.errors %}
                 <span style="color: red;">[{{ error }}]</span>
             {% endfor %}
-            <div class = "button-container">
+            {% if current_user.is_authenticated %}
+            <div class="button-container">
                 <button type="submit" id="form_submit" class="button">Submit Comment</button>
             </div>
+            {% else %}
+                <p class="login-link">You must be logged in to comment. <a href="{{ url_for('login') }}">Login here</a></p>
+            {% endif %}
         </div>
     </form>
 
     <div class="comments-list">
-        {% for reply in post.replies %}
+        {% for reply in replies %}
+            {% if reply.author == session.get('username') and (now - reply.timestamp).total_seconds() < 60*5 %}
+            <div class="recent-reply">
+            {% else %}
             <div class="reply-item">
+            {% endif %}
                 <p><span class = "author">{{ reply.author }}</span> <i>({{ reply.timestamp }}) said:</i></p>
                 <p>{{ reply.body }}</p>
             </div>
@@ -47,4 +52,4 @@
     </div>
 </div>
 
-{% endblock%}
+{% endblock %}

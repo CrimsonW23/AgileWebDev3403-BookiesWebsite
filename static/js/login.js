@@ -1,23 +1,47 @@
-document.addEventListener("DOMContentLoaded", () => {
-    const loginForm = document.getElementById("login-form");
-
-    loginForm.addEventListener("submit", (event) => {
-        event.preventDefault(); // Prevent default form submission
-
-        const formData = new FormData(loginForm);
-
-        fetch('/login', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                window.location.href = '/dashboard'; // Redirect to dashboard on success
-            } else {
-                alert(data.message); // Show error message
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('login-form');
+    const errorContainer = document.getElementById('form-errors');
+    
+    const showError = (message) => {
+        errorContainer.textContent = message;
+        errorContainer.style.display = 'block';
+    };
+    
+    const clearErrors = () => {
+        errorContainer.textContent = '';
+        errorContainer.style.display = 'none';
+    };
+    
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        clearErrors();
+        
+        if (!form.username.value.trim() || !form.password.value.trim()) {
+            showError('Please fill in all fields');
+            return;
+        }
+        
+        try {
+            const response = await fetch('/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: new URLSearchParams(new FormData(form))
+            });
+            
+            const data = await response.json();
+            
+            if (!data.success) {
+                showError(data.message || 'Login failed');
+                return;
             }
-        })
-        .catch(error => console.error("Error during login:", error));
+            
+            window.location.href = data.redirect;
+        } catch (error) {
+            console.error("Error:", error);
+            showError("An unexpected error occurred. Please try again.");
+        }
     });
 });

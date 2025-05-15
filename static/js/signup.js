@@ -1,34 +1,52 @@
-// Validate passwords match before submitting and handle form submission
-document.addEventListener("DOMContentLoaded", () => {
-    const signupForm = document.getElementById("signup-form");
-    const password = document.getElementById("password");
-    const confirmPassword = document.getElementById("confirm-password");
-    const passwordError = document.getElementById("password-error");
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('signup-form');
+    const errorContainer = document.getElementById('form-errors');
+    const dob = document.getElementById('dob');
+    const phone = document.getElementById('phone');
 
-    signupForm.addEventListener("submit", (event) => {
-        event.preventDefault(); // Prevent default form submission
+    // Function to display error messages
+    function showError(message) {
+        errorContainer.textContent = message;
+        errorContainer.style.display = 'block';
+    }
 
-        if (password.value !== confirmPassword.value) {
-            passwordError.style.display = "block"; // Show error message
-            return;
-        } else {
-            passwordError.style.display = "none"; // Hide error message
-        }
+    // Function to clear error messages
+    function clearError() {
+        errorContainer.textContent = '';
+        errorContainer.style.display = 'none';
+    }
 
-        const formData = new FormData(signupForm);
+    // Disable future dates in the DOB field
+    if (dob) {
+        const today = new Date().toISOString().split('T')[0];
+        dob.setAttribute('max', today);
+    }
 
-        fetch('/signup', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                window.location.href = '/dashboard'; // Redirect to dashboard on success
-            } else {
-                alert(data.message); // Show error message
+    // Real-time validation for phone input (only numeric, max 10 digits)
+    if (phone) {
+        phone.addEventListener('input', () => {
+            phone.value = phone.value.replace(/\D/g, '').slice(0, 10);
+        });
+    }
+
+    // Form submission handler
+    if (form) {
+        form.addEventListener('submit', (event) => {
+            clearError();
+            let isValid = true;
+
+            // Check required fields
+            const requiredFields = form.querySelectorAll('[required]');
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    showError(`Please fill in the ${field.labels[0].textContent} field.`);
+                    isValid = false;
+                }
+            });
+
+            if (!isValid) {
+                event.preventDefault();
             }
-        })
-        .catch(error => console.error("Error during signup:", error));
-    });
+        });
+    }
 });

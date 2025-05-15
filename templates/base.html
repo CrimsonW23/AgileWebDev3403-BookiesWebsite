@@ -11,9 +11,9 @@
 <body>
   <header>
     <div class="logo">
-      <a class = "logo" href="{{url_for('global_home') }}">GamblePro</a>
+      <a class="logo" href="{{ url_for('global_home') }}">GamblePro</a>
     </div>
-    {% if session.get('logged_in') %}
+    {% if current_user.is_authenticated %}
     <nav class="main-nav">
       <!-- 1 Search – always present -->
       <li class="nav-search">
@@ -26,11 +26,7 @@
       <li><a href="{{ url_for('global_home') }}">Home</a></li>
     
       <!-- 3 Dashboard (only when logged in) -->
-      {% if session.get('logged_in') %}
-        <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
-      {% else %}
-        <li class="placeholder"></li>
-      {% endif %}
+      <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
     
       <!-- 4 Active Bets (always) -->
       <li><a href="{{ url_for('active_bets') }}">Active Bets</a></li>
@@ -39,21 +35,17 @@
       <li><a href="{{ url_for('forum') }}">Forums</a></li>
     
       <!-- 6 Friends (only when logged in) -->
-      {% if session.get('logged_in') %}
-        <li><a href="{{ url_for('friends') }}">Friends</a></li>
-      {% else %}
-        <li class="placeholder"></li>
-      {% endif %}
+      <li><a href="{{ url_for('friends') }}">Friends</a></li>
     </nav>
 
     <div class="authed">
-      {% if session.get('currency') %}
-      <a href="{{ url_for('currency') }}" class="currency">${{ session.currency | pretty_currency }}</a>
+      {% if current_user.currency %}
+      <a href="{{ url_for('currency') }}" class="currency">${{ current_user.currency | pretty_currency }}</a>
       {% else %}
       <a href="{{ url_for('currency') }}" class="currency">$0.00</a>
       {% endif %}
       <a href="{{ url_for('profile') }}" class="profile">Profile</a>
-      <a href="/logout" class="logout">Logout</a>
+      <a href="{{ url_for('logout') }}" class="logout">Logout</a>
     </div>
     {% else %}
     <nav>
@@ -76,9 +68,9 @@
     <div class="footer-content">
       <p>&copy; 2025 GAMBLEPRO. All rights reserved.</p>
       <nav>
-        <a href="#">Terms & Conditions</a>
-        <a href="#">Privacy Policy</a>
-        <a href="#">Responsible Gambling</a>
+        <a href="{{ url_for('terms_conditions') }}">Terms & Conditions</a>
+        <a href="{{ url_for('privacy_policy') }}">Privacy Policy</a>
+        <a href="{{ url_for('responsible_gambling') }}">Responsible Gambling</a>
       </nav>
     </div>
   </footer>

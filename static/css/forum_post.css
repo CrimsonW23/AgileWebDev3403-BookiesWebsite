@@ -1,6 +1,6 @@
 body {
     font-family: Arial, sans-serif;
-    background: #111;
+    background: #222;
     color: #eee;
     margin: 0;
     padding: 0;
@@ -32,7 +32,7 @@ body {
 }
 
 .post-container {
-    background: #1e1e1e;
+    background: #353535;
     margin: 1rem auto;
     max-width: 1000px;
     padding: 2rem;
@@ -41,10 +41,12 @@ body {
     display: flex;
     flex-direction: column;
     text-align: left;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
 }
 
 h1,
-.author {
+.author,
+h2 {
     color: #00ff88;
     font-weight: bold;
 }
@@ -57,7 +59,7 @@ h1,
     padding: 0.6rem 1rem; /* Padding for buttons */
     font-size: 1rem; /* Font size for buttons */
     font-weight: bold;
-    color: #111;
+    color: #2a2a2a;
     background-color: #00ff88;
     border: none;
     border-radius: 5px;
@@ -80,20 +82,21 @@ h1,
 .comment-form {
     margin-top: 1rem;
     padding: 1rem;
-    background: #1e1e1e;
+    background: #353535;
     border-radius: 8px;
-    gap: 1rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
 }
 
 .comment-form label{
     font-family: Arial, sans-serif;
     font-weight: bold;
+    font-size: 1rem;
+    color:#eee;
 }
 
 form .row {
     display: flex;
     flex-direction: column;
-    margin-bottom: 0.5rem;
 }
 
 .input-field {
@@ -101,19 +104,18 @@ form .row {
     padding: 0.8rem; /* Padding inside input fields */
     border: 1px solid #333;
     border-radius: 5px;
-    background-color: #2a2a2a;
+    background-color: #3e3e3e;
     color: #fff;
     font-size: 0.9rem; /* Font size for inputs */
     box-sizing: border-box; /* Include padding and border in element's total width and height */
 }
 
-.reply-item {
+.reply-item,
+.recent-reply {
     max-width: 1200px;
     margin: 1.5rem auto;
     padding: 2rem;
-    background-color: #1e1e1e;
     border-radius: 10px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
     text-align: left;
     color: #fff;
     display: flex;
@@ -126,6 +128,27 @@ form .row {
     white-space: normal;
 }
 
+.reply-item {
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    background-color: #353535;
+}
+
+.recent-reply {
+    animation: fadeHighlight 4s forwards;
+    background-color: #353535;
+}
+
+@keyframes fadeHighlight {
+    0% {
+        box-shadow: 0 0 15px #00ff88;
+        background-color: #464646;
+    }
+    100% {
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+        background-color: #353535;
+    }
+}
+
 .reply-item p,
 .reply-item span {
     max-width: 100%;
@@ -133,4 +156,23 @@ form .row {
     word-wrap: break-word;
     word-break: break-word;
     white-space: normal;
+}
+
+.login-link {
+    color: #fff;
+    text-align: center;
+    font-style: italic;
+}
+
+.login-link a,
+.login-link a:visited {
+    color: #00ff88; 
+    text-decoration: none; 
+    font-weight: bold;  
+    align-self: center;
+    font-style: normal;
+}
+
+.login-link a:hover {
+    text-decoration: underline;
 }
