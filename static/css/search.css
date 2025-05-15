@@ -1,0 +1,92 @@
+/* ========== PROFILE SEARCH RESULTS =================================== */
+.search-results-wrapper {
+    max-width: 1000px;
+    margin: 2.5rem auto;
+    padding: 0 1rem;
+}
+
+.results-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1.2rem 1.6rem;
+}
+
+/* --- outer card ----------------------------------------------------- */
+.result-card {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 12px;
+    padding: 1.2rem 1rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    /* ⬇ this line isn’t needed now that result‑card is a <div>,
+         but leaving it doesn’t hurt. */
+    /* text-decoration: none; */
+    color: #eee;
+    box-shadow: 0 0 12px rgba(0, 0, 0, 0.45);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.result-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 0 16px rgba(0, 255, 136, 0.35);
+}
+
+/* avatar placeholder */
+.card-avatar {
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: #444;
+}
+
+/* --- NEW: clickable area for avatar + username ---------------------- */
+.result-link {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    flex-grow: 1;              /* pushes button/badge to the far right */
+    color: inherit;
+    text-decoration: none;
+}
+
+/* --- NEW: right‑aligned “Add Friend” form --------------------------- */
+.friend-btn { margin-left: auto; }
+
+/* --- NEW: right‑aligned pending badge ------------------------------- */
+.pending-tag {
+    margin-left: auto;
+    color: #aaa;
+    font-style: italic;
+}
+
+/* highlight query substring */
+.highlight {
+    color: #00ff88;
+}
+
+/* Empty‑state message */
+.no-results {
+    text-align: center;
+    margin: 4rem 0 3rem;
+    color: #999;
+    font-style: italic;
+}
+
+/* smaller neon button used in search cards */
+.btn.neon {
+    padding: .35rem .75rem;    /* ↓ height & width */
+    font-size: .8rem;          /* ↓ text size     */
+    border: 1px solid #00ff88;
+    background: transparent;
+    color: #00ff88;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background .25s ease, color .25s ease;
+}
+.btn.neon:hover {
+    background: #00ff88;
+    color: #111;
+}

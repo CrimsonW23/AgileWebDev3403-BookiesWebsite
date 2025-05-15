@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/global_home.css') }}">
+
+<section class="friends-page">
+  <h1>Your Friends</h1>
+
+  {% if friends %}
+    <ul class="friends-list">
+      {% for f in friends %}
+        <li class="card-clickable" data-username="{{ f.username }}">
+          <img src="{{ url_for('static',
+                  filename='uploads/avatars/' ~ f.profile_pic) }}"
+              alt="avatar" class="list-avatar">
+          {{ f.username }}
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>You don’t have any friends yet. 😢</p>
+  {% endif %}
+
+  <h2>Pending Requests</h2>
+  {% if pending %}
+    <ul class="pending-list">
+      {% for r in pending %}
+        <li class="card-clickable" data-username="{{ r.sender.username }}">
+          {{ r.sender.username }}
+
+          <form method="post"
+                action="{{ url_for('accept_friend_request', rid=r.id) }}">
+            <button class="btn neon-sm" type="submit">Accept</button>
+          </form>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No pending friend requests.</p>
+  {% endif %}
+</section>
+
+<!-- ───────── make entire card clickable (except the button) ───────── -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('.card-clickable').forEach(function (el) {
+    el.addEventListener('click', function (e) {
+      if (e.target.tagName.toLowerCase() === 'button') return;   // ignore Accept
+      const username = el.dataset.username;
+      window.location = `/profile/${username}`;
+    });
+  });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- page‑specific stylesheet -->
+<link rel="stylesheet"
+      href="{{ url_for('static', filename='css/search.css') }}"
+      referrerpolicy="no-referrer" />
+
+<section class="search-results-wrapper">
+  <h1>Search Results{% if query %} for “{{ query }}”{% endif %}</h1>
+
+  {% if users %}
+    <div class="results-grid">
+
+      {% for u in users %}
+        <!-- CARD ---------------------------------------------------- -->
+        <div class="result-card">
+
+          <!-- avatar + username (clickable) -->
+          <a href="{{ url_for('profile', username=u.username) }}"
+             class="result-link">
+             <img src="{{ url_for('static',
+             filename='uploads/avatars/' ~ u.profile_pic) }}"
+          alt="avatar" class="card-avatar">
+            <span>
+              {{ u.username | replace(
+                   query,
+                   '<span class="highlight">' ~ query ~ '</span>'
+                 ) | safe }}
+            </span>
+          </a>
+
+          <!-- FRIEND BUTTON / PENDING TAG --------------------------- -->
+          {% if current_user.is_authenticated and current_user.id != u.id %}
+            {% if not current_user.is_friends_with(u)
+                  and not current_user.has_pending_with(u) %}
+              <form action="{{ url_for('send_friend_request',
+                                       username=u.username) }}"
+                    method="post" class="friend-btn">
+                <button type="submit" class="btn neon">Add Friend</button>
+              </form>
+            {% elif current_user.has_pending_with(u) %}
+              <span class="pending-tag">Pending ✓</span>
+            {% endif %}
+          {% endif %}
+
+        </div>
+      {% endfor %}
+
+    </div>
+  {% else %}
+    <p class="no-results">No users found. Try another search term.</p>
+  {% endif %}
+</section>
+{% endblock %}

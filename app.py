@@ -5,9 +5,11 @@ from flask_migrate import Migrate
 from forms import PostForm, ReplyForm, CreateBetForm, PlaceBetForm, SignupForm, LoginForm
 from datetime import datetime, timedelta, date
 from extensions import db
-from proj_models import User, Post, Reply, CreatedBets, ActiveBets, PlacedBets, EventResult
+from proj_models import User, Post, Reply, CreatedBets, ActiveBets, PlacedBets, EventResult, Friendship, FriendRequest
 from sqlalchemy import func
 from flask_login import LoginManager, login_user, logout_user, current_user, login_required
+from sqlalchemy.orm import Session
+from werkzeug.utils import secure_filename
 
 import os
 
@@ -26,6 +28,14 @@ login_manager.login_message = None
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+
+def init_friends_tables():
+    with app.app_context():
+        engine = db.get_engine(bind="friends")  # get the engine for the 'friends' bind
+        FriendRequest.metadata.create_all(bind=engine)
+        Friendship.metadata.create_all(bind=engine)
+
+init_friends_tables()
 
 #test data
 def fetch_event_outcome(event_name):
@@ -119,6 +129,33 @@ def update_bet_statuses():
                 bet.status = "past"
 
         db.session.commit()
+
+def allowed_file(filename):
+    return "." in filename and \
+           filename.rsplit(".", 1)[1].lower() in app.config["ALLOWED_EXTENSIONS"]
+
+@app.post("/upload_avatar")
+@login_required
+def upload_avatar():
+    file = request.files.get("avatar")
+    if not file or file.filename == "":
+        flash("No file selected.", "error")
+        return redirect(url_for("profile"))
+
+    if not allowed_file(file.filename):
+        flash("Invalid file type.", "error")
+        return redirect(url_for("profile"))
+
+    filename  = secure_filename(f"{current_user.id}_{file.filename}")
+    save_path = os.path.join(app.root_path, app.config["UPLOAD_FOLDER"], filename)
+    file.save(save_path)
+
+    # update DB
+    current_user.profile_pic = filename
+    db.session.commit()
+
+    flash("Profile picture updated!", "success")
+    return redirect(url_for("profile"))
 
 # Route for the global home page
 @app.route("/")
@@ -543,23 +580,133 @@ def forum():
 def game_board():
     return render_template("game_board.html")'''
 
-@app.route("/profile")
+@app.post("/toggle_email_visibility")
 @login_required
-def profile():
-    user = {
-        "username": current_user.username,
-        "email": current_user.email,
-        "stats": {
-            "totalBets": PlacedBets.query.filter_by(user_id=current_user.id).count(),
-            "wins": PlacedBets.query.filter_by(user_id=current_user.id, event_outcome="win").count(),
-            "losses": PlacedBets.query.filter_by(user_id=current_user.id, event_outcome="loss").count(),
-            "biggestWin": db.session.query(func.max(PlacedBets.actual_winnings)).filter_by(user_id=current_user.id).scalar() or 0
-        },
-        "date_joined": current_user.date_joined,
-        "bets": PlacedBets.query.filter_by(user_id=current_user.id).order_by(PlacedBets.date_settled.desc()).limit(5).all()
-    }
-    return render_template("profile.html", user=user)
+def toggle_email_visibility():
+    # expects JSON: {"show": true/false}
+    data = request.get_json()
+    current_user.show_email = bool(data.get("show"))
+    db.session.commit()
+    return jsonify(success=True)
 
+
+@app.route("/profile")
+@app.route("/profile/<username>")
+@login_required
+def profile(username=None):
+    # 1. Decide whose page we’re showing
+    if username is None:
+        # No slug → show the logged-in user's profile
+        db_user = current_user
+    else:
+        # Slug present → look that person up (404 if not found)
+        db_user = User.query.filter_by(username=username).first_or_404()
+
+    # 2. Prepare dict for the template
+    user_dict = {
+        "id": db_user.id,
+        "username": db_user.username,
+        "email": db_user.email,
+        "show_email": db_user.show_email,
+        "date_joined": db_user.date_joined.strftime("%Y-%m-%d"),
+        "profile_pic": db_user.profile_pic or "default.png",
+        # Stubs until you wire real stats/bets
+        "totalBets": db_user.bets.count() if hasattr(db_user, "bets") else 0,
+        "wins": 0,
+        "losses": 0,
+        "biggestWin": 0,
+        "bets": db_user.bets if hasattr(db_user, "bets") else []
+    }
+    return render_template("profile.html", user=user_dict)
+
+# --- Profile search -------------------------------------------------
+@app.route("/search_profiles")
+@login_required
+def search_profiles():
+    """
+    Return a page of users whose username contains the query string (?q=...).
+    """
+    q = request.args.get("q", "").strip()
+
+    # Basic search: case-insensitive LIKE on username
+    results = []
+    if q:
+        results = User.query.filter(User.username.ilike(f"%{q}%")).all()
+
+    return render_template(
+        "search_results.html",
+        query=q,
+        users=results,
+    )
+
+# --- Friends page -------------------------------------------------
+@app.route("/friends")
+@login_required
+def friends():
+    # 1. Pull friend IDs from friends.db
+    session_friends: Session = db.session
+    session_friends.bind = db.get_engine(app, bind="friends")
+
+    friend_ids = session_friends.scalars(
+        db.select(Friendship.friend_id)
+          .where(Friendship.user_id == current_user.id)
+    ).all()
+
+    # 2. Now pull the User rows from the main DB
+    my_friends = User.query.filter(User.id.in_(friend_ids)).all() if friend_ids else []
+
+    pending_in = session_friends.scalars(
+        db.select(FriendRequest)
+          .where((FriendRequest.to_id == current_user.id) &
+                 (FriendRequest.status == "pending"))
+    ).all()
+
+    return render_template("friends.html",
+                           friends=my_friends,
+                           pending=pending_in)
+
+
+@app.post("/friend-request/<username>")
+@login_required
+def send_friend_request(username):
+    target = User.query.filter_by(username=username).first_or_404()
+
+    if current_user.id == target.id:
+        flash("That's you!", "info")
+    elif current_user.is_friends_with(target):
+        flash("Already friends.", "info")
+    elif current_user.has_pending_with(target):
+        flash("Request already pending.", "warning")
+    else:
+        fr = FriendRequest(from_id=current_user.id, to_id=target.id)
+        db.session.add(fr)
+        db.session.commit()
+        flash(f"Request sent to {target.username}.", "success")
+
+    return redirect(request.referrer or url_for("search_profiles"))
+
+@app.post("/friend-request/<int:rid>/accept")
+@login_required
+def accept_friend_request(rid):
+    fr = FriendRequest.query.get_or_404(rid)
+
+    # Use Flask-Login's current_user for access control
+    if fr.to_id != current_user.id or fr.status != "pending":
+        flash("Cannot accept.", "error")
+        return redirect(url_for("friends"))
+
+    # Mark accepted & create reciprocal rows
+    fr.status = "accepted"
+    db.session.add_all([
+        Friendship(user_id=fr.from_id, friend_id=fr.to_id),
+        Friendship(user_id=fr.to_id,   friend_id=fr.from_id)
+    ])
+    db.session.commit()
+
+    flash("Friend request accepted.", "success")
+    return redirect(url_for("friends"))
+
+    
 @app.route("/createpost", methods=['GET', 'POST'])
 @login_required
 def create_post():

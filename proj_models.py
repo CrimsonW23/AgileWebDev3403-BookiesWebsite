@@ -20,6 +20,10 @@ class User(db.Model, UserMixin):
     created_bets = db.relationship('CreatedBets', backref='creator', lazy=True)
     placed_bets = db.relationship('PlacedBets', backref='bettor', lazy=True)
     active = db.Column(db.Boolean, default=True)  # For Flask-Login
+    profile_pic = db.Column(db.String(256), default="default.png")
+    show_email  = db.Column(db.Boolean,
+                            default=False,
+                            server_default="0")
 
     def set_password(self, password):
         """Hash and set the user's password."""
@@ -28,7 +32,51 @@ class User(db.Model, UserMixin):
     def check_password(self, password):
         """Check the hashed password."""
         return check_password_hash(self.password, password)
-        
+    
+    
+    def is_friends_with(self, other) -> bool:
+        """Return True if self and other are already friends."""
+        return db.session.execute(
+            db.select(Friendship).where(
+                (Friendship.user_id == self.id) &
+                (Friendship.friend_id == other.id)
+            )
+        ).first() is not None
+
+    def has_pending_with(self, other) -> bool:
+        """Return True if a request is waiting between the two users."""
+        return db.session.execute(
+            db.select(FriendRequest).where(
+                (FriendRequest.status == "pending") &
+                (
+                    ((FriendRequest.from_id == self.id) &
+                     (FriendRequest.to_id   == other.id)) |
+                    ((FriendRequest.from_id == other.id) &
+                     (FriendRequest.to_id   == self.id))
+                )
+            )
+        ).first() is not None
+
+    def friends(self):
+        """List of User objects who are friends with self."""
+        friend_ids = db.session.scalars(
+            db.select(Friendship.friend_id)
+              .where(Friendship.user_id == self.id)
+        ).all()
+        if not friend_ids:
+            return []
+        return db.session.scalars(
+            db.select(User).where(User.id.in_(friend_ids))
+        ).all()
+
+    def pending_requests(self):
+        """Friend requests sent TO self that are still pending."""
+        return db.session.scalars(
+            db.select(FriendRequest)
+              .where((FriendRequest.to_id == self.id) &
+                     (FriendRequest.status == "pending"))
+        ).all()
+       
     # Properties required by Flask-Login
     @property
     def is_active(self):
@@ -134,3 +182,25 @@ class EventResult(db.Model):
 
     def __repr__(self):
         return f"<EventResult {self.event_name} - {self.outcome}>"
+    
+class FriendRequest(db.Model):
+    __bind_key__ = "friends"        # ⇠ tells SQLAlchemy to use friends.db
+    id       = db.Column(db.Integer, primary_key=True)
+    from_id  = db.Column(db.Integer, nullable=False)
+    to_id    = db.Column(db.Integer, nullable=False)
+    status   = db.Column(db.String(10), default="pending")    # pending / accepted
+    created  = db.Column(db.DateTime, default=datetime.utcnow)
+
+    @property
+    def sender(self):
+        return User.query.get(self.from_id)
+
+    @property
+    def receiver(self):
+        return User.query.get(self.to_id)
+
+class Friendship(db.Model):
+    __bind_key__ = "friends"
+    id        = db.Column(db.Integer, primary_key=True)
+    user_id   = db.Column(db.Integer, nullable=False)
+    friend_id = db.Column(db.Integer, nullable=False)

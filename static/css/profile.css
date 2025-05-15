@@ -162,3 +162,71 @@ header {
     color: #aaa;
 }
   
+
+.header-flex {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.avatar-lg {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.avatar-md {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.avatar-form input[type="file"] {
+    margin-bottom: .6rem;
+}
+
+.btn.neon-sm {
+    padding: .25rem .7rem;
+    font-size: .75rem;
+    border: 1px solid #00ff88;
+    background: transparent;
+    color: #00ff88;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background .25s ease, color .25s ease;
+}
+.btn.neon-sm:hover {
+    background: #00ff88;
+    color: #111;
+}
+
+.avatar-form {
+    margin-top: 0.8rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.avatar-form input[type="file"] {
+    font-size: .8rem;
+    color: #ccc;
+}
+
+.btn.neon-sm {
+    padding: .25rem .7rem;
+    font-size: .75rem;
+    border: 1px solid #00ff88;
+    background: transparent;
+    color: #00ff88;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background .25s ease, color .25s ease;
+}
+.btn.neon-sm:hover {
+    background: #00ff88;
+    color: #111;
+}
+
