@@ -5,7 +5,8 @@
 
 <div class="post-container">
     <h1>{{ post.title }}</h1>
-    <p><i><strong>Posted by:</strong></i> <span class="author">{{ post.author }}</span><i> on </i>{{ post.timestamp }}</p>
+    <p><i><strong>Posted by:</strong></i> <span class="author">{{ post.author.username }}</span><i> on </i>{{ post.timestamp }}
+        for {{ 'Everyone' if post.privacy == 'public' else 'Friends only' }}</p>
     <p><strong>Category:</strong> {{ post.category }}</p>
     <br>
     <p>{{ post.body }}</p>
@@ -39,12 +40,12 @@
 
     <div class="comments-list">
         {% for reply in replies %}
-            {% if reply.author == session.get('username') and (now - reply.timestamp).total_seconds() < 60*5 %}
+            {% if reply.author_id == current_user.id and (now - reply.timestamp).total_seconds() < 60*5 %}
             <div class="recent-reply">
             {% else %}
             <div class="reply-item">
             {% endif %}
-                <p><span class = "author">{{ reply.author }}</span> <i>({{ reply.timestamp }}) said:</i></p>
+                <p><span class = "author">{{ reply.author.username }}</span> <i>({{ reply.timestamp }}) said:</i></p>
                 <p>{{ reply.body }}</p>
             </div>
         {% endfor %}

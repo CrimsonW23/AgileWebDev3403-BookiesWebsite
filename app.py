@@ -6,7 +6,7 @@ from forms import PostForm, ReplyForm, CreateBetForm, PlaceBetForm, SignupForm, 
 from datetime import datetime, timedelta, date
 from extensions import db
 from proj_models import User, Post, Reply, CreatedBets, ActiveBets, PlacedBets, EventResult, Friendship, FriendRequest
-from sqlalchemy import func
+from sqlalchemy import func, or_, and_
 from flask_login import LoginManager, login_user, logout_user, current_user, login_required
 from sqlalchemy.orm import Session
 from werkzeug.utils import secure_filename
@@ -546,28 +546,48 @@ def place_bet(bet_id):
 
 
 @app.route("/forum")
+@login_required
 def forum():
-    # Get distinct categories from the database for the filter
-    filter_categories = db.session.query(Post.category).distinct().all()
-    filter_categories = [category[0] for category in filter_categories]  # Unwrap tuple
-
-    # Get the selected category from the request args (default to 'all')
+    # Get the selected category from request args, default to 'all'
     selected_category = request.args.get('category', 'all')
-
-    # Pagination
     page = request.args.get('page', 1, type=int)
     posts_per_page = 10  # Number of posts per page
 
-    # Query posts based on the selected category
-    if selected_category == 'all':
-        query = Post.query.order_by(Post.timestamp.desc())
-    else:
-        query = Post.query.filter_by(category=selected_category).order_by(Post.timestamp.desc())
+    # Get friend IDs list
+    friend_ids = [friend.id for friend in current_user.friends()]
 
+    # Build privacy filter based on whether user has friends
+    if friend_ids:
+        privacy_filter = or_(
+            Post.privacy == 'public',
+            and_(Post.privacy == 'friends', Post.author_id.in_(friend_ids)),
+            Post.author_id == current_user.id
+        )
+    else:
+        privacy_filter = or_(
+            Post.privacy == 'public',
+            Post.author_id == current_user.id
+        )
+
+    # Start query with privacy filter
+    query = Post.query.filter(privacy_filter)
+
+    # Filter by category if selected_category is not 'all'
+    if selected_category != 'all':
+        query = query.filter(Post.category == selected_category)
+
+    # Order posts by newest first
+    query = query.order_by(Post.timestamp.desc())
+
+    # Paginate the results
     pagination = query.paginate(page=page, per_page=posts_per_page, error_out=False)
     posts = pagination.items
 
-    # Render the forum page
+    # Fetch distinct categories for the filter dropdown
+    filter_categories = db.session.query(Post.category).distinct().all()
+    filter_categories = [cat[0] for cat in filter_categories]
+
+    # Render the forum template
     return render_template(
         "forum.html",
         posts=posts,
@@ -716,8 +736,9 @@ def create_post():
             body=form.post.data,
             category=form.category.data,
             timestamp=datetime.now().replace(second=0, microsecond=0),
-            author=current_user.username,  
-            title=form.title.data
+            author_id=current_user.id,  
+            title=form.title.data,
+            privacy=form.privacy.data
         )
         db.session.add(post)
         db.session.commit()
@@ -733,7 +754,7 @@ def view_post(post_id):
         reply = Reply(
             body=form.reply.data,
             timestamp=datetime.now().replace(second=0, microsecond=0),
-            author=current_user.username if current_user.is_authenticated else "Anonymous",  
+            author_id=current_user.id,
             post_id=post_id
         )
         db.session.add(reply)
