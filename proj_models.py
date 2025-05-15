@@ -24,6 +24,8 @@ class User(db.Model, UserMixin):
     show_email  = db.Column(db.Boolean,
                             default=False,
                             server_default="0")
+    show_stats = db.Column(db.Boolean, default=False, server_default="0")
+    show_bets  = db.Column(db.Boolean, default=False, server_default="0")
 
     def set_password(self, password):
         """Hash and set the user's password."""
