@@ -262,6 +262,15 @@ class PlaceBetForm(FlaskForm):
     stake_amount = DecimalField("Stake Amount", validators=[DataRequired(), NumberRange(min=1)])
     submit = SubmitField("Place Bet")
 
-
+class EditBetForm(FlaskForm):
+    stake_amount = DecimalField(
+        'Stake Amount',
+        validators=[
+            DataRequired(message="Stake amount is required"),
+            NumberRange(min=0.01, message="Stake must be at least $0.01")
+        ],
+        places=2  # Ensures 2 decimal places
+    )
+    submit = SubmitField('Save Changes')
 
 

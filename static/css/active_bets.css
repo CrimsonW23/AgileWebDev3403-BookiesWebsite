@@ -125,4 +125,21 @@
   padding: 20px;  
   word-wrap: break-word; 
 }
-  
+
+/* Create Bet Button Styling */
+.create-bet-btn {
+    padding: 0.8rem 1.2rem;
+    font-size: 1rem;
+    font-weight: bold;
+    color: #111;
+    background-color: #00ff88;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.create-bet-btn:hover {
+    background-color: #00cc6e;
+    transform: scale(1.05);
+}

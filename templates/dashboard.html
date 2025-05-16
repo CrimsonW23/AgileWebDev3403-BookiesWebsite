@@ -78,15 +78,16 @@
           <tbody>
             {% if upcoming_bets %}
               {% for bet in upcoming_bets|sort(attribute='scheduled_time') %}
-              <tr>
-                <td>{{ bet.event_name }}</td>
-                <td>{{ bet.bet_type_description }}</td>
-                <td>{{ bet.bet_type }}</td>
-                <td>${{ bet.stake_amount }}</td>
-                <td>{{ bet.odds }}</td>
-                <td>{{ bet.scheduled_time }}</td>
-                <td>${{ bet.potential_winnings }}</td>
-              </tr>
+                {% set max_stake = bet.max_stake %}
+                <tr data-bet-id="{{ bet.id }}" data-max-stake="{{ bet.max_stake }}">
+                  <td>{{ bet.event_name }}</td>
+                  <td>{{ bet.bet_type_description }}</td>
+                  <td>{{ bet.bet_type }}</td>
+                  <td>${{ bet.stake_amount }}</td>
+                  <td>{{ bet.odds }}</td>
+                  <td>{{ bet.scheduled_time }}</td>
+                  <td>${{ bet.potential_winnings }}</td>
+                </tr>
               {% endfor %}
             {% else %}
               <tr>
@@ -158,15 +159,16 @@
           <tbody>
             {% if upcoming_bets %}
               {% for bet in upcoming_bets|sort(attribute='scheduled_time') %}
-              <tr>
-                <td>{{ bet.event_name }}</td>
-                <td>{{ bet.bet_type_description }}</td>
-                <td>{{ bet.bet_type }}</td>
-                <td>${{ bet.stake_amount }}</td>
-                <td>{{ bet.odds }}</td>
-                <td>{{ bet.scheduled_time }}</td>
-                <td>${{ bet.potential_winnings }}</td>
-              </tr>
+                {% set max_stake = bet.max_stake %}
+                <tr data-bet-id="{{ bet.id }}" data-max-stake="{{ bet.max_stake }}">
+                  <td>{{ bet.event_name }}</td>
+                  <td>{{ bet.bet_type_description }}</td>
+                  <td>{{ bet.bet_type }}</td>
+                  <td>${{ bet.stake_amount }}</td>
+                  <td>{{ bet.odds }}</td>
+                  <td>{{ bet.scheduled_time }}</td>
+                  <td>${{ bet.potential_winnings }}</td>
+                </tr>
               {% endfor %}
             {% else %}
               <tr>
@@ -299,6 +301,61 @@
           <p id="pieChartMessage" class="fallback-message" style="display: none;"></p>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- Edit Bet Modal -->
+  <div id="editBetModal" class="modal">
+    <div class="modal-content">
+      <span class="close-modal">&times;</span>
+      <h2>Edit Bet</h2>
+      <form id="editBetForm" method="POST" action="#">
+        {{ form.hidden_tag() }}
+        <input type="hidden" id="editBetId" name="bet_id">
+        <input type="hidden" id="editMaxStake" name="max_stake">
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label>Event Name</label>
+            <div class="display-field" id="editEventName"></div>
+          </div>
+          <div class="form-group">
+            <label>Bet Type</label>
+            <div class="display-field" id="editBetType"></div>
+          </div>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label>Odds</label>
+            <div class="display-field" id="editOdds"></div>
+          </div>
+          <div class="form-group">
+            <label>Scheduled Time</label>
+            <div class="display-field" id="editScheduledTime"></div>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          {{ form.stake_amount.label }}
+          {{ form.stake_amount(
+            class="input-field",
+            id="editStake",
+            min="0.01",
+            step="0.01"
+          ) }}
+          <small class="form-text">Max: $<span id="maxStakeDisplay"></span></small>
+          {% for error in form.stake_amount.errors %}
+            <span class="form-error">{{ error }}</span>
+          {% endfor %}
+        </div>
+        
+        <div class="form-actions">
+          <div class="button-wrapper">
+            {{ form.submit(class="save-btn") }}
+          </div>
+        </div>
+      </form>
     </div>
   </div>
 </div>  

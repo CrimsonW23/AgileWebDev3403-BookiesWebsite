@@ -6,12 +6,15 @@
   <!-- Search bar -->
   <div class="controls">
     <input type="text" id="searchInput" placeholder="Search event...">
+    <button class="create-bet-btn" id="create-bet-btn" onclick="window.location.href='/create_bet'">Create Bet</button>
   </div>
+  
 
   <!-- Floating boxes -->
   <div class="bet-cards" id="betCards">
     {% if bets %}
       {% for bet in bets %}
+      <div class="max-stake-value" style="display:none">{{ bet.max_stake }}</div>
       <div class="bet-card" data-search="{{ bet.event_name | lower }} {{ bet.bet_type | lower }}">
         <h3>{{ bet.event_name }}</h3> 
         <p><strong>Bet Type:</strong> {{ bet.bet_type_description }}</p>
@@ -22,20 +25,20 @@
         <p><strong>Created At:</strong> {{ bet.scheduled_time.strftime('%d %b %Y') }}</p>
         <br>
         {% if current_user.is_authenticated %}
-          {% if bet.created_by == current_user.id %} 
+          {% if bet.created_by == current_user.id %}
+            <p class="bet-status">You created this bet</p>
+          {% elif bet.id in betted %}
+            <p class="bet-status">You've already placed a bet on this game</p>
           {% else %}
             <form action="{{ url_for('place_bet', bet_id=bet.id) }}" method="POST">
               {{ form.hidden_tag() }}
-
               <div class="form-group">
                 <label for="stakeAmount">{{ form.stake_amount.label }}</label>
                 {{ form.stake_amount(class="input-field", id="stakeAmount") }}
               </div>
-
               {% for error in form.stake_amount.errors %}
-              <span style="color: red;">[{{ error }}]</span>
+                <span style="color: red;">[{{ error }}]</span>
               {% endfor %}
-              
               <button type="submit">Place Bet</button>
             </form>
           {% endif %}
