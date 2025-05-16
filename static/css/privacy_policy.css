@@ -57,23 +57,23 @@ body {
 }
 
 /* Styling for Unordered Lists */
-.privacy-content ul {
-  list-style: none;  
+.privacy-content ul,
+.privacy-content ul li p {
   padding: 0;  
   margin: 0 auto;
   display: block;
   width: fit-content;
-  text-align: center;
+  text-align: left;
 }
 
 /* Styling for Nested Lists */
 .privacy-content ul ul {
-  list-style: none; 
   padding-left: 1.5rem; 
 }
 
 /* Styling for List Items */
-.privacy-content ul li {
+.privacy-content ul li,
+.privacy-content ul li p {
   margin: 0;  
   padding: 0.75rem 1rem;  
   border-radius: 5px;  
@@ -81,14 +81,17 @@ body {
   font-weight: bold;
   transition: background-color 0.3s ease, color 0.3s ease;  
   font-size: 1.0rem;
-  font-weight: bold; 
-  font-style: italic;
+  font-weight: bold;
 }
 
 /* Hover Effect for List Items */
 .privacy-content ul li:hover {
   background-color: #333; 
   color: #00ff88;  
+}
+
+.privacy-content ul li p {
+  color: inherit;
 }
 
 /* Styling for Links in List Items */
