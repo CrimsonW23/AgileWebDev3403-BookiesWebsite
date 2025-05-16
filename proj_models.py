@@ -102,8 +102,9 @@ class Post(db.Model):
     body = db.Column(db.String(150), index=True, unique=False)
     category = db.Column(db.String(25), index=True, unique=False)
     timestamp = db.Column(db.DateTime, index=True, default=lambda: datetime.now().replace(second=0, microsecond=0))
-    author = db.Column(db.Integer, db.ForeignKey('user.id', name='fk_post_user'), nullable=False)  
+    author = db.Column(db.Integer, db.ForeignKey('user.id', name='fk_post_user'), nullable=False)   
     replies = db.relationship('Reply', backref='post', lazy='dynamic')  # One-to-many relationship with Reply
+    privacy = db.Column(db.String(20), nullable=False, default='public') 
     
     @property
     def most_recent_reply(self):
