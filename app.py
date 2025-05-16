@@ -13,7 +13,7 @@ from werkzeug.utils import secure_filename
 
 import os
 
-def create_app(config_class):
+def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
 
