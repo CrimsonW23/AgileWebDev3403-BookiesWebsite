@@ -65,7 +65,7 @@ Quickly move to launching instructions for:
    - Your secret key can be anything<br>
    
 #### 10. Run the application<br>
-    `python app.py`<br>
+    python app.py
 
 #### 11. Head over to http://127.0.0.1:5000 (or the address your console says the website is hosted at)<br>
 
