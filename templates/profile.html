@@ -66,8 +66,7 @@
 
     </div>
   </section>
-
-  {# ------------- STATS (mask logic unchanged) --------------------- #}
+  {# -----------  STATS  ------------------------------------------- #}
   <section class="profile-section individual-stats">
     <h2>
       {% if current_user.is_authenticated and current_user.id == user.id %}
@@ -76,27 +75,34 @@
           {{ user.username }}’s Stats
       {% endif %}
     </h2>
-
     <div>
       <p><strong>Total Bets Placed:</strong>
-         <input type="text" id="stats-totalBets" value="*****" readonly></p>
+        <input type="text" id="stats-totalBets"
+                value="{{ user.stats.total if user.show_stats or current_user.id == user.id else '*****' }}"
+                readonly></p>
       <p><strong>Total Wins:</strong>
-         <input type="text" id="stats-wins" value="*****" readonly></p>
+        <input type="text" id="stats-wins"
+                value="{{ user.stats.wins if user.show_stats or current_user.id == user.id else '*****' }}"
+                readonly></p>
       <p><strong>Biggest Win:</strong>
-         <input type="text" id="stats-biggestWin" value="*****" readonly></p>
-      <p><strong>Win Rate:</strong>
-         <input type="text" id="stats-winRate" value="*****" readonly></p>
+        <input type="text" id="stats-biggestWin"
+                value="{{ user.stats.biggest if user.show_stats or current_user.id == user.id else '*****' }}"
+                readonly></p>
+      <p><strong>Win Rate %:</strong>
+        <input type="text" id="stats-winRate"
+                value="{{ user.stats.rate if user.show_stats or current_user.id == user.id else '*****' }}"
+                readonly></p>
     </div>
-
+    
     {% if current_user.is_authenticated and current_user.id == user.id %}
       <div class="checkbox-container">
         <label for="show-stats">Show Stats on Profile</label>
-        <input type="checkbox" id="show-stats">
+        <input type="checkbox" id="show-stats" {% if user.show_stats %}checked{% endif %}>
       </div>
     {% endif %}
   </section>
-
-  {# ------------- PAST BETS (mask logic unchanged) ---------------- #}
+    
+  {# -----------  PAST BETS  --------------------------------------- #}
   <section class="profile-section past-bets">
     <h2>
       {% if current_user.is_authenticated and current_user.id == user.id %}
@@ -105,48 +111,70 @@
           {{ user.username }}’s Past Bets
       {% endif %}
     </h2>
-
     {% if user.bets %}
       <div class="bet-history">
         {% for bet in user.bets %}
           <div class="bet-card">
-            <p class="game-name"  id="bet-game-{{ loop.index0 }}">*****</p>
-            <p class="bet-amount" id="bet-amount-{{ loop.index0 }}">*****</p>
-            <p class="bet-outcome"id="bet-outcome-{{ loop.index0 }}">*****</p>
-            <p class="bet-date"  id="bet-date-{{ loop.index0 }}">*****</p>
+            <p class="game-name">
+              {{ bet.event_name if user.show_bets or current_user.id == user.id else '*****' }}</p>
+            <p class="bet-amount">
+              {{ bet.stake_amount if user.show_bets or current_user.id == user.id else '*****' }}</p>
+            <p class="bet-outcome">
+              {{ bet.event_outcome if user.show_bets or current_user.id == user.id else '*****' }}</p>
+            <p class="bet-date">
+              {{ bet.date_settled.strftime('%Y-%m-%d') if user.show_bets or current_user.id == user.id else '*****' }}</p>
           </div>
         {% endfor %}
       </div>
     {% else %}
       <p>{{ user.username }} hasn’t placed any bets yet.</p>
     {% endif %}
-
+    
     {% if current_user.is_authenticated and current_user.id == user.id %}
       <div class="checkbox-container">
         <label for="show-bets">Show Past Bets on Profile</label>
-        <input type="checkbox" id="show-bets">
+        <input type="checkbox" id="show-bets" {% if user.show_bets %}checked{% endif %}>
       </div>
     {% endif %}
   </section>
 
 </main>
 
-{# --------- INLINE JS JUST FOR EMAIL VISIBILITY ------------------- #}
+
+{# -----------  INLINE JS  --------------------------------------- #}
 {% if current_user.is_authenticated and current_user.id == user.id %}
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-  const box = document.getElementById("show-email");
-  const field = document.getElementById("email-input");
-  if (!box || !field) return;
+  const ajaxToggle = (id, url) => {
+    const box = document.getElementById(id);
+    if (!box) return;
+    box.addEventListener("change", () =>
+      fetch(url, {method:"POST",
+                  headers:{"Content-Type":"application/json"},
+                  body:JSON.stringify({show: box.checked})}));
+  };
 
-  box.addEventListener("change", () => {
-    fetch("{{ url_for('toggle_email_visibility') }}", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({show: box.checked})
-    });
-    field.value = box.checked ? "{{ user.email }}" : "*****";
-  });
+  ajaxToggle("show-email", "{{ url_for('toggle_email_visibility') }}");
+  ajaxToggle("show-stats", "{{ url_for('toggle_stats_visibility') }}");
+  ajaxToggle("show-bets",  "{{ url_for('toggle_bets_visibility')  }}");
+
+  /* instant front-end update for self-view */
+  if (document.getElementById("show-stats")) {
+    const fields = ["totalBets","wins","biggestWin","winRate"].map(
+        k => document.getElementById(`stats-${k}`));
+    document.getElementById("show-stats").addEventListener("change", e =>
+      fields.forEach(f => f.value = e.target.checked ? f.dataset.real : "*****"));
+    // store real values once
+    fields.forEach(f => f.dataset.real = f.value);
+  }
+  if (document.getElementById("show-bets")) {
+    document.getElementById("show-bets").addEventListener("change", () =>
+      document.querySelectorAll(".bet-card p").forEach(p =>
+        p.textContent = document.getElementById("show-bets").checked ?
+                        p.dataset.real : "*****"));
+    // store real values once
+    document.querySelectorAll(".bet-card p").forEach(p => p.dataset.real = p.textContent);
+  }
 });
 </script>
 {% endif %}

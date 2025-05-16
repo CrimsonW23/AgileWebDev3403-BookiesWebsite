@@ -609,6 +609,20 @@ def toggle_email_visibility():
     db.session.commit()
     return jsonify(success=True)
 
+@app.post("/toggle_stats_visibility")
+@login_required
+def toggle_stats_visibility():
+    current_user.show_stats = bool(request.get_json().get("show"))
+    db.session.commit()
+    return jsonify(success=True)
+
+@app.post("/toggle_bets_visibility")
+@login_required
+def toggle_bets_visibility():
+    current_user.show_bets = bool(request.get_json().get("show"))
+    db.session.commit()
+    return jsonify(success=True)
+
 
 @app.route("/profile")
 @app.route("/profile/<username>")
@@ -622,20 +636,31 @@ def profile(username=None):
         # Slug present → look that person up (404 if not found)
         db_user = User.query.filter_by(username=username).first_or_404()
 
+    past_bets_q = PlacedBets.query.filter_by(user_id=db_user.id, status="past")
+    total_bets  = past_bets_q.count()
+    wins_q      = past_bets_q.filter(PlacedBets.actual_winnings > 0)
+    wins        = wins_q.count()
+    biggest_win = wins_q.order_by(PlacedBets.actual_winnings.desc()).first()
+    biggest_win = biggest_win.actual_winnings if biggest_win else 0
+    win_rate    = round(wins / total_bets * 100, 2) if total_bets else 0
+
     # 2. Prepare dict for the template
     user_dict = {
-        "id": db_user.id,
-        "username": db_user.username,
-        "email": db_user.email,
-        "show_email": db_user.show_email,
-        "date_joined": db_user.date_joined.strftime("%Y-%m-%d"),
-        "profile_pic": db_user.profile_pic or "default.png",
-        # Stubs until you wire real stats/bets
-        "totalBets": db_user.bets.count() if hasattr(db_user, "bets") else 0,
-        "wins": 0,
-        "losses": 0,
-        "biggestWin": 0,
-        "bets": db_user.bets if hasattr(db_user, "bets") else []
+        "id":            db_user.id,
+        "username":      db_user.username,
+        "email":         db_user.email,
+        "show_email":    db_user.show_email,
+        "date_joined":   db_user.date_joined.strftime("%Y-%m-%d"),
+        "profile_pic":   db_user.profile_pic or "default.png",
+        "show_stats":    db_user.show_stats,
+        "show_bets":     db_user.show_bets,
+        "stats": {
+            "total":  total_bets,
+            "wins":   wins,
+            "biggest":biggest_win,
+            "rate":   win_rate
+        },
+        "bets":          past_bets_q.order_by(PlacedBets.date_settled.desc()).all()
     }
     return render_template("profile.html", user=user_dict)
 
