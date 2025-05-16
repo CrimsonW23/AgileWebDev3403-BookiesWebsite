@@ -563,7 +563,7 @@ def place_bet(bet_id):
         
         # Check against max bet
         if amount > bet.max_stake:
-            flash(f'Stake cannot exceed ${bet.max_stake}', 'error')
+            #flash(f'Stake cannot exceed ${bet.max_stake}', 'error')
             return redirect(url_for('active_bets'))
 
         # Add the bet to the PlacedBets table
