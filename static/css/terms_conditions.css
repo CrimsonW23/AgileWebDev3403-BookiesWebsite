@@ -58,12 +58,11 @@ body {
 
 /* Styling for Unordered Lists */
 .terms-content ul {
-  list-style: none;  
   padding: 0;  
   margin: 0 auto;
   display: block;
   width: fit-content;
-  text-align: center;
+  text-align: left;
 }
 
 /* Styling for Nested Lists */
@@ -81,7 +80,6 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;  
   font-size: 1.0rem;
   font-weight: bold; 
-  font-style: italic;
 }
 
 /* Hover Effect for List Items */

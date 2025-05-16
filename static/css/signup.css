@@ -130,3 +130,13 @@ form button:hover, form .btn:hover {
     font-size: 16px; 
     text-transform: capitalize; 
 }
+
+a,
+a:visited {
+    color: #00ff88;
+    text-decoration: none;
+}
+
+a:hover{
+    text-decoration: underline;
+}
