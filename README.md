@@ -31,6 +31,9 @@ The Bookies Website is a comprehensive platform designed for sports enthusiasts 
 <br>
 
 # Launching Instructions
+Launching instructions for
+- [Windows](#windows)
+- [Linux or MacOS](#linuxmacos)
 
 ### Windows<br>
 #### 1. Launch the Command Prompt<br>
