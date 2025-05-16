@@ -31,37 +31,37 @@ The Bookies Website is a comprehensive platform designed for sports enthusiasts 
 <br>
 
 # Launching Instructions
-Launching instructions for
+Quickly move to launching instructions for:
 - [Windows](#windows)
 - [Linux or MacOS](#linuxmacos)
 
 ### Windows<br>
 #### 1. Launch the Command Prompt<br>
 
-#### 2. Clone the repository<br>
-   `git clone https://github.com/CrimsonW23/AgileWebDev3403-BookiesWebsite.git <folder-name>`<br>
+#### 2. Clone the repository
+    git clone https://github.com/CrimsonW23/AgileWebDev3403-BookiesWebsite.git <folder-name>
    - Replace `<folder-name>` with your desired name, or leave it blank and it will be cloned into `AgileWebDev3403-BookiesWebsite.git`<br>
    
-#### 3. Navigate to the cloned repository<br>
-   `cd <folder-name>`<br>
+#### 3. Navigate to the cloned repository
+    cd <folder-name>
    
-#### 4. Install `venv`, a virtual environment<br>
-   `python -m venv venv`<br>
+#### 4. Install `venv`, a virtual environment
+    python -m venv venv
 
-#### 5. Activate `venv`<br>
-   `venv\Scripts\activate`<br>
+#### 5. Activate `venv`
+    venv\Scripts\activate
   
-#### 6. Install dependencies<br>
-   `pip install -r requirements.txt`<br>
+#### 6. Install dependencies
+    pip install -r requirements.txt
 
-#### 7. Generate the migration script<br>
-   `flask db migrate`<br>
+#### 7. Generate the migration script
+    flask db migrate
 
-#### 8. Update the database<br>
-   `flask db upgrade`<br>
+#### 8. Update the database
+    flask db upgrade
 
-#### 9. Set your secret key<br>
-   `set SECRET_KEY="<secret_key>"`<br>
+#### 9. Set your secret key
+    set SECRET_KEY="<secret_key>"
    - Your secret key can be anything<br>
    
 #### 10. Run the application<br>
@@ -74,12 +74,12 @@ Launching instructions for
 ### Linux/MacOS
 #### 1. Open your terminal.
 
-#### 2. Clone the repository: <br>
-   `git clone https://github.com/CrimsonW23/AgileWebDev3403-BookiesWebsite.git <folder-name>` <br>
+#### 2. Clone the repository:
+    git clone https://github.com/CrimsonW23/AgileWebDev3403-BookiesWebsite.git <folder-name>
    - Replace `<folder-name>` with your preferred directory name, or omit it to clone into AgileWebDev3403-BookiesWebsite.
 
 #### 3. Navigate into the project folder:<br>
-   `cd <folder-name>` <br>
+    cd <folder-name>
    
 #### 4. Create and activate a virtual environment (recommended):<br>
    ```
@@ -88,20 +88,20 @@ Launching instructions for
    ```
    
 #### 5. Install the dependencies:<br>
-   `pip install -r requirements.txt`<br>
+    pip install -r requirements.txt
    
 #### 6. Generate the migration script:<br>
-   `flask db migrate`<br>
+    flask db migrate
    
 #### 7. Apply the migration to the database:<br>
-   `flask db upgrade` <br>
+    flask db upgrade
    
 #### 8. Set the secret key environment variable:<br>
-   `export SECRET_KEY="<your-secret-key>"`<br>
+    export SECRET_KEY="<your-secret-key>"
    - Replace `<your-secret-key>` with any strong random string.<br>
 
 #### 9. Run the application:<br>
-   `python app.py`<br>
+    python app.py
 
 #### 10. Open your browser and go to http://127.0.0.1:5000 (or the address shown in your terminal output).<br>
 
