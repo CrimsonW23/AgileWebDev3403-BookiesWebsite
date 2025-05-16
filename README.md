@@ -38,36 +38,36 @@ Quickly move to launching instructions for:
 ### Windows<br>
 #### 1. Launch the Command Prompt<br>
 
-#### 2. Clone the repository
+#### 2. Clone the repository:
     git clone https://github.com/CrimsonW23/AgileWebDev3403-BookiesWebsite.git <folder-name>
    - Replace `<folder-name>` with your desired name, or leave it blank and it will be cloned into `AgileWebDev3403-BookiesWebsite.git`<br>
    
-#### 3. Navigate to the cloned repository
+#### 3. Navigate to the cloned repository:
     cd <folder-name>
    
-#### 4. Install `venv`, a virtual environment
+#### 4. Create and activate a virtual environment:
     python -m venv venv
-
-#### 5. Activate `venv`
     venv\Scripts\activate
   
-#### 6. Install dependencies
+#### 5. Install dependencies:
     pip install -r requirements.txt
 
-#### 7. Generate the migration script
+#### 6. Generate the migration script:
     flask db migrate
 
-#### 8. Update the database
+#### 7. Update the database:
     flask db upgrade
 
-#### 9. Set your secret key
-    set SECRET_KEY="<secret_key>"
-   - Your secret key can be anything<br>
+#### 8. Set your secret key (First Launch ONLY):
+    echo 'SECRET_KEY="<secret_key>"' >> .env
+   - Creates a `.env` file that will contain your secret key
+   - Your secret key can be anything
+   - This step does not need to be repeated when launching your app again.<br>
    
-#### 10. Run the application<br>
+#### 9. Run the application:
     python app.py
 
-#### 11. Head over to http://127.0.0.1:5000 (or the address your console says the website is hosted at)<br>
+#### 10. Head over to http://127.0.0.1:5000 (or the address your console says the website is hosted at)<br>
 
 <br>
 
@@ -82,10 +82,8 @@ Quickly move to launching instructions for:
     cd <folder-name>
    
 #### 4. Create and activate a virtual environment (recommended):<br>
-   ```
-   python3 -m venv venv
-   source venv/bin/activate
-   ```
+    python3 -m venv venv
+    source venv/bin/activate
    
 #### 5. Install the dependencies:<br>
     pip install -r requirements.txt
@@ -96,9 +94,11 @@ Quickly move to launching instructions for:
 #### 7. Apply the migration to the database:<br>
     flask db upgrade
    
-#### 8. Set the secret key environment variable:<br>
-    export SECRET_KEY="<your-secret-key>"
-   - Replace `<your-secret-key>` with any strong random string.<br>
+#### 8. Set the secret key environment variable (First Launch ONLY):
+    echo 'SECRET_KEY="<secret_key>"' >> .env
+   - Creates a `.env` file that will contain your secret key
+   - Your secret key can be anything
+   - This step does not need to be repeated when launching your app again.<br>
 
 #### 9. Run the application:<br>
     python app.py
