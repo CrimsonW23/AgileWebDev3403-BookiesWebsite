@@ -207,10 +207,10 @@ def signup():
         # Check if username or email already exists
         existing_user = User.query.filter((User.email == email) | (User.username == username) ).first()
         if existing_user:
-#            if existing_user.email == email:
-#                flash("The email is already registered. Please use a different email", 'error')
-#            if existing_user.username == username:
-#                flash("The username is already taken. Please choose a different one", 'error')
+            if existing_user.email == email:
+                flash("The email is already registered. Please use a different email", 'error')
+            if existing_user.username == username:
+                flash("The username is already taken. Please choose a different one", 'error')
             return render_template("signup.html", form=form)
         
         # Create a new user
