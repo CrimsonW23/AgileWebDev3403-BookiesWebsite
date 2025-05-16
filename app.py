@@ -139,11 +139,11 @@ def allowed_file(filename):
 def upload_avatar():
     file = request.files.get("avatar")
     if not file or file.filename == "":
-        flash("No file selected.", "error")
-        return redirect(url_for("profile"))
+#        flash("No file selected.", "error")
+       return redirect(url_for("profile"))
 
     if not allowed_file(file.filename):
-        flash("Invalid file type.", "error")
+#        flash("Invalid file type.", "error")
         return redirect(url_for("profile"))
 
     filename  = secure_filename(f"{current_user.id}_{file.filename}")
@@ -154,7 +154,7 @@ def upload_avatar():
     current_user.profile_pic = filename
     db.session.commit()
 
-    flash("Profile picture updated!", "success")
+#    flash("Profile picture updated!", "success")
     return redirect(url_for("profile"))
 
 # Route for the global home page
@@ -207,10 +207,10 @@ def signup():
         # Check if username or email already exists
         existing_user = User.query.filter((User.email == email) | (User.username == username) ).first()
         if existing_user:
-            if existing_user.email == email:
-                flash("The email is already registered. Please use a different email", 'error')
-            if existing_user.username == username:
-                flash("The username is already taken. Please choose a different one", 'error')
+#            if existing_user.email == email:
+#                flash("The email is already registered. Please use a different email", 'error')
+#            if existing_user.username == username:
+#                flash("The username is already taken. Please choose a different one", 'error')
             return render_template("signup.html", form=form)
         
         # Create a new user
@@ -691,17 +691,20 @@ def friends():
 def send_friend_request(username):
     target = User.query.filter_by(username=username).first_or_404()
 
-    if current_user.id == target.id:
-        flash("That's you!", "info")
-    elif current_user.is_friends_with(target):
-        flash("Already friends.", "info")
-    elif current_user.has_pending_with(target):
-        flash("Request already pending.", "warning")
-    else:
+#    if current_user.id == target.id:
+#        flash("That's you!", "info")
+#    elif current_user.is_friends_with(target):
+#        flash("Already friends.", "info")
+#    elif current_user.has_pending_with(target):
+#        flash("Request already pending.", "warning")
+#    else:
+
+    # Remove line below if above if-statements are uncommented
+    if current_user.id != target.id and not current_user.is_friends_with(target) and not current_user.has_pending_with(target):
         fr = FriendRequest(from_id=current_user.id, to_id=target.id)
         db.session.add(fr)
         db.session.commit()
-        flash(f"Request sent to {target.username}.", "success")
+#        flash(f"Request sent to {target.username}.", "success")
 
     return redirect(request.referrer or url_for("search_profiles"))
 
@@ -712,7 +715,7 @@ def accept_friend_request(rid):
 
     # Use Flask-Login's current_user for access control
     if fr.to_id != current_user.id or fr.status != "pending":
-        flash("Cannot accept.", "error")
+#        flash("Cannot accept.", "error")
         return redirect(url_for("friends"))
 
     # Mark accepted & create reciprocal rows
@@ -723,7 +726,7 @@ def accept_friend_request(rid):
     ])
     db.session.commit()
 
-    flash("Friend request accepted.", "success")
+#    flash("Friend request accepted.", "success")
     return redirect(url_for("friends"))
 
     
