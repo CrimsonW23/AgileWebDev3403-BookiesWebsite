@@ -19,6 +19,10 @@
             {{ form.post.label }}
             {{ form.post(class="input-field", rows=4) }}
         </div>
+        <div class = "row">
+            {{ form.privacy.label }}
+            {{ form.privacy(class="input-field") }}
+        </div>
         {% for error in form.post.errors %}
             <span style="color: red;">[{{ error }}]</span>
         {% endfor %}
