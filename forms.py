@@ -236,6 +236,7 @@ class PostForm(FlaskForm):
     category = SelectField('Category', choices=categories, validators=[DataRequired()])
     post = TextAreaField('Say something:', validators=[DataRequired(), Length(min=1, max=150)])
     submit = SubmitField('Submit')
+    privacy = SelectField('Privacy', choices=[('public', 'Public'), ('friends', 'Friends only')])
 
 class ReplyForm(FlaskForm):
     reply = TextAreaField('Add to the conversation:', validators=[DataRequired(), Length(min=1, max=150)])

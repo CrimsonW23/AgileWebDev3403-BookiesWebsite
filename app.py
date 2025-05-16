@@ -6,7 +6,7 @@ from forms import PostForm, ReplyForm, CreateBetForm, PlaceBetForm, SignupForm, 
 from datetime import datetime, timedelta, date
 from extensions import db
 from proj_models import User, Post, Reply, CreatedBets, ActiveBets, PlacedBets, EventResult, Friendship, FriendRequest
-from sqlalchemy import func
+from sqlalchemy import func, or_, and_
 from flask_login import LoginManager, login_user, logout_user, current_user, login_required
 from sqlalchemy.orm import Session
 from werkzeug.utils import secure_filename
@@ -139,11 +139,11 @@ def allowed_file(filename):
 def upload_avatar():
     file = request.files.get("avatar")
     if not file or file.filename == "":
-        flash("No file selected.", "error")
-        return redirect(url_for("profile"))
+#        flash("No file selected.", "error")
+       return redirect(url_for("profile"))
 
     if not allowed_file(file.filename):
-        flash("Invalid file type.", "error")
+#        flash("Invalid file type.", "error")
         return redirect(url_for("profile"))
 
     filename  = secure_filename(f"{current_user.id}_{file.filename}")
@@ -154,7 +154,7 @@ def upload_avatar():
     current_user.profile_pic = filename
     db.session.commit()
 
-    flash("Profile picture updated!", "success")
+#    flash("Profile picture updated!", "success")
     return redirect(url_for("profile"))
 
 # Route for the global home page
@@ -207,10 +207,10 @@ def signup():
         # Check if username or email already exists
         existing_user = User.query.filter((User.email == email) | (User.username == username) ).first()
         if existing_user:
-            if existing_user.email == email:
-                flash("The email is already registered. Please use a different email", 'error')
-            if existing_user.username == username:
-                flash("The username is already taken. Please choose a different one", 'error')
+#            if existing_user.email == email:
+#                flash("The email is already registered. Please use a different email", 'error')
+#            if existing_user.username == username:
+#                flash("The username is already taken. Please choose a different one", 'error')
             return render_template("signup.html", form=form)
         
         # Create a new user
@@ -546,28 +546,48 @@ def place_bet(bet_id):
 
 
 @app.route("/forum")
+@login_required
 def forum():
-    # Get distinct categories from the database for the filter
-    filter_categories = db.session.query(Post.category).distinct().all()
-    filter_categories = [category[0] for category in filter_categories]  # Unwrap tuple
-
-    # Get the selected category from the request args (default to 'all')
+    # Get the selected category from request args, default to 'all'
     selected_category = request.args.get('category', 'all')
-
-    # Pagination
     page = request.args.get('page', 1, type=int)
     posts_per_page = 10  # Number of posts per page
 
-    # Query posts based on the selected category
-    if selected_category == 'all':
-        query = Post.query.order_by(Post.timestamp.desc())
-    else:
-        query = Post.query.filter_by(category=selected_category).order_by(Post.timestamp.desc())
+    # Get friend IDs list
+    friend_ids = [friend.id for friend in current_user.friends()]
 
+    # Build privacy filter based on whether user has friends
+    if friend_ids:
+        privacy_filter = or_(
+            Post.privacy == 'public',
+            and_(Post.privacy == 'friends', Post.author_id.in_(friend_ids)),
+            Post.author_id == current_user.id
+        )
+    else:
+        privacy_filter = or_(
+            Post.privacy == 'public',
+            Post.author_id == current_user.id
+        )
+
+    # Start query with privacy filter
+    query = Post.query.filter(privacy_filter)
+
+    # Filter by category if selected_category is not 'all'
+    if selected_category != 'all':
+        query = query.filter(Post.category == selected_category)
+
+    # Order posts by newest first
+    query = query.order_by(Post.timestamp.desc())
+
+    # Paginate the results
     pagination = query.paginate(page=page, per_page=posts_per_page, error_out=False)
     posts = pagination.items
 
-    # Render the forum page
+    # Fetch distinct categories for the filter dropdown
+    filter_categories = db.session.query(Post.category).distinct().all()
+    filter_categories = [cat[0] for cat in filter_categories]
+
+    # Render the forum template
     return render_template(
         "forum.html",
         posts=posts,
@@ -671,17 +691,20 @@ def friends():
 def send_friend_request(username):
     target = User.query.filter_by(username=username).first_or_404()
 
-    if current_user.id == target.id:
-        flash("That's you!", "info")
-    elif current_user.is_friends_with(target):
-        flash("Already friends.", "info")
-    elif current_user.has_pending_with(target):
-        flash("Request already pending.", "warning")
-    else:
+#    if current_user.id == target.id:
+#        flash("That's you!", "info")
+#    elif current_user.is_friends_with(target):
+#        flash("Already friends.", "info")
+#    elif current_user.has_pending_with(target):
+#        flash("Request already pending.", "warning")
+#    else:
+
+    # Remove line below if above if-statements are uncommented
+    if current_user.id != target.id and not current_user.is_friends_with(target) and not current_user.has_pending_with(target):
         fr = FriendRequest(from_id=current_user.id, to_id=target.id)
         db.session.add(fr)
         db.session.commit()
-        flash(f"Request sent to {target.username}.", "success")
+#        flash(f"Request sent to {target.username}.", "success")
 
     return redirect(request.referrer or url_for("search_profiles"))
 
@@ -692,7 +715,7 @@ def accept_friend_request(rid):
 
     # Use Flask-Login's current_user for access control
     if fr.to_id != current_user.id or fr.status != "pending":
-        flash("Cannot accept.", "error")
+#        flash("Cannot accept.", "error")
         return redirect(url_for("friends"))
 
     # Mark accepted & create reciprocal rows
@@ -703,7 +726,7 @@ def accept_friend_request(rid):
     ])
     db.session.commit()
 
-    flash("Friend request accepted.", "success")
+#    flash("Friend request accepted.", "success")
     return redirect(url_for("friends"))
 
     
@@ -716,8 +739,9 @@ def create_post():
             body=form.post.data,
             category=form.category.data,
             timestamp=datetime.now().replace(second=0, microsecond=0),
-            author=current_user.username,  
-            title=form.title.data
+            author_id=current_user.id,  
+            title=form.title.data,
+            privacy=form.privacy.data
         )
         db.session.add(post)
         db.session.commit()
@@ -733,7 +757,7 @@ def view_post(post_id):
         reply = Reply(
             body=form.reply.data,
             timestamp=datetime.now().replace(second=0, microsecond=0),
-            author=current_user.username if current_user.is_authenticated else "Anonymous",  
+            author_id=current_user.id,
             post_id=post_id
         )
         db.session.add(reply)
