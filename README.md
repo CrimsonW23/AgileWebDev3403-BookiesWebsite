@@ -66,26 +66,26 @@ The Bookies Website is a comprehensive platform designed for sports enthusiasts 
 
 11. Head over to http://127.0.0.1:5000 (or the address your console says the website is hosted at)<br>
 
-### Linux
-Open your terminal.
+### Linux/MacOS
+1. Open your terminal.
 
-1. Clone the repository: <br>
+2. Clone the repository: <br>
    `git clone https://github.com/CrimsonW23/AgileWebDev3403-BookiesWebsite.git <folder-name>` <br>
    - Replace `<folder-name>` with your preferred directory name, or omit it to clone into AgileWebDev3403-BookiesWebsite.
 
-2. Navigate into the project folder:<br>
+3. Navigate into the project folder:<br>
    `cd <folder-name>` <br>
    
-3. Create and activate a virtual environment (recommended):<br>
+4. Create and activate a virtual environment (recommended):<br>
    ```
    python3 -m venv venv
    source venv/bin/activate
    ```
    
-4. Install the dependencies:<br>
+5. Install the dependencies:<br>
    `pip install -r requirements.txt`<br>
    
-5. Generate the migration script:<br>
+6. Generate the migration script:<br>
    `flask db migrate`<br>
    
 7. Apply the migration to the database:<br>
