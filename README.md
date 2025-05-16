@@ -1,22 +1,7 @@
-## README Instructions
-The creation of the web application should be done in a private GitHub repository that includes a README containing:
-- a description of the purpose of the application, explaining its design and use.
-- a table with with each row containing the i) UWA ID ii) name and iii) Github user name of the group members.
-- instructions for how to launch the application.
-- instructions for how to run the tests for the application.
-<br>
-
-# Application Purpose, Design, and Use
+# GamblePro Purpose, Design, and Use
 
 ## Purpose
 The Bookies Website is a comprehensive platform designed for sports enthusiasts and betting enthusiasts to track, analyze, and engage with betting data. It provides users with personalized profiles, public statistics, and a social forum to discuss games and predictions. The platform emphasizes data visualization, user engagement, and a safe, interactive environment for betting.
-
-### Purpose
-
-
-### Purpose
-
-
  
 <br>
 
@@ -108,5 +93,24 @@ Quickly move to launching instructions for:
 For future development please add the new html pages in the template folder and the css in the static folder.
 <br>
 
-## Testing Instructions
+# Testing Instructions
+#### 1. Launch one instance of the web application.
+
+#### 2. In another terminal, navigate to the folder where you have cloned the repository.
+
+#### 3. Navigate to the `tests` folder
+
+#### 4. To run tests, use the following command:
+    python -m unittest <filename>
+- **Files for testing:**<br><br>
+     Unit Tests:
+     - test_forum.py (3 tests)
+     - test_friendship.py (3 tests)<br>
+     
+     Selenium Tests:
+     - selenium_test_login.py (2 tests)
+     - selenium_test_signup.py (3 tests)
+ 
+#### Important Note
+It is recommended to delete and repeat steps 6 and 7 in Launching Instructions to start the tests with a clean database each time.
 <br>
