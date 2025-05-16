@@ -1,8 +1,8 @@
-"""New start
+"""initial migration with game_id
 
-Revision ID: ca04bdb5c23c
+Revision ID: e0054e358fa5
 Revises: 
-Create Date: 2025-05-16 14:35:38.787758
+Create Date: 2025-05-16 16:24:55.156106
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'ca04bdb5c23c'
+revision = 'e0054e358fa5'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -77,28 +77,6 @@ def upgrade():
     sa.ForeignKeyConstraint(['created_by'], ['user.id'], name='fk_createdbets_user'),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_table('placed_bets',
-    sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('user_id', sa.Integer(), nullable=False),
-    sa.Column('event_name', sa.String(length=100), nullable=False),
-    sa.Column('bet_type_description', sa.String(length=255), nullable=False),
-    sa.Column('bet_type', sa.String(length=50), nullable=False),
-    sa.Column('stake_amount', sa.Float(), nullable=False),
-    sa.Column('odds', sa.Float(), nullable=False),
-    sa.Column('potential_winnings', sa.Float(), nullable=False),
-    sa.Column('scheduled_time', sa.DateTime(), nullable=False),
-    sa.Column('duration', sa.Interval(), nullable=False),
-    sa.Column('status', sa.String(length=20), nullable=False),
-    sa.Column('actual_winnings', sa.Float(), nullable=True),
-    sa.Column('date_settled', sa.DateTime(), nullable=True),
-    sa.Column('event_outcome', sa.String(length=50), nullable=True),
-    sa.ForeignKeyConstraint(['user_id'], ['user.id'], name='fk_placedbets_user'),
-    sa.PrimaryKeyConstraint('id')
-    )
-    with op.batch_alter_table('placed_bets', schema=None) as batch_op:
-        batch_op.create_index(batch_op.f('ix_placed_bets_scheduled_time'), ['scheduled_time'], unique=False)
-        batch_op.create_index(batch_op.f('ix_placed_bets_status'), ['status'], unique=False)
-
     op.create_table('post',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('title', sa.String(length=50), nullable=True),
@@ -115,6 +93,30 @@ def upgrade():
         batch_op.create_index(batch_op.f('ix_post_category'), ['category'], unique=False)
         batch_op.create_index(batch_op.f('ix_post_timestamp'), ['timestamp'], unique=False)
         batch_op.create_index(batch_op.f('ix_post_title'), ['title'], unique=False)
+
+    op.create_table('placed_bets',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('user_id', sa.Integer(), nullable=False),
+    sa.Column('game_id', sa.Integer(), nullable=False),
+    sa.Column('event_name', sa.String(length=100), nullable=False),
+    sa.Column('bet_type_description', sa.String(length=255), nullable=False),
+    sa.Column('bet_type', sa.String(length=50), nullable=False),
+    sa.Column('stake_amount', sa.Float(), nullable=False),
+    sa.Column('odds', sa.Float(), nullable=False),
+    sa.Column('potential_winnings', sa.Float(), nullable=False),
+    sa.Column('scheduled_time', sa.DateTime(), nullable=False),
+    sa.Column('duration', sa.Interval(), nullable=False),
+    sa.Column('status', sa.String(length=20), nullable=False),
+    sa.Column('actual_winnings', sa.Float(), nullable=True),
+    sa.Column('date_settled', sa.DateTime(), nullable=True),
+    sa.Column('event_outcome', sa.String(length=50), nullable=True),
+    sa.ForeignKeyConstraint(['game_id'], ['active_bets.id'], name='fk_placed_bets_game_id'),
+    sa.ForeignKeyConstraint(['user_id'], ['user.id'], name='fk_placedbets_user'),
+    sa.PrimaryKeyConstraint('id')
+    )
+    with op.batch_alter_table('placed_bets', schema=None) as batch_op:
+        batch_op.create_index(batch_op.f('ix_placed_bets_scheduled_time'), ['scheduled_time'], unique=False)
+        batch_op.create_index(batch_op.f('ix_placed_bets_status'), ['status'], unique=False)
 
     op.create_table('reply',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -140,6 +142,11 @@ def downgrade():
         batch_op.drop_index(batch_op.f('ix_reply_body'))
 
     op.drop_table('reply')
+    with op.batch_alter_table('placed_bets', schema=None) as batch_op:
+        batch_op.drop_index(batch_op.f('ix_placed_bets_status'))
+        batch_op.drop_index(batch_op.f('ix_placed_bets_scheduled_time'))
+
+    op.drop_table('placed_bets')
     with op.batch_alter_table('post', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_post_title'))
         batch_op.drop_index(batch_op.f('ix_post_timestamp'))
@@ -147,11 +154,6 @@ def downgrade():
         batch_op.drop_index(batch_op.f('ix_post_body'))
 
     op.drop_table('post')
-    with op.batch_alter_table('placed_bets', schema=None) as batch_op:
-        batch_op.drop_index(batch_op.f('ix_placed_bets_status'))
-        batch_op.drop_index(batch_op.f('ix_placed_bets_scheduled_time'))
-
-    op.drop_table('placed_bets')
     op.drop_table('created_bets')
     op.drop_table('active_bets')
     with op.batch_alter_table('user', schema=None) as batch_op:

@@ -18,14 +18,27 @@ document.addEventListener('DOMContentLoaded', () => {
 function initializePlaceBetForms() {
   document.querySelectorAll('.place-bet-form').forEach(form => {
       form.addEventListener('submit', function(event) {
-          const stakeInput = this.querySelector('input[name="stake_amount"]');
-          const maxStake = parseFloat(stakeInput.getAttribute('max'));
-          const stakeAmount = parseFloat(stakeInput.value);
-          
-          if (stakeAmount > maxStake) {
-              event.preventDefault();
-              alert('Insufficient funds to place this bet.');
-          }
+        const stakeInput = this.querySelector('input[name="stake_amount"]');
+        const maxStake = parseFloat(this.querySelector('.max-stake-value').textContent);
+        const stakeAmount = parseFloat(stakeInput.value);
+        
+        if (isNaN(stakeAmount)) {
+            event.preventDefault();
+            alert('Please enter a valid number');
+            return;
+        }
+
+        if (stakeAmount > maxStake) {
+            event.preventDefault();
+            alert(`Stake amount cannot exceed $${maxStake}`);
+            return;
+        }
+
+        if (stakeAmount <= 0) {
+            event.preventDefault();
+            alert('Stake amount must be greater than 0');
+            return;
+        }
       });
   });
 } 

@@ -165,6 +165,7 @@ class ActiveBets(db.Model):
 class PlacedBets(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id', name='fk_placedbets_user'), nullable=False)
+    game_id = db.Column(db.Integer, db.ForeignKey('active_bets.id', name='fk_placed_bets_game_id'), nullable=False)
     event_name = db.Column(db.String(100), nullable=False)
     bet_type_description = db.Column(db.String(255), nullable=False)
     bet_type = db.Column(db.String(50), nullable=False)

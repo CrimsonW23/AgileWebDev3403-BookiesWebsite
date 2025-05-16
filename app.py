@@ -1,8 +1,8 @@
-from flask import Flask, render_template, jsonify, request, redirect, url_for, flash
+from flask import Flask, render_template, jsonify, request, redirect, url_for, flash, abort
 from config import Config
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-from forms import PostForm, ReplyForm, CreateBetForm, PlaceBetForm, SignupForm, LoginForm
+from forms import PostForm, ReplyForm, CreateBetForm, PlaceBetForm, SignupForm, LoginForm, EditBetForm
 from datetime import datetime, timedelta, date
 from extensions import db
 from proj_models import User, Post, Reply, CreatedBets, ActiveBets, PlacedBets, EventResult, Friendship, FriendRequest
@@ -10,6 +10,8 @@ from sqlalchemy import func, or_, and_
 from flask_login import LoginManager, login_user, logout_user, current_user, login_required
 from sqlalchemy.orm import Session
 from werkzeug.utils import secure_filename
+from wtforms import DecimalField, SubmitField
+from wtforms.validators import DataRequired, NumberRange
 
 import os
 
@@ -49,15 +51,25 @@ def fetch_event_outcome(event_name):
     }
     return simulated_outcomes.get(event_name, None)
 
+def convert_timedelta(value):
+    if value is None:
+        return 0
+    if isinstance(value, (int, float)):
+        return float(value)
+    if isinstance(value, timedelta):
+        return value.total_seconds() / 3600
+    raise ValueError(f"Cannot convert {type(value)} to hours")
+
 # Serialize a bet object into a dictionary
 def serialize_bet(bet):
     serialized = {
+        "bet_id": bet.id,
         "event_name": bet.event_name,
         "bet_type_description": bet.bet_type_description,
         "bet_type": bet.bet_type,
         "odds": bet.odds,
         "scheduled_time": bet.scheduled_time.strftime("%Y-%m-%dT%H:%M:%S") if bet.scheduled_time else None,
-        "duration": bet.duration.total_seconds() if isinstance(bet.duration, timedelta) else bet.duration,
+        "duration": (bet.duration.total_seconds() / 3600) if isinstance(bet.duration, timedelta) else bet.duration,
         "status": bet.status
     }
 
@@ -291,15 +303,17 @@ def dashboard():
     update_bet_statuses()  # Call the function to update bet statuses
 
     user_id = current_user.id
+    current_date = datetime.now()
 
     # Fetch updated bets
     ongoing_bets = PlacedBets.query.filter_by(user_id=user_id, status="ongoing").all()
-    upcoming_bets = PlacedBets.query.filter_by(user_id=user_id, status="upcoming").all()
+    upcoming_bets = db.session.query(PlacedBets, ActiveBets.max_stake).join(ActiveBets, PlacedBets.game_id == ActiveBets.id).filter(       PlacedBets.user_id == current_user.id,
+        ActiveBets.scheduled_time > current_date
+    ).all()
     past_bets = PlacedBets.query.filter_by(user_id=user_id, status="past").order_by(PlacedBets.date_settled.desc()).all()
     created_bets = CreatedBets.query.filter_by(created_by=user_id).all()
 
-    # Fetch stats data for the charts
-    current_date = datetime.now()
+    
 
     # Helper function to calculate wins and losses
     def calculate_wins_and_losses(bets):
@@ -385,6 +399,8 @@ def dashboard():
             "losses": losses_count
         }
     }
+    
+    form = EditBetForm()
 
     # Pass all data to the template
     return render_template(
@@ -394,7 +410,8 @@ def dashboard():
         past_bets=past_bets,
         last_5_past_bets=past_bets[:5] if past_bets else [],
         created_bets=created_bets,
-        chart_data=chart_data
+        chart_data=chart_data,
+        form=form
     )
 
 @app.route('/dashboard/data')
@@ -429,13 +446,35 @@ def dashboard_data():
 
         # Fetch updated bets for the logged-in user
         ongoing_bets = [serialize_bet(bet) for bet in PlacedBets.query.filter_by(user_id=current_user.id, status="ongoing").all()]
-        upcoming_bets = [serialize_bet(bet) for bet in PlacedBets.query.filter_by(user_id=current_user.id, status="upcoming").all()]
+        #upcoming_bets = [serialize_bet(bet) for bet in PlacedBets.query.filter_by(user_id=current_user.id, status="upcoming").all()]
         past_bets = [serialize_bet(bet) for bet in PlacedBets.query.filter_by(user_id=current_user.id, status="past").all()]
         created_bets = [serialize_bet(bet) for bet in CreatedBets.query.filter_by(created_by=current_user.id).all()]
 
+        # Query PlacedBets + join ActiveBets to get max_stake
+        bets_with_max_stake = (
+            db.session.query(PlacedBets, ActiveBets.max_stake)
+            .join(ActiveBets, PlacedBets.game_id == ActiveBets.id)  # Join condition
+            .filter(
+                PlacedBets.user_id == current_user.id,
+                PlacedBets.status == "upcoming"
+            )
+            .all()
+        )
+
+        # Convert each result into a dict (including max_stake)
+        result = []
+        for placed_bet, max_stake in bets_with_max_stake:
+            bet_dict = {
+                **{k: v for k, v in placed_bet.__dict__.items() 
+                if not k.startswith('_')},  # Filter out SQLAlchemy internals
+                "max_stake": max_stake,
+                "duration": convert_timedelta(placed_bet.duration)  # Convert timedelta to hours
+            }
+            result.append(bet_dict)
+
         return jsonify({
             "ongoing_bets": ongoing_bets,
-            "upcoming_bets": upcoming_bets,
+            "upcoming_bets": result,
             "past_bets": past_bets,
             "created_bets": created_bets
         })
@@ -490,13 +529,15 @@ def create_bet():
 # Route for active bets page
 @app.route("/active_bets")
 def active_bets():
-    current_time = datetime.now() 
+    current_time = datetime.now()
     bets = ActiveBets.query.filter(
         ActiveBets.scheduled_time > current_time
     ).all()
-    already_bet = ActiveBets.query.filter()
+    already_bet = []
+    if current_user.is_authenticated:
+        already_bet = [bet.game_id for bet in PlacedBets.query.filter_by(user_id=current_user.id).all()]
     form = PlaceBetForm()
-    return render_template("active_bets.html", bets=bets, form=form)
+    return render_template("active_bets.html", bets=bets, form=form, betted=already_bet)
 
 
 # Route for placing a bet
@@ -519,10 +560,16 @@ def place_bet(bet_id):
         # Ensure the user is not betting on their own event
         if bet.created_by == current_user.id:  
             return redirect(url_for('active_bets'))
+        
+        # Check against max bet
+        if amount > bet.max_stake:
+            flash(f'Stake cannot exceed ${bet.max_stake}', 'error')
+            return redirect(url_for('active_bets'))
 
         # Add the bet to the PlacedBets table
         new_placed_bet = PlacedBets(
             user_id=current_user.id,  # Use current_user.id
+            game_id=bet_id,
             event_name=bet.event_name,
             bet_type_description=bet.bet_type_description,
             bet_type=bet.bet_type,
@@ -545,6 +592,79 @@ def place_bet(bet_id):
 
     return redirect(url_for('active_bets'))
 
+@app.route('/get_bet_data/<int:bet_id>')
+@login_required
+def get_bet_data(bet_id):
+    bet = PlacedBets.query.get_or_404(bet_id)
+    if bet.user_id != current_user.id:
+        abort(403)
+    return jsonify({
+        'stake_amount': bet.stake_amount,
+        # Add other fields
+    })
+
+@app.route('/dashboard/check_currency', methods=['POST'])
+@login_required
+def check_currency():
+    data = request.get_json()
+    bet_id = data.get('bet_id')
+    new_stake = float(data.get('new_stake'))
+    
+    # Get current bet stake
+    bet = PlacedBets.query.get(bet_id)
+    if bet.user_id != current_user.id:
+        abort(403)
+    
+    # Calculate currency difference
+    stake_diff = new_stake - bet.stake_amount
+    
+    # Check if user has enough currency
+    enough_currency = current_user.currency >= stake_diff
+    
+    return jsonify({
+        'enough_currency': enough_currency,
+        'current_currency': current_user.currency,
+        'required_diff': stake_diff
+    })
+
+@app.route('/dashboard/update_bet', methods=['POST'])
+@login_required
+def update_bet():
+    data = request.get_json()
+    bet_id = data.get('bet_id')
+    new_stake = float(data.get('new_stake'))
+    
+    try:
+        # Get the bet
+        bet = PlacedBets.query.get_or_404(bet_id)
+        if bet.user_id != current_user.id:
+            abort(403)
+        
+        # Calculate currency difference
+        stake_diff = new_stake - bet.stake_amount
+        
+        # Update user currency
+        current_user.currency -= stake_diff
+        
+        # Update bet
+        bet.stake_amount = new_stake
+        bet.potential_winnings = round(new_stake * bet.odds,2)
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'new_currency': current_user.currency,
+            'new_stake': new_stake,
+            'new_potential_winnings': bet.potential_winnings
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 400
 
 @app.route("/forum")
 @login_required

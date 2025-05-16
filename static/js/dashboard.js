@@ -300,6 +300,7 @@ function refreshDashboardData() {
             return response.json();
         })
         .then(data => {
+            console.log("Raw data:", data);
             updateDashboardTables(data); // Update all tables
             initializeTimeRemaining(); // Reinitialize countdown logic
             
@@ -310,7 +311,7 @@ function refreshDashboardData() {
 // Periodically refresh the dashboard data
 setInterval(() => {
     refreshDashboardData();
-}, 10000); // Refresh every 10 seconds
+}, 30000); // Refresh every 10 seconds
 
  
 // Update all dashboard tables with data
@@ -329,7 +330,7 @@ function updateDashboardTables(data) {
     }
 
     // Sort Ongoing Bets by time remaining (ascending - soonest ending first)
-    const sortedOngoingBets = data.ongoing_bets.sort((a, b) => {
+    const sortedOngoingBets = (data.ongoing_bets || []).sort((a, b) => {
         const endTimeA = new Date(a.scheduled_time).getTime() + a.duration * 60 * 60 * 1000;
         const endTimeB = new Date(b.scheduled_time).getTime() + b.duration * 60 * 60 * 1000;
         const timeRemainingA = endTimeA - Date.now();
@@ -337,9 +338,16 @@ function updateDashboardTables(data) {
         return timeRemainingA - timeRemainingB; // Ascending order
     });
 
+    // Sort Upcoming Bets by scheduled time (soonest first)
+    const sortedUpcomingBets = data.upcoming_bets.sort((a, b) => new Date(a.scheduled_time) - new Date(b.scheduled_time));
+    const sortedUpcomingBetswidget = data.upcoming_bets.sort((a, b) => new Date(a.scheduled_time) - new Date(b.scheduled_time));
+    console.log(sortedUpcomingBetswidget);
+    // Sort Past Bets by date settled (latest finished first)
+    const sortedPastBets = data.past_bets.sort((a, b) => new Date(b.date_settled) - new Date(a.date_settled));
+
     // Update Ongoing Bets table
     updateTable(
-        '#ongoing .widget-table tbody',
+        '#mybets .widget:nth-child(2) table tbody',
         sortedOngoingBets,
         bet => `
         <tr>
@@ -355,15 +363,12 @@ function updateDashboardTables(data) {
         "No ongoing bets"
     );
 
-    // Sort Upcoming Bets by scheduled time (soonest first)
-    const sortedUpcomingBets = data.upcoming_bets.sort((a, b) => new Date(a.scheduled_time) - new Date(b.scheduled_time));
-
     // Update Upcoming Bets table
     updateTable(
-        '#upcoming tbody',
-        sortedUpcomingBets,
+        '#mybets .widget:nth-child(3) table tbody',
+        sortedUpcomingBetswidget,
         bet => `
-        <tr>
+        <tr data-bet-id="${bet.id}" data-max-stake="${bet.max_stake}">
             <td>${bet.event_name}</td>
             <td>${bet.bet_type_description}</td>
             <td>${bet.bet_type}</td>
@@ -376,8 +381,46 @@ function updateDashboardTables(data) {
         "No upcoming bets"
     );
 
-    // Sort Past Bets by date settled (latest finished first)
-    const sortedPastBets = data.past_bets.sort((a, b) => new Date(b.date_settled) - new Date(a.date_settled));
+    // Update Past Bets table
+    updateTable(
+        '#mybets .widget:nth-child(4) table tbody',
+        sortedPastBets,
+        bet => `
+        <tr>
+            <td>${bet.event_name}</td>
+            <td>${bet.bet_type_description}</td>
+            <td>${bet.bet_type}</td>
+            <td>$${bet.stake_amount}</td>
+            <td>${bet.odds}</td>
+            <td>${bet.actual_winnings > 0 ? "Win" : "Loss"}</td>
+            <td>$${bet.actual_winnings}</td>
+            <td>${bet.date_settled ? formatDateTime(bet.date_settled) : 'N/A'}</td>
+        </tr>
+        `,
+        "No past bets"
+    );
+
+    
+
+    // Update Upcoming Bets table
+    updateTable(
+        '#upcoming tbody',
+        sortedUpcomingBets,
+        bet => `
+        <tr data-bet-id="${bet.id}" data-max-stake="${bet.max_stake}">
+            <td>${bet.event_name}</td>
+            <td>${bet.bet_type_description}</td>
+            <td>${bet.bet_type}</td>
+            <td>$${bet.stake_amount}</td>
+            <td>${bet.odds}</td>
+            <td>${formatDateTime(bet.scheduled_time)}</td>
+            <td>$${bet.potential_winnings}</td>
+        </tr>
+        `,
+        "No upcoming bets"
+    );
+
+    
 
     // Update Past Bets table
     updateTable(
@@ -428,11 +471,12 @@ function updateDashboardTables(data) {
             <td>${bet.odds}</td>
             <td>${formatDateTime(bet.scheduled_time)}</td>
             <td>${bet.duration}</td>
-            <td>${bet.status}</td>  
+            <td>${bet.status}</td>
         </tr>
         `,
         "No created bets"
     );
+    applyRowClickHandlers()
 }
 
 // Helper function to update table content
@@ -504,3 +548,135 @@ document.addEventListener('DOMContentLoaded', () => {
         initializeChartsWithServerData();
     }
 });
+
+function applyRowClickHandlers() {
+    const closeModal = () => {
+        document.getElementById('editBetModal').style.display = 'none';
+    };
+
+    // Store the clicked row reference for later update
+    let currentEditedRow = null;
+
+    // Make upcoming bets rows clickable
+    document.querySelectorAll('#upcoming .widget-table tbody tr, #mybets .widget:nth-child(3) tbody tr').forEach(row => {
+        row.style.cursor = 'pointer';
+        
+        row.addEventListener('click', (e) => {
+            if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON') return;
+            
+            const cells = row.cells;
+            const betId = row.dataset.betId;
+            console.log("Sending betId:", betId);
+            const scheduledTime = new Date(cells[5].textContent);
+            const currentTime = new Date();
+            
+            // Check if bet is editable
+            if (scheduledTime <= currentTime) {
+                alert("This bet can no longer be edited as it's in progress or completed.");
+                return;
+            }
+            
+            // Get max stake from the row data
+            const maxStake = parseFloat(row.dataset.maxStake);
+
+            // Populate modal
+            document.getElementById('editBetId').value = betId;
+            document.getElementById('editEventName').textContent = cells[0].textContent;
+            document.getElementById('editBetType').textContent = cells[2].textContent;
+            document.getElementById('editOdds').textContent = cells[4].textContent;
+            document.getElementById('editScheduledTime').textContent = cells[5].textContent;
+            document.getElementById('editStake').value = parseFloat(cells[3].textContent.replace('$', ''));
+            document.getElementById('editMaxStake').value = maxStake;
+            document.getElementById('maxStakeDisplay').textContent = maxStake.toFixed(2);
+            
+            // Set max attribute dynamically
+            document.getElementById('editStake').max = maxStake;
+            
+            // Show modal
+            document.getElementById('editBetModal').style.display = 'block';
+        });
+    });
+
+    // Close modal when clicking X
+    document.querySelector('.close-modal').addEventListener('click', closeModal);
+
+    // Form submission handler
+    document.getElementById('editBetForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const stakeInput = document.getElementById('editStake');
+        const maxStake = parseFloat(document.getElementById('editMaxStake').value);
+        const newStake = parseFloat(stakeInput.value);
+        const betId = document.getElementById('editBetId').value;
+        
+        // Validate stake amount
+        if (newStake > maxStake) {
+            alert(`Stake cannot exceed $${maxStake.toFixed(2)}`);
+            stakeInput.focus();
+            return;
+        }
+        
+        try {
+            // 1. Check if user has enough currency
+            const response = await fetch('/dashboard/check_currency', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    bet_id: betId,
+                    new_stake: newStake
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(result.error || 'Failed to update bet');
+            }
+            
+            if (!result.enough_currency) {
+                alert("You don't have enough currency for this stake amount");
+                return;
+            }
+            
+            // 2. Update the bet in database
+            const updateResponse = await fetch('/dashboard/update_bet', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    bet_id: betId,
+                    new_stake: newStake
+                })
+            });
+            
+            const updateResult = await updateResponse.json();
+            
+            if (!updateResponse.ok) {
+                throw new Error(updateResult.error || 'Failed to update bet');
+            }
+            
+            // 3. Update the frontend display
+            if (currentEditedRow) {
+                // Update stake amount cell
+                currentEditedRow.cells[3].textContent = `$${newStake.toFixed(2)}`;
+                
+                // Update potential winnings if needed
+                const odds = parseFloat(currentEditedRow.cells[4].textContent);
+                currentEditedRow.cells[6].textContent = `$${(newStake * odds).toFixed(2)}`;
+            }
+            
+            // Refresh dashboard data
+            refreshDashboardData();
+            
+            // Close modal
+            closeModal();
+            
+        } catch (error) {
+            console.error('Error updating bet:', error);
+            alert('Failed to update bet. Please try again.');
+        }
+    });
+}
