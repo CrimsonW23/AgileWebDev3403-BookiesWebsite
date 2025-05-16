@@ -560,13 +560,13 @@ def forum():
     if friend_ids:
         privacy_filter = or_(
             Post.privacy == 'public',
-            and_(Post.privacy == 'friends', Post.author.in_(friend_ids)),
-            Post.author== current_user.id
+            and_(Post.privacy == 'friends', Post.author_id.in_(friend_ids)),
+            Post.author_id == current_user.id
         )
     else:
         privacy_filter = or_(
             Post.privacy == 'public',
-            Post.author == current_user.id
+            Post.author_id == current_user.id
         )
 
     # Start query with privacy filter
@@ -736,7 +736,7 @@ def create_post():
             body=form.post.data,
             category=form.category.data,
             timestamp=datetime.now().replace(second=0, microsecond=0),
-            author=current_user.id,  
+            author_id=current_user.id,  
             title=form.title.data,
             privacy=form.privacy.data
         )
@@ -754,7 +754,7 @@ def view_post(post_id):
         reply = Reply(
             body=form.reply.data,
             timestamp=datetime.now().replace(second=0, microsecond=0),
-            author=current_user.id,
+            author_id=current_user.id,
             post_id=post_id
         )
         db.session.add(reply)

@@ -15,8 +15,6 @@ class User(db.Model, UserMixin):
     dob = db.Column(db.Date, nullable=True)
     currency = db.Column(db.Float, default=0.0, index=True)  
     date_joined = db.Column(db.DateTime, default=datetime.utcnow)  
-    posts = db.relationship('Post', backref='user', lazy='dynamic')  # One-to-many relationship with Post
-    replies = db.relationship('Reply', backref='user', lazy='dynamic')  # One-to-many relationship with Reply
     created_bets = db.relationship('CreatedBets', backref='creator', lazy=True)
     placed_bets = db.relationship('PlacedBets', backref='bettor', lazy=True)
     active = db.Column(db.Boolean, default=True)  # For Flask-Login
@@ -102,9 +100,13 @@ class Post(db.Model):
     body = db.Column(db.String(150), index=True, unique=False)
     category = db.Column(db.String(25), index=True, unique=False)
     timestamp = db.Column(db.DateTime, index=True, default=lambda: datetime.now().replace(second=0, microsecond=0))
-    author = db.Column(db.Integer, db.ForeignKey('user.id', name='fk_post_user'), nullable=False)   
-    replies = db.relationship('Reply', backref='post', lazy='dynamic')  # One-to-many relationship with Reply
-    privacy = db.Column(db.String(20), nullable=False, default='public') 
+    
+    # Foreign key references User.id
+    author_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    author = db.relationship('User', backref='posts')
+
+    replies = db.relationship('Reply', backref='post', lazy='dynamic')
+    privacy = db.Column(db.String(10), nullable=False, default='public') 
     
     @property
     def most_recent_reply(self):
@@ -113,18 +115,20 @@ class Post(db.Model):
         return self.replies.order_by(Reply.timestamp.desc()).first()
 
     def __repr__(self):
-        return 'Post "{}"'.format(self.body)
+        return f'Post "{self.body}"'
 
 class Reply(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    body = db.Column(db.String(150), index=True, unique=False)
+    body = db.Column(db.String(150), index=True)
     timestamp = db.Column(db.DateTime, index=True, default=lambda: datetime.now().replace(second=0, microsecond=0))
-    author = db.Column(db.Integer, db.ForeignKey('user.id')) # Assuming author is a string for simplicity
-    post_id = db.Column(db.Integer, db.ForeignKey('post.id'))   
 
+    author_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    author = db.relationship('User', backref='replies')
+
+    post_id = db.Column(db.Integer, db.ForeignKey('post.id'))
 
     def __repr__(self):
-        return 'Reply "{}"'.format(self.body)
+        return f'Reply "{self.body}"'
 
 class CreatedBets(db.Model):
     id = db.Column(db.Integer, primary_key=True)
