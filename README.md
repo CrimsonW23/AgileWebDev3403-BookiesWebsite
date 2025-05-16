@@ -59,7 +59,7 @@ Quickly move to launching instructions for:
     flask db upgrade
 
 #### 8. Set your secret key (First Launch ONLY):
-    echo 'SECRET_KEY="<secret_key>"' >> .env
+    echo SECRET_KEY="<secret_key>" >> .env
    - Creates a `.env` file that will contain your secret key
    - Your secret key can be anything
    - This step does not need to be repeated when launching your app again.<br>
@@ -95,7 +95,7 @@ Quickly move to launching instructions for:
     flask db upgrade
    
 #### 8. Set the secret key environment variable (First Launch ONLY):
-    echo 'SECRET_KEY="<secret_key>"' >> .env
+    echo SECRET_KEY="<secret_key>" >> .env
    - Creates a `.env` file that will contain your secret key
    - Your secret key can be anything
    - This step does not need to be repeated when launching your app again.<br>
