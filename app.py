@@ -8,7 +8,7 @@ from extensions import db
 from proj_models import User, Post, Reply, CreatedBets, ActiveBets, PlacedBets, EventResult, Friendship, FriendRequest
 from sqlalchemy import func, or_, and_
 from flask_login import LoginManager, login_user, logout_user, current_user, login_required
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from werkzeug.utils import secure_filename
 
 import os
@@ -256,25 +256,32 @@ def login():
         username = form.username.data.strip().lower()
         password = form.password.data
 
-    user = User.query.filter(
-        (func.lower(User.username) == username) | 
-        (func.lower(User.email) == username)
-    ).first()
+        user = User.query.filter(
+            (func.lower(User.username) == username) | 
+            (func.lower(User.email) == username)
+        ).first()
 
-    if not user or not user.check_password(password):
-        return jsonify({
-            "success": False,
-            "message": "Invalid Username/Email or Password"
-        }) 
- 
-    db.session.commit()
+        if not user or not user.check_password(password):
+            return jsonify({
+                "success": False,
+                "message": "Invalid Username/Email or Password"
+            }) 
     
-    # Force session creation
-    login_user(user, remember=True, force=True)
+        db.session.commit()
+    
+        # Force session creation
+        login_user(user, remember=True, force=True)
 
+        return jsonify({
+            "success": True,
+            "redirect": url_for('global_home')
+        })
+        
+    # Return if form validation fails
     return jsonify({
-        "success": True,
-        "redirect": url_for('global_home')
+        "success": False,
+        "message": "Form validation failed",
+        "errors": form.errors
     })
 
 # Route for logging out
@@ -569,8 +576,7 @@ def forum():
             Post.author_id == current_user.id
         )
 
-    # Start query with privacy filter
-    query = Post.query.filter(privacy_filter)
+    query = Post.query.options(joinedload(Post.author)).filter(privacy_filter)
 
     # Filter by category if selected_category is not 'all'
     if selected_category != 'all':
