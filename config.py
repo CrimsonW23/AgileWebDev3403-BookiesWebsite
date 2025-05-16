@@ -20,3 +20,14 @@ class Config(object):
 
     UPLOAD_FOLDER = "static/uploads/avatars"
     ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
+
+class TestingConfig(object):
+    TESTING = True
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///test.db'
+    
+    SQLALCHEMY_BINDS = {
+        "friends": (
+            os.environ.get("FRIENDS_DATABASE_URL")
+            or f"sqlite:///{os.path.join(basedir, 'friends.db')}"
+        )
+    }

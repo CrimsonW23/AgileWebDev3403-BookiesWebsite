@@ -13,11 +13,17 @@ from werkzeug.utils import secure_filename
 
 import os
 
-app = Flask(__name__)
-app.config.from_object(Config)
+def create_app(config_class):
+    app = Flask(__name__)
+    app.config.from_object(config_class)
+
+    db.init_app(app)
+
+    return app
+
+app = create_app(Config)
 app.secret_key = Config.SECRET_KEY
 
-db.init_app(app)
 migrate = Migrate(app, db)
 
 login_manager = LoginManager()
@@ -211,7 +217,7 @@ def signup():
                 flash("The email is already registered. Please use a different email", 'error')
             if existing_user.username == username:
                 flash("The username is already taken. Please choose a different one", 'error')
-            return render_template("signup.html", form=form)
+            return render_template('signup.html', form=form)
         
         # Create a new user
         try:
