@@ -494,6 +494,7 @@ def active_bets():
     bets = ActiveBets.query.filter(
         ActiveBets.scheduled_time > current_time
     ).all()
+    already_bet = ActiveBets.query.filter()
     form = PlaceBetForm()
     return render_template("active_bets.html", bets=bets, form=form)
 
@@ -527,7 +528,7 @@ def place_bet(bet_id):
             bet_type=bet.bet_type,
             stake_amount=amount,
             odds=bet.odds,
-            potential_winnings=float(amount) * float(bet.odds),
+            potential_winnings=round(float(amount) * float(bet.odds),2),
             scheduled_time=bet.scheduled_time,
             duration=bet.duration,
             status="upcoming"  
